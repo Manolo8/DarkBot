@@ -15,6 +15,7 @@ public class LootNCollectorModule implements Module {
     private HeroManager hero;
     private Drive drive;
     private Config config;
+    private long tiempo = System.currentTimeMillis();
 
     public LootNCollectorModule() {
         this.lootModule = new LootModule();
