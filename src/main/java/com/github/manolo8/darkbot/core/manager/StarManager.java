@@ -274,24 +274,30 @@ public class StarManager {
                 new Portal(150000212, 307)
         );
 
+        add(401,"EX1");
+        add(402,"EX2-1");
+        add(403,"EX2-2");
+        add(404,"EX2-3");
+
         //NEW MAPS
 
         // GG
-        //add(51, "GG α");         // portal type: 2
-        //add(52, "GG β");         // portal type: 3
-        //add(53, "GG γ");         // portal type: 4
-        //add(55, "GG δ");         // portal type: 5
-        //add(??, "GG ε");         // portal type: 53
-        //add(73, "GG ζ");         // portal type: 54
-        //add(74, "GG κ");         // portal type: 70
-        //add(203, "GG Hades");    // portal type: 74
+        add(51, "GG Alpha α");         // portal type: 2
+        add(52, "GG Beta β");         // portal type: 3
+        add(53, "GG Gamma γ");         // portal type: 4
+        add(55, "GG Delta δ");         // portal type: 5
+        //add(??, "GG Epsilon ε");         // portal type: 53
+        add(73, "GG Zeta ζ");         // portal type: 54
+        add(74, "GG Kappa κ");         // portal type: 70
+        add(75, "GG Lambda λ");         // portal type: ??
+        add(203, "GG Hades");    // portal type: 74
         //add(300, "GG Kuiper 1"); // portal type: 82
         //add(301, "GG Kuiper 2"); // portal type: 82
         //add(302, "GG Kuiper 3"); // portal type: 82
         //add(303, "GG Kuiper 4"); // portal type: 82
         //add(304, "GG Kuiper 5"); // portal type: 82
 
-        //add(200, "LoW");         // portal type: 34
+        add(200, "LoW");         // portal type: 34
         //add(??, "QZ");           // portal type: 84
         // GG
 

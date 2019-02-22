@@ -89,6 +89,7 @@ public class LootModule implements Module {
                 }
 
             } else {
+
                 target.setTimerTo(5000);
                 target = null;
             }

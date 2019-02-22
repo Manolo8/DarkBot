@@ -10,6 +10,7 @@ import com.github.manolo8.darkbot.core.manager.*;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.gui.MainGui;
 import com.github.manolo8.darkbot.modules.CollectorModule;
+import com.github.manolo8.darkbot.modules.GateModule;
 import com.github.manolo8.darkbot.modules.LootModule;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 import com.github.manolo8.darkbot.utils.ByteArrayToBase64TypeAdapter;
@@ -254,6 +255,11 @@ public class Main extends Thread {
             case 2:
                 if (isNotModule(LootNCollectorModule.class)) {
                     setModule(new LootNCollectorModule());
+                }
+                break;
+            case 3:
+                if (isNotModule(GateModule.class)) {
+                    setModule(new GateModule());
                 }
                 break;
             default:
