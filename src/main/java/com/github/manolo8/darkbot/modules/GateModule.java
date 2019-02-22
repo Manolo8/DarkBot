@@ -31,9 +31,11 @@ public class GateModule implements Module {
    private Npc current;
    private Main main;
 
+   private int times;
    private boolean direction;
    private boolean repairing;
    private boolean locked;
+   private boolean sab;
 
    private LocationInfo safe;
 
@@ -44,11 +46,11 @@ public class GateModule implements Module {
    @Override
    public void install(Main main) {
        this.main = main;
+       drive = main.hero.drive;
+       config = main.config;
        npcs = main.mapManager.entities.npcs;
        hero = main.hero;
-       this.drive = main.hero.drive;
        mapManager = main.mapManager;
-       this.config = main.config;
    }
 
    @Override
@@ -110,7 +112,17 @@ public class GateModule implements Module {
        return id == 51 || id == 52 || id == 53 || id == 75;
    }
 
-    private void tickNormalMode() {
+   private void tickNormalMode() {
+       if (main.mapManager.isTarget(current)) {
+           if (checkIfIsAttackingAndCanContinue()) {
+               checkSab();
+           }
+       } else {
+           setTargetAndTryStartLaserAttack();
+       }
+   }
+
+    private void setTargetAndTryStartLaserAttack() {
         if (hero.locationInfo.distance(current) < 800 && System.currentTimeMillis() - clickDelay > 1000) {
 
             hero.setTarget(current);
@@ -119,11 +131,42 @@ public class GateModule implements Module {
             API.keyboardClick(getAttackKey());
             clickDelay = System.currentTimeMillis();
             locked = true;
-
+            times = 0;
         } else if (!locked) {
             current = null;
         }
 
+    }
+
+    private boolean checkIfIsAttackingAndCanContinue() {
+
+        long laser = System.currentTimeMillis() - laserTime;
+
+        boolean attacking = hero.isAttacking(current);
+        boolean bugged = (!current.health.isDecreasedIn(1000) && laser > 1000);
+
+        if ((!attacking || bugged) && hero.locationInfo.distance(current) < 800 && laser > 1500 + times * 10000) {
+            setRadiusAndClick(2);
+            times++;
+            laserTime = System.currentTimeMillis();
+        }
+
+        return true;
+    }
+
+    private void checkSab() {
+        if (config.AUTO_SAB && hero.health.shieldPercent() < config.LOOT.SAB_PERCENT
+                && current.health.shield > config.LOOT.SAB_NPC_AMOUNT) {
+
+            if (!sab) {
+                API.keyboardClick(config.AUTO_SAB_KEY);
+                sab = true;
+            }
+
+        } else if (sab) {
+            API.keyboardClick(getAttackKey());
+            sab = false;
+        }
     }
 
     private void setRadiusAndClick(int times) {
