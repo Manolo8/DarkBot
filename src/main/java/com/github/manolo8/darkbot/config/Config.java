@@ -45,6 +45,9 @@ public class Config {
             @Editor(JListField.class)
             @Options(ReviveSpotSupplier.class)
             public long REVIVE_LOCATION = 1L;
+            @Option("Wait after revive (sec)")
+            @Num(max = 60 * 60, step = 10)
+            public int WAIT_AFTER_REVIVE = 90;
         }
     }
 
@@ -102,6 +105,14 @@ public class Config {
         @Option(value = "Collect radius", description = "Resource collection radius while killing NPCs")
         @Num(max = 10000, step = 50)
         public int RADIUS = 400;
+    }
+
+    public @Option("Event") Event EVENT = new Event();
+    public static class Event {
+        @Option(value = "Offensive ship ability")
+        public Character SHIP_ABILITY;
+        @Option(value = "Complete event progress", description = "If the bot should click on the event progress")
+        public boolean PROGRESS = true;
     }
 
 

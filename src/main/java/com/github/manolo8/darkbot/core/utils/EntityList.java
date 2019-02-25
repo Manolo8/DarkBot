@@ -113,6 +113,10 @@ public class EntityList extends Updatable {
                 boxes.add(whenAdd(new Box(id), found));
             } else if (id <= 150000499 && id >= 150000156) {
                 portals.add(whenAdd(main.starManager.fromIdPortal(id), found));
+            } else if (main.hero.map.id > 400 && main.hero.map.id < 405 && id >= 150000500 && id <= 150000600) {
+                // Beacons, map ids TBD (experiment zone ids)
+                // EX 2-1 -> 150000514, 150000515 | EX 2-2 -> 150000512 | EX 2-3 -> 150000513 | EX 4-4 -> 150000566
+                npcs.add(whenAdd(new Npc(id), found));
             } else if (id <= 150000950 && id >= 150000500) {
                 int hullId = API.readMemoryInt(found + 116);
                 battleStations.add(whenAdd(new BattleStation(id, hullId), found));
@@ -199,21 +203,24 @@ public class EntityList extends Updatable {
     }
 
     private void clear() {
+        synchronized (Main.UPDATE_LOCKER) {
+            ids.clear();
 
-        ids.clear();
+            obstacles.clear();
 
-        obstacles.clear();
-
-        for (List<? extends Entity> entities : allEntities) {
-            for (Entity entity : entities) {
-                entity.removed = true;
+            for (List<? extends Entity> entities : allEntities) {
+                for (Entity entity : entities) {
+                    entity.removed = true;
+                }
+                entities.clear();
             }
-            entities.clear();
         }
     }
 
     private void refreshRadius(boolean value) {
-        if (value) doInEachEntity(entity -> entity.clickable.setRadius(0));
-        else doInEachEntity(entity -> entity.clickable.reset());
+        synchronized (Main.UPDATE_LOCKER) {
+            if (value) doInEachEntity(entity -> entity.clickable.setRadius(0));
+            else doInEachEntity(entity -> entity.clickable.reset());
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.github.manolo8.darkbot.gui;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.gui.components.MainButton;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -153,24 +154,10 @@ public class MainGui extends JFrame {
                 configGui.setVisible(!configGui.isVisible());
             }
         });
-
-        copySid.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                String value = main.statsManager.sid;
-
-                if (value != null) {
-                    StringSelection selection = new StringSelection(value);
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
-                }
-
-            }
-        });
     }
 
     public void tick() {
         validate();
         repaint();
     }
-
 }

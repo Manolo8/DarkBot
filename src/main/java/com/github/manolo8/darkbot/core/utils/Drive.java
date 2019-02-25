@@ -27,6 +27,8 @@ public class Drive {
 
     private Location destination;
 
+    public long lastMoved;
+
     public Drive(HeroManager hero, MapManager map) {
         this.map = map;
         this.heroLocation = hero.locationInfo;
@@ -42,6 +44,8 @@ public class Drive {
 
         if (pathFinder.isEmpty() || !heroLocation.isLoaded())
             return;
+
+        lastMoved = System.currentTimeMillis();
 
         Location now = heroLocation.now;
         Location destination = pathFinder.current();
@@ -73,8 +77,10 @@ public class Drive {
         return pathFinder.canMove(location);
     }
 
-    public void stop() {
-        map.translateMouseMoveRelease(heroLocation.now.x, heroLocation.now.y);
+    public void stop(boolean current) {
+        if (current) {
+            map.translateMouseMoveRelease(heroLocation.now.x, heroLocation.now.y);
+        }
 
         if (!pathFinder.isEmpty()) {
             pathFinder.path().clear();
@@ -82,7 +88,7 @@ public class Drive {
     }
 
     public void clickCenter(int times) {
-        for (int i = 0; i != times; i++)
+        for (int i = 0; i < times; i++)
             map.translateMouseClick(heroLocation.now.x, heroLocation.now.y);
     }
 

@@ -39,6 +39,7 @@ public class MapDrawer extends JPanel {
     private Color ALLIES = Color.decode("#29B6F6");
     private Color ENEMIES = Color.decode("#d50000");
     private Color NPCS = Color.decode("#AA4040");
+    private Color TARGET = NPCS.darker();
     private Color PET = Color.decode("#004c8c");
     private Color PET_IN = Color.decode("#c56000");
     private Color HEALTH = Color.decode("#388e3c");
@@ -57,6 +58,7 @@ public class MapDrawer extends JPanel {
     protected Font FONT_BIG = new Font("Consolas", Font.PLAIN, 32);
     private Font FONT_MID = new Font(Font.SANS_SERIF, Font.PLAIN, 18);
     private Font FONT_SMALL = new Font("Consolas", Font.PLAIN, 12);
+    private Font FONT_TINY = new Font(Font.SANS_SERIF, Font.PLAIN, 9);
 
     private TreeMap<Long, Line> positions = new TreeMap<>();
 
@@ -209,8 +211,8 @@ public class MapDrawer extends JPanel {
         String info = "v" + Main.VERSION + " - Refresh: " +
                 (main.isRunning() ? Time.toString(System.currentTimeMillis() - main.lastRefresh) : "00") +
                 "/" + Time.toString(config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000);
-
         drawString(g2, info, 5, 12, Align.LEFT);
+        drawString(g2, main.module.status(), 5, 12 + 15, Align.LEFT);
 
         drawString(g2, pingManager.ping + " ms ping", width - 5, 12, Align.RIGHT);
         drawString(g2, String.format("%.1f ms tick", main.avgTick), width - 5, 24, Align.RIGHT);
@@ -266,11 +268,13 @@ public class MapDrawer extends JPanel {
 
     protected void drawStaticEntities(Graphics2D g2) {
         synchronized (Main.UPDATE_LOCKER) {
-            g2.setFont(FONT_SMALL);
+            g2.setFont(FONT_TINY);
             g2.setColor(PORTALS);
             for (Portal portal : portals) {
                 Location loc = portal.locationInfo.now;
                 g2.drawOval(translateX(loc.x) - 5, translateY(loc.y) - 5, 10, 10);
+                if (!config.MISCELLANEOUS.DEV_STUFF) continue;
+                drawString(g2, portal.id + "", translateX(loc.x), translateY(loc.y), Align.MID);
             }
 
             for (BattleStation station : this.battleStations) {
@@ -282,6 +286,10 @@ public class MapDrawer extends JPanel {
                 if (station.hullId >= 0 && station.hullId < 255)
                     g2.fillOval(translateX(loc.x) - 5, translateY(loc.y) - 4, 11, 9);
                 else drawEntity(g2, loc, false);
+
+                if (config.MISCELLANEOUS.DEV_STUFF) {
+                    drawString(g2,station.id + "", translateX(loc.x),translateY(loc.y) + 5, Align.MID);
+                }
             }
 
             g2.setColor(this.BASES);
@@ -305,6 +313,14 @@ public class MapDrawer extends JPanel {
                 drawEntity(g2, ship.locationInfo.now, false);
             }
 
+            if (hero.target != null && !hero.target.removed) {
+                g2.setColor(GOING);
+                Location now = hero.target.locationInfo.now, later = hero.target.locationInfo.destinationInTime(200);
+                drawLine(g2, now.x, now.y, later.x, later.y);
+                g2.setColor(NPCS.darker());
+                drawEntity(g2, hero.target.locationInfo.now, true);
+            }
+
             if (!config.MISCELLANEOUS.DEV_STUFF) return;
 
             g2.setColor(UNKNOWN);
@@ -322,6 +338,7 @@ public class MapDrawer extends JPanel {
 
     private void drawHero(Graphics2D g2) {
         g2.setColor(TEXT);
+        g2.setFont(FONT_SMALL);
         drawString(g2, hero.config + "C", 12, height - 12, Align.LEFT);
 
         g2.setColor(GOING);
@@ -390,6 +407,7 @@ public class MapDrawer extends JPanel {
         LEFT, MID, RIGHT
     }
     protected void drawString(Graphics2D g2, String str, int x, int y, Align align) {
+        if (str == null || str.isEmpty()) return;
         if (align != Align.LEFT) {
             int strWidth = g2.getFontMetrics().stringWidth(str);
             x -= strWidth >> (align == Align.MID ? 1 : 0);
@@ -404,7 +422,7 @@ public class MapDrawer extends JPanel {
     private void drawEntity(Graphics2D g2, Location loc, boolean fill) {
         int x = this.translateX(loc.x) - 1;
         int y = this.translateY(loc.y) - 1;
-        if (fill) g2.fillRect(x, y, 3, 3);
+        if (fill) g2.fillRect(x, y, 4, 4);
         else g2.drawRect(x, y, 3, 3);
     }
 

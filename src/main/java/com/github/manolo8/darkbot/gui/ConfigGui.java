@@ -6,7 +6,7 @@ import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcInfo;
 import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.modules.CollectorModule;
-import com.github.manolo8.darkbot.modules.GateModule;
+import com.github.manolo8.darkbot.modules.EventModule;
 import com.github.manolo8.darkbot.modules.LootModule;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 
@@ -54,7 +54,7 @@ public class ConfigGui extends JFrame {
     private JRadioButton moduleCollector;
     private JRadioButton moduleLoot;
     private JRadioButton moduleLootNCollector;
-    private JRadioButton moduleGate;
+    private JRadioButton moduleEvent;
     //GENERAL
 
     //COLLECT
@@ -136,7 +136,7 @@ public class ConfigGui extends JFrame {
         moduleCollector = new JRadioButton("Collector");
         moduleLoot = new JRadioButton("Loot");
         moduleLootNCollector = new JRadioButton("Loot and collector");
-        moduleGate = new JRadioButton("Gates");
+        moduleEvent = new JRadioButton("Event");
 
         repairHp = new JSlider();
         waitHp = new JSlider();
@@ -145,7 +145,7 @@ public class ConfigGui extends JFrame {
         group.add(moduleCollector);
         group.add(moduleLoot);
         group.add(moduleLootNCollector);
-        group.add(moduleGate);
+        group.add(moduleEvent);
 
         //GENERAL
 
@@ -378,10 +378,10 @@ public class ConfigGui extends JFrame {
         c.gridwidth = 1;
         generalPane.add(moduleLootNCollector, c);
         c.weightx = 0;
-        c.gridy = y;
-        c.gridx = 4;
+        c.gridy = ++y;
+        c.gridx = 1;
         c.gridwidth = 1;
-        generalPane.add(moduleGate, c);
+        generalPane.add(moduleEvent, c);
         //GENERAL
 
         //COLLECT
@@ -585,7 +585,7 @@ public class ConfigGui extends JFrame {
         moduleCollector.setSelected(config.CURRENT_MODULE == 0);
         moduleLoot.setSelected(config.CURRENT_MODULE == 1);
         moduleLootNCollector.setSelected(config.CURRENT_MODULE == 2);
-        moduleGate.setSelected(config.CURRENT_MODULE == 3);
+        moduleEvent.setSelected(config.CURRENT_MODULE == 3);
 
         npcTableMapFilter.addItem("ALL");
 
@@ -723,12 +723,12 @@ public class ConfigGui extends JFrame {
             main.setModule(new LootNCollectorModule());
         });
 
-        moduleGate.addItemListener(e -> {
+        moduleEvent.addItemListener(e -> {
 
             if (e.getStateChange() != ItemEvent.SELECTED) return;
 
             config.CURRENT_MODULE = 3;
-            main.setModule(new GateModule());
+            main.setModule(new EventModule());
         });
 
         //GENERAL
