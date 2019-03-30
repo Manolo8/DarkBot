@@ -2,25 +2,17 @@ package com.github.manolo8.darkbot.core;
 
 import java.nio.charset.StandardCharsets;
 
-public class DarkBotAPI {
+public class DarkBotAPI implements IDarkBotAPI {
 
     static {
         System.loadLibrary("DarkBot");
     }
 
     public void createWindow() {
-
-        Thread thread = new Thread(() -> {
-            try {
-                // Wait for main bot frame to load before opening the window
-                // This causes bot frames' icon to be the one displayed in the task bar.
-                Thread.sleep(2000);
-            } catch (InterruptedException ignore) {}
+        new Thread(() -> {
             createWindow0();
             System.exit(0);
-        });
-
-        thread.start();
+        }, "BotBrowser").start();
     }
 
     private native void createWindow0();
@@ -69,6 +61,8 @@ public class DarkBotAPI {
     }
 
     public native byte[] readMemory(long address, int length);
+
+    public native void writeMemoryDouble(long address, double value);
 
     public native void writeMemoryLong(long address, long value);
 

@@ -53,6 +53,14 @@ public class CollectorModule implements Module {
     }
 
     @Override
+    public String status() {
+        if (current == null) return "Roaming";
+
+        return current.isCollected() ? "Collecting " + current.type + " " + (waiting - System.currentTimeMillis()) + "ms"
+                : "Moving to " + current.type;
+    }
+
+    @Override
     public boolean canRefresh() {
         return isNotWaiting();
     }
@@ -82,7 +90,7 @@ public class CollectorModule implements Module {
             hero.runMode();
 
             main.setModule(new MapModule())
-                    .setTargetAndBack(main.starManager.fromId(main.config.WORKING_MAP));
+                    .setTargetAndBack(main.starManager.byId(main.config.WORKING_MAP));
 
             return false;
         }
@@ -107,10 +115,10 @@ public class CollectorModule implements Module {
     private void collectBox() {
         double distance = hero.locationInfo.distance(current);
 
-        if (distance < 100) {
+        if (distance < 200) {
             drive.stop(false);
             current.clickable.setRadius(800);
-            drive.clickCenter(1);
+            drive.clickCenter(true, current.locationInfo.now);
             current.clickable.setRadius(0);
 
             current.setCollected(true);
@@ -123,7 +131,7 @@ public class CollectorModule implements Module {
     }
 
     private void checkDangerous() {
-        if (config.STAY_AWAY_FROM_ENEMIES) {
+        if (config.COLLECT.STAY_AWAY_FROM_ENEMIES) {
 
             Location dangerous = findClosestEnemyAndAddToDangerousList();
 
@@ -132,12 +140,12 @@ public class CollectorModule implements Module {
     }
 
     private void checkInvisibility() {
-        if (config.AUTO_CLOACK
+        if (config.COLLECT.AUTO_CLOACK
                 && !hero.invisible
                 && System.currentTimeMillis() - invisibleTime > 60000
         ) {
             invisibleTime = System.currentTimeMillis();
-            API.keyboardClick(config.AUTO_CLOACK_KEY);
+            API.keyboardClick(config.COLLECT.AUTO_CLOACK_KEY);
         }
     }
 

@@ -90,7 +90,7 @@ public class GuiManager implements Manager {
         quests.update();
 
         if (runLoadChecks && quests.lastUpdatedIn(5000)) {
-            API.keyboardClick(main.config.AMMO_KEY);
+            API.keyboardClick(main.config.LOOT.AMMO_KEY);
             quests.show(false);
             runLoadChecks = false;
         }
@@ -99,7 +99,7 @@ public class GuiManager implements Manager {
     private void tryReconnect(Gui gui) {
         if (System.currentTimeMillis() - reconnectTime > 5000) {
             reconnectTime = System.currentTimeMillis();
-            API.mouseClick(gui.x + 46, gui.y + 180);
+            gui.click(46, 180);
         }
     }
 
@@ -145,20 +145,21 @@ public class GuiManager implements Manager {
 
         if (lostConnection.visible) {
             //Wait 15 seconds to reconnect
-            if (lostConnection.lastUpdatedIn(5000)) {
+            if (lostConnection.lastUpdatedIn(25000)) {
                 tryReconnect(lostConnection);
                 checkInvalid();
             }
             return false;
         } else if (connecting.visible) {
 
-            if (connecting.lastUpdatedIn(15000)) {
+            if (connecting.lastUpdatedIn(30000)) {
                 API.refresh();
                 connecting.reset();
             }
 
             return false;
         } else if (isDead()) {
+            main.hero.drive.stop(false);
 
             tryRevive();
 
@@ -172,9 +173,9 @@ public class GuiManager implements Manager {
         } else if (System.currentTimeMillis() - repairTime < main.config.GENERAL.SAFETY.WAIT_AFTER_REVIVE * 1000) {
             validTime = System.currentTimeMillis();
             return false;
-        } else if (main.hero.locationInfo.isMoving() ||
-                System.currentTimeMillis() - main.hero.drive.lastMoved > 20 * 1000) {
-            validTime = System.currentTimeMillis();
+        } else if (main.hero.locationInfo.isLoaded() && (main.hero.locationInfo.isMoving() ||
+                System.currentTimeMillis() - main.hero.drive.lastMoved > 20 * 1000)) {
+            validTime = System.currentTimeMillis() - main.pingManager.ping;
         }
 
         checkInvalid();

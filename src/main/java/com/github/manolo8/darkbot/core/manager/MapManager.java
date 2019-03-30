@@ -7,9 +7,12 @@ import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.itf.MapChange;
+import com.github.manolo8.darkbot.core.utils.ClickPoint;
 import com.github.manolo8.darkbot.core.utils.EntityList;
+import com.github.manolo8.darkbot.core.utils.Location;
 
 import static com.github.manolo8.darkbot.Main.API;
+import static java.lang.Math.random;
 
 public class MapManager implements Manager {
 
@@ -22,7 +25,7 @@ public class MapManager implements Manager {
     public long mapAddress;
     private long viewAddress;
     private long boundsAddress;
-    private long eventAddress;
+    long eventAddress;
 
     public static int id;
 
@@ -39,6 +42,8 @@ public class MapManager implements Manager {
     public double boundY;
     public double boundMaxX;
     public double boundMaxY;
+    public double width;
+    public double height;
 
     public MapManager(Main main) {
         this.main = main;
@@ -49,7 +54,6 @@ public class MapManager implements Manager {
 
     @Override
     public void install(BotInstaller botInstaller) {
-
         botInstaller.screenManagerAddress.add(value -> {
             mapAddressStatic = value + 256;
             viewAddressStatic = value + 216;
@@ -72,7 +76,6 @@ public class MapManager implements Manager {
     }
 
     private void update(long address) {
-
         mapAddress = address;
 
         internalWidth = API.readMemoryInt(address + 68);
@@ -82,7 +85,7 @@ public class MapManager implements Manager {
 
         if (tempId != id) {
             id = tempId;
-            main.hero.map = main.starManager.fromId(id);
+            main.hero.map = main.starManager.byId(id);
             preferred = ConfigEntity.INSTANCE.getOrCreatePreferred();
             avoided = ConfigEntity.INSTANCE.getOrCreateAvoided();
 
@@ -101,7 +104,6 @@ public class MapManager implements Manager {
     }
 
     void updateBounds() {
-
         long temp = API.readMemoryLong(viewAddressStatic);
 
         if (viewAddress != temp) {
@@ -119,6 +121,8 @@ public class MapManager implements Manager {
         boundY = API.readMemoryDouble(updated + 88);
         boundMaxX = API.readMemoryDouble(updated + 112);
         boundMaxY = API.readMemoryDouble(updated + 120);
+        width = boundMaxX - boundX;
+        height = boundMaxY - boundY;
     }
 
     public boolean isTarget(Entity entity) {
@@ -137,31 +141,4 @@ public class MapManager implements Manager {
         return API.readMemoryInt(temp + 40) == 1;
     }
 
-    public void translateMouseMove(double x, double y) {
-        API.mouseMove(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMousePress(double x, double y) {
-        API.mousePress(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMouseClick(double x, double y) {
-        API.mouseClick(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMouseMoveRelease(double x, double y) {
-        API.mouseRelease(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
 }

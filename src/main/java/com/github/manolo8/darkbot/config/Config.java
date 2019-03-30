@@ -18,6 +18,14 @@ import java.util.Map;
 public class Config {
 
     public int WORKING_MAP = 26;
+    public int CURRENT_MODULE;
+
+    // DEFINED AREAS
+    public Map<Integer, ZoneInfo> AVOIDED = new HashMap<>();
+    public Map<Integer, ZoneInfo> PREFERRED = new HashMap<>();
+    // DEFINED AREAS
+
+    public transient boolean changed;
 
     public @Option("General") General GENERAL = new General();
     public static class General {
@@ -54,35 +62,16 @@ public class Config {
         }
     }
 
-    public int CURRENT_MODULE;
-
-    //LOOT MODULE
-    public char AMMO_KEY = '3';
-    public boolean AUTO_SAB = true;
-    public char AUTO_SAB_KEY = '4';
-    //LOOT MODULE
-
-    //COLLECTOR MODULE
-    public boolean STAY_AWAY_FROM_ENEMIES;
-    public boolean AUTO_CLOACK;
-    public char AUTO_CLOACK_KEY;
-    //COLLECTOR MODULE
-
-    // DEFINED AREAS
-    public Map<Integer, ZoneInfo> AVOIDED = new HashMap<>();
-    public Map<Integer, ZoneInfo> PREFERRED = new HashMap<>();
-    // DEFINED AREAS
-
-    public transient boolean changed;
-
-    public transient Lazy<String> addedBox = new Lazy<>();
-    public transient Lazy<String> addedNpc = new Lazy<>();
-
     public @Option("Collect") Collect COLLECT = new Collect();
     public static class Collect {
+        public @Option("Stay away from enemies") boolean STAY_AWAY_FROM_ENEMIES;
+        public @Option("Auto cloack") boolean AUTO_CLOACK;
+        public @Option("Auto cloack key") char AUTO_CLOACK_KEY;
+
         @Option("Resources")
         @Editor(JBoxInfoTable.class)
         public Map<String, BoxInfo> BOX_INFOS = new HashMap<>();
+        public transient Lazy<String> ADDED_BOX = new Lazy<>();
     }
 
     public @Option("Loot") Loot LOOT = new Loot();
@@ -98,22 +87,31 @@ public class Config {
             @Option(value = "Max sight distance", description = "No longer consider enemies in sight if further away than this")
             @Num(min = 500, max = 20000, step = 500)
             public int MAX_SIGHT_DISTANCE = 4000;
+            @Option(value = "Jump portals to escape")
+            public boolean JUMP_PORTALS = true;
         }
 
-        @Option(value = "Run config when circling", description = "Use run config to follow escaping npcs")
-        public boolean RUN_CONFIG_IN_CIRCLE = true;
+        public @Option(value = "Sab", description = "Auto sab npcs to survive longer") Sab SAB = new Sab();
+        public static class Sab {
+            public @Option("Enabled") boolean ENABLED = true;
+            public @Option("Key") char KEY = '2';
+            public @Option("Ship under") @Editor(JPercentField.class) double PERCENT = 0.8;
+            public @Option("NPC min shield") @Num(min = 500, max = 100000, step = 500) int NPC_AMOUNT = 12000;
+        }
+        public @Option("Ammo key") char AMMO_KEY = '1';
+
         @Option(value = "Offensive ability key")
         public Character SHIP_ABILITY;
         @Option(value = "Offensive ability min health", description = "Min NPC health to use ability")
         @Num(min = 50_000, max = 5_000_000, step = 50_000)
         public int SHIP_ABILITY_MIN = 150_000;
-
-        public @Option("Sab when under") @Editor(JPercentField.class) double SAB_PERCENT = 0.8;
-        public @Option("Sab NPC min") @Num(min = 500, max = 100000, step = 500) int SAB_NPC_AMOUNT = 12000;
+        @Option(value = "Run config to chase", description = "Use run config to follow escaping npcs")
+        public boolean RUN_CONFIG_IN_CIRCLE = true;
 
         @Option("Npcs")
         @Editor(JNpcInfoTable.class)
         public Map<String, NpcInfo> NPC_INFOS = new HashMap<>();
+        public transient Lazy<String> ADDED_NPC = new Lazy<>();
     }
 
     public @Option("Loot & collect") LootNCollect LOOT_COLLECT = new LootNCollect();
@@ -127,7 +125,7 @@ public class Config {
     public static class Event {
         @Option(value = "Offensive ship ability")
         public Character SHIP_ABILITY;
-        @Option(value = "Complete event progress", description = "If the bot should click on the event progress")
+        @Option(value = "Complete event progress", description = "If the bot should clickLoc on the event progress")
         public boolean PROGRESS = true;
     }
 
@@ -143,29 +141,31 @@ public class Config {
 
     public @Option("Miscellaneous") Miscellaneous MISCELLANEOUS = new Miscellaneous();
     public static class Miscellaneous {
-        @Option(value = "Hide name", description = "Hide hero name in the map")
-        public boolean HIDE_NAME;
-        @Option(value = "Trail length", description = "Amount of time the trail should be in the map in seconds")
-        @Num(max = 300, step = 1)
-        public int TRAIL_LENGTH = 15;
+        public @Option("Display") Display DISPLAY = new Display();
+        public static class Display {
+            @Option(value = "Hide name", description = "Hide hero name in the map")
+            public boolean HIDE_NAME;
+            @Option(value = "Trail length", description = "Amount of time the trail should be in the map in seconds")
+            @Num(max = 300, step = 1)
+            public int TRAIL_LENGTH = 15;
+            @Option(value = "Show zones in main map", description = "Tick to show avoided/preferred zones on map")
+            public boolean SHOW_ZONES = true;
+            @Option(value = "Always on top", description = "Should the bot window stay on top of other windows?")
+            public boolean ALWAYS_ON_TOP = true;
+            @Option("Use darcula theme")
+            public boolean USE_DARCULA_THEME = true;
+        }
         @Option(value = "Zone precision", description = "Amount of map subdivisions when selecting zones")
         @Num(min = 10, max = 300)
         public int ZONE_RESOLUTION = 30;
-        @Option(value = "Show zones in main map", description = "Tick to show avoided/preferred zones on map")
-        public boolean SHOW_ZONES = true;
-        @Option(value = "Always on top", description = "Should the bot window stay on top of other windows?")
-        public boolean ALWAYS_ON_TOP = true;
-        @Option("Use darcula theme")
-        public boolean USE_DARCULA_THEME = true;
         @Option(value = "Refresh every", description = "Every how many minutes to refresh")
         @Num(max = 60 * 12, step = 10)
         public int REFRESH_TIME = 0;
-
         @Option("Developer stuff shown")
         public boolean DEV_STUFF = false;
+        @Option("Full debug & memory trace (Don't enable)")
+        public boolean FULL_DEBUG = false;
     }
-
-
 
     public static class ShipConfig {
         public ShipConfig() {}

@@ -9,6 +9,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.URI;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -35,7 +37,7 @@ public class MainGui extends JFrame {
         this.main = main;
 
         this.configGui = new ConfigGui(main);
-        configGui.setAlwaysOnTop(main.config.MISCELLANEOUS.ALWAYS_ON_TOP);
+        configGui.setAlwaysOnTop(main.config.MISCELLANEOUS.DISPLAY.ALWAYS_ON_TOP);
         configGui.setIconImage(icon);
 
         this.visible = true;
@@ -43,7 +45,7 @@ public class MainGui extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(640, 480);
         setLocationRelativeTo(null);
-        setAlwaysOnTop(main.config.MISCELLANEOUS.ALWAYS_ON_TOP);
+        setAlwaysOnTop(main.config.MISCELLANEOUS.DISPLAY.ALWAYS_ON_TOP);
         setIconImage(icon);
         setVisible(true);
 
@@ -138,13 +140,20 @@ public class MainGui extends JFrame {
         copySid.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                String value = main.statsManager.sid;
+                String sid = main.statsManager.sid,
+                        instance = main.statsManager.instance;
 
-                if (value != null) {
-                    StringSelection selection = new StringSelection(value);
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+                if (sid == null || sid.isEmpty()) return;
+
+                StringSelection selection = new StringSelection(sid);
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+
+                if (SwingUtilities.isRightMouseButton(e) || instance == null || instance.isEmpty()) return;
+                try {
+                    Desktop.getDesktop().browse(URI.create(instance + "?dosid=" + sid));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
-
             }
         });
 

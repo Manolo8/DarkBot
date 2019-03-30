@@ -103,7 +103,7 @@ public class EventModule implements Module {
         double distance = hero.locationInfo.distance(target);
         if (locked && !shooting) {
             if (distance > 550) return;
-            API.keyboardClick(config.AMMO_KEY);
+            API.keyboardClick(config.LOOT.AMMO_KEY);
             shooting = true;
             if (target.health.maxHp > 0) API.keyboardClick(config.EVENT.SHIP_ABILITY);
             return;
@@ -121,7 +121,7 @@ public class EventModule implements Module {
 
     private void setRadiusAndClick() {
         target.clickable.setRadius(800);
-        drive.clickCenter(1);
+        drive.clickCenter(true, target.locationInfo.now);
         target.clickable.setRadius(0);
     }
 
@@ -138,7 +138,7 @@ public class EventModule implements Module {
         boolean npcFollowing = target.locationInfo.isMoving() && (angleDiff < 1.25);
 
         if (target == hero.target && shooting && (hero.health.hpPercent() + hero.health.shieldPercent() < 0.8 ||
-                hero.health.isDecreasedIn(2000) || (hero.health.isDecreasedIn(60000) && npcFollowing))) {
+                hero.health.hpDecreasedIn(2000) || (hero.health.hpDecreasedIn(60000) && npcFollowing))) {
             distance = 800 - (hero.health.shieldPercent() * 300);
             angle += 0.2 + (random() * 0.1);
         } else {
@@ -171,8 +171,8 @@ public class EventModule implements Module {
             drop.setCollected(true);
 
             drive.stop(false);
-            drop.clickable.setRadius(1200);
-            drive.clickCenter(1);
+            drop.clickable.setRadius(800);
+            drive.clickCenter(true, target.locationInfo.now);
             drop.clickable.setRadius(0);
 
             waiting = System.currentTimeMillis() + hero.timeTo(distance) + 30 + 750;

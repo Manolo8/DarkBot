@@ -3,6 +3,7 @@ package com.github.manolo8.darkbot;
 import com.bulenkov.darcula.DarculaLaf;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.ConfigEntity;
+import com.github.manolo8.darkbot.core.IDarkBotAPI;
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.DarkBotAPI;
 import com.github.manolo8.darkbot.core.itf.Module;
@@ -22,16 +23,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 
 public class Main extends Thread {
-    public static final String VERSION = "1.13-beta15";
+    public static final String VERSION = "1.13.4 beta10";
 
     private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .setLenient()
             .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter()).create();
 
     public static final Object UPDATE_LOCKER = new Object();
 
-    public static DarkBotAPI API;
+    public static IDarkBotAPI API;
 
     public final MapManager mapManager;
     public final StarManager starManager;
@@ -39,6 +43,7 @@ public class Main extends Thread {
     public final GuiManager guiManager;
     public final StatsManager statsManager;
     public final PingManager pingManager;
+    public final BackpageManager backpage;
 
     public final Lazy.Sync<Boolean> status;
 
@@ -53,15 +58,17 @@ public class Main extends Thread {
     public double avgTick;
 
     private volatile boolean running;
+    public boolean tickingModule;
 
     public Main() {
-        API = new DarkBotAPI();
-        API.createWindow();
-
+        super("Main");
         this.config = new Config();
-
         loadConfig();
-        if (config.MISCELLANEOUS.USE_DARCULA_THEME) {
+
+        if (config.MISCELLANEOUS.FULL_DEBUG) API = (IDarkBotAPI) Proxy.newProxyInstance(Main.class.getClassLoader(), new Class[]{IDarkBotAPI.class}, IDarkBotAPI.getLoggingHandler());
+        else API = new DarkBotAPI();
+
+        if (config.MISCELLANEOUS.DISPLAY.USE_DARCULA_THEME) {
             try {
                 UIManager.setLookAndFeel(new DarculaLaf());
             } catch (UnsupportedLookAndFeelException e) {
@@ -98,8 +105,10 @@ public class Main extends Thread {
         updateConfig();
 
         form = new MainGui(this);
+        backpage = new BackpageManager(this);
 
         start();
+        API.createWindow();
     }
 
     @Override
@@ -113,7 +122,7 @@ public class Main extends Thread {
 
             double tickTime = System.currentTimeMillis() - time;
             avgTick = ((avgTick * 9) + tickTime) / 10;
-            sleepMax(time, botInstaller.invalid.value ? 10000 : 100);
+            sleepMax(time, botInstaller.invalid.value ? 3000 : 100);
         }
     }
 
@@ -125,7 +134,6 @@ public class Main extends Thread {
         else
             validTick();
 
-        pingManager.tick();
         form.tick();
 
         checkConfig();
@@ -136,6 +144,7 @@ public class Main extends Thread {
     }
 
     private void invalidTick() {
+        tickingModule = false;
         botInstaller.verify();
     }
 
@@ -146,8 +155,10 @@ public class Main extends Thread {
         mapManager.tick();
         statsManager.tick();
 
-        if (running && guiManager.canTickModule())
-            tickRunning();
+        tickingModule = running && guiManager.canTickModule();
+        if (tickingModule) tickRunning();
+
+        pingManager.tick();
     }
 
     private void tickRunning() {

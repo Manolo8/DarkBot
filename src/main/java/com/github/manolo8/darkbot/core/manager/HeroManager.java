@@ -39,9 +39,9 @@ public class HeroManager extends Ship implements Manager {
 
         this.main = main;
         this.drive = new Drive(this, main.mapManager);
-        main.status.add(b -> drive.stop(true));
+        main.status.add(drive::toggleRunning);
         this.pet = new Pet(0);
-        this.map = new Map(-1, "Loading", false, new Portal[0]);
+        this.map = main.starManager.byId(-1);
     }
 
     @Override
@@ -65,18 +65,13 @@ public class HeroManager extends Ship implements Manager {
 
     @Override
     public void update() {
-
         super.update();
-
         pet.update();
 
         config = API.readMemoryInt(settingsAddress + 56);
 
         long petAddress = API.readMemoryLong(address + 176);
-
-        if (petAddress != pet.address) {
-            pet.update(petAddress);
-        }
+        if (petAddress != pet.address) pet.update(petAddress);
     }
 
     @Override
@@ -101,7 +96,7 @@ public class HeroManager extends Ship implements Manager {
     }
 
     public void jumpPortal(Portal portal) {
-        if (portal.target.id != nextMap() && System.currentTimeMillis() - portalTime > 10000) {
+        if ((portal.target == null || portal.target.id != nextMap()) && System.currentTimeMillis() - portalTime > 10000) {
             API.keyboardClick('j');
             portalTime = System.currentTimeMillis();
         }
