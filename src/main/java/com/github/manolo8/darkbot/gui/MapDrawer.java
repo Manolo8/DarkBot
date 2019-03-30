@@ -19,7 +19,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.ColorModel;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -149,6 +154,11 @@ public class MapDrawer extends JPanel {
         drawStaticEntities(g2);
         drawDynamicEntities(g2);
         drawHero(g2);
+
+        g2.setColor(BARRIER_BORDER);
+        g2.drawRect(translateX(mapManager.boundX), translateY(mapManager.boundY),
+                translateX(mapManager.boundMaxX - mapManager.boundX),
+                translateY(mapManager.boundMaxY - mapManager.boundY));
 
         drawStats(g2,
                 "cre/h " + formatter.format(statsManager.earnedCredits()),
