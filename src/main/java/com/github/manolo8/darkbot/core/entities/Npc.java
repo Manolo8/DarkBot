@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class Npc extends Ship {
     private static final NpcInfo INITIAL_NPC_INFO = new NpcInfo(); // Prevent NPE trying to obtain npc info.
-    private boolean lowHealh;
+    private boolean lowHealh = false;
 
     public NpcInfo npcInfo = INITIAL_NPC_INFO;
 
