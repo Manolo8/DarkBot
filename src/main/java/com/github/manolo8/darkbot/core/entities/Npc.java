@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class Npc extends Ship {
     private static final NpcInfo INITIAL_NPC_INFO = new NpcInfo(); // Prevent NPE trying to obtain npc info.
+    private boolean lowHealh;
 
     public NpcInfo npcInfo = INITIAL_NPC_INFO;
 
@@ -27,4 +28,7 @@ public class Npc extends Ship {
             npcInfo = ConfigEntity.INSTANCE.getOrCreateNpcInfo(playerInfo.username);
         }
     }
+
+    public boolean isLowHealh() { return lowHealh; }
+    public void setLowHealh() { this.lowHealh = true; }
 }
