@@ -88,7 +88,7 @@ public class EventModule implements Module {
             } else {
                 target = null;
             }
-        } else if (target.health.hpPercent() < 0.25) {
+        } else if (target.health.hpPercent() < 0.25 && !allLowLife()) {
             target = null;
         }
         return target != null;
