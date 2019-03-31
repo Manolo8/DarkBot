@@ -11,6 +11,7 @@ import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.utils.Time;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.manolo8.darkbot.Main.API;
@@ -38,8 +39,6 @@ public class EventModule implements Module {
 
     private Box drop;
     private long waiting;
-
-    private int clickReward = -1;
 
     @Override
     public void install(Main main) {
@@ -72,30 +71,52 @@ public class EventModule implements Module {
             hero.attackMode();
             lastNpc = System.currentTimeMillis();
             setTargetAndTryStartLaserAttack();
+            removeLowHeal();
             moveToAnSafePosition();
-        } else if (findBox()) {
-            hero.runMode();
-            pickUpBox();
-            if (config.EVENT.PROGRESS) clickReward = 2;
-            return;
-        } else if (clickReward == -1 && timeSinceNpc > 5000 && !hero.locationInfo.isMoving() &&
-                hero.locationInfo.distance(MapManager.internalWidth / 2d, MapManager.internalHeight / 2d) > 600) {
-            hero.runMode();
-            hero.drive.move(MapManager.internalWidth / 2d + (random() * 400 - 200),
-                    MapManager.internalHeight / 2d + (random() * 400 - 200));
         } else if (timeSinceNpc > 10000 && !hero.drive.isMoving()) hero.attackMode();
-
-        main.guiManager.pet.setEnabled(timeSinceNpc < 3000);
-        if (clickReward > -1 && main.guiManager.eventProgress.show(clickReward > 0)) {
-            if (clickReward > 0) main.guiManager.eventProgress.click(200, 335);
-            waiting = System.currentTimeMillis() + 500;
-            clickReward--;
-        }
     }
 
     private boolean findTarget() {
-        if (target == null || target.removed) target = npcs.isEmpty() ? null : npcs.get(0);
+        if (target == null || target.removed) {
+            if (!npcs.isEmpty()) {
+                for ( int i = 0; npcs.size()<i;i++ ){
+                    if(!npcs.get(i).isLowHealh()){
+                        target = npcs.get(i);
+                    }
+                }
+                target = npcs.get(0);
+            } else {
+                target = null;
+            }
+        } else if (target.health.hpPercent() < 0.25) {
+            target = null;
+        }
         return target != null;
+    }
+
+    private void removeLowHeal() {
+        if (main.mapManager.isTarget(target) && (target.health.hpPercent() < 0.25)) {
+            if (!allLowLife()) {
+                if(!target.isLowHealh()){
+                    npcs.remove(0);
+                    target.setLowHealh();
+                    npcs.add(target);
+                    target = null;
+                }
+            }
+        }
+    }
+
+    private boolean allLowLife(){
+        boolean alllowl = true;
+
+        for (int i=0; i < npcs.size();i++) {
+            if (!npcs.get(i).isLowHealh()) {
+                alllowl = false;
+            }
+        }
+
+        return alllowl;
     }
 
     private void setTargetAndTryStartLaserAttack() {
