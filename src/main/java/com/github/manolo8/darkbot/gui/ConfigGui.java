@@ -5,10 +5,7 @@ import com.github.manolo8.darkbot.config.BoxInfo;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.NpcInfo;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.modules.CollectorModule;
-import com.github.manolo8.darkbot.modules.EventModule;
-import com.github.manolo8.darkbot.modules.LootModule;
-import com.github.manolo8.darkbot.modules.LootNCollectorModule;
+import com.github.manolo8.darkbot.modules.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -53,6 +50,7 @@ public class ConfigGui extends JFrame {
     private JRadioButton moduleLoot;
     private JRadioButton moduleLootNCollector;
     private JRadioButton moduleEvent;
+    private JRadioButton moduleGG;
     //GENERAL
 
     public ConfigGui(Main main) throws HeadlessException {
@@ -110,6 +108,7 @@ public class ConfigGui extends JFrame {
         moduleLoot = new JRadioButton("Loot");
         moduleLootNCollector = new JRadioButton("Loot and collector");
         moduleEvent = new JRadioButton("Event");
+        moduleGG = new JRadioButton("GG");
 
         repairHp = new JSlider();
         waitHp = new JSlider();
@@ -119,6 +118,7 @@ public class ConfigGui extends JFrame {
         group.add(moduleLoot);
         group.add(moduleLootNCollector);
         group.add(moduleEvent);
+        group.add(moduleGG);
 
         //GENERAL
     }
@@ -330,6 +330,11 @@ public class ConfigGui extends JFrame {
         c.gridx = 1;
         c.gridwidth = 1;
         generalPane.add(moduleEvent, c);
+        c.weightx = 0;
+        c.gridy = y;
+        c.gridx = 2;
+        c.gridwidth = 1;
+        generalPane.add(moduleGG, c);
         //GENERAL
 
         // GG
@@ -487,6 +492,14 @@ public class ConfigGui extends JFrame {
 
             config.CURRENT_MODULE = 3;
             main.setModule(new EventModule());
+        });
+
+        moduleGG.addItemListener(e -> {
+
+            if (e.getStateChange() != ItemEvent.SELECTED) return;
+
+            config.CURRENT_MODULE = 4;
+            main.setModule(new GGModule());
         });
 
         //GENERAL
