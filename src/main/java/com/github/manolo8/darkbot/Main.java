@@ -10,10 +10,7 @@ import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.*;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.gui.MainGui;
-import com.github.manolo8.darkbot.modules.CollectorModule;
-import com.github.manolo8.darkbot.modules.EventModule;
-import com.github.manolo8.darkbot.modules.LootModule;
-import com.github.manolo8.darkbot.modules.LootNCollectorModule;
+import com.github.manolo8.darkbot.modules.*;
 import com.github.manolo8.darkbot.utils.ByteArrayToBase64TypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -271,6 +268,11 @@ public class Main extends Thread {
             case 3:
                 if (isNotModule(EventModule.class)) {
                     setModule(new EventModule());
+                }
+                break;
+            case 4:
+                if (isNotModule(GGModule.class)) {
+                    setModule(new GGModule());
                 }
                 break;
             default:
