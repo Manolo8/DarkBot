@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 
 public class Main extends Thread {
-    public static final String VERSION = "1.13.4 beta10";
+    public static final String VERSION = "1.13.6 beta 4";
 
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
