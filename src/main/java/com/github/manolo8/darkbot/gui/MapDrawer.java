@@ -19,12 +19,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.ColorModel;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -154,11 +149,6 @@ public class MapDrawer extends JPanel {
         drawStaticEntities(g2);
         drawDynamicEntities(g2);
         drawHero(g2);
-
-        g2.setColor(BARRIER_BORDER);
-        g2.drawRect(translateX(mapManager.boundX), translateY(mapManager.boundY),
-                translateX(mapManager.boundMaxX - mapManager.boundX),
-                translateY(mapManager.boundMaxY - mapManager.boundY));
 
         drawStats(g2,
                 "cre/h " + formatter.format(statsManager.earnedCredits()),
@@ -297,8 +287,7 @@ public class MapDrawer extends JPanel {
                 Location loc = portal.locationInfo.now;
                 g2.drawOval(translateX(loc.x) - 5, translateY(loc.y) - 5, 10, 10);
                 if (!config.MISCELLANEOUS.DEV_STUFF) continue;
-                drawString(g2, portal.id + "", translateX(loc.x), translateY(loc.y), Align.MID);
-                drawString(g2, portal.type + "", translateX(loc.x), translateY(loc.y+200), Align.MID);
+                drawString(g2, portal.id + "," + portal.type, translateX(loc.x), translateY(loc.y), Align.MID);
             }
 
             for (BattleStation station : this.battleStations) {
@@ -365,6 +354,8 @@ public class MapDrawer extends JPanel {
         g2.setFont(FONT_SMALL);
         drawString(g2, hero.config + "C", 12, height - 12, Align.LEFT);
 
+        if (!hero.locationInfo.isLoaded()) return;
+
         g2.setColor(GOING);
         PathPoint begin = new PathPoint((int) hero.locationInfo.now.x, (int) hero.locationInfo.now.y);
         for (PathPoint path : pathFinder.path()) {
@@ -377,7 +368,12 @@ public class MapDrawer extends JPanel {
         Location loc = hero.locationInfo.now;
         g2.fillOval(translateX(loc.x) - 3, translateY(loc.y) - 3, 7, 7);
 
-        if (hero.pet.removed || !guiManager.pet.active()) return;
+        g2.setColor(BARRIER_BORDER);
+        g2.drawRect(translateX(mapManager.boundX), translateY(mapManager.boundY),
+                translateX(mapManager.boundMaxX - mapManager.boundX),
+                translateY(mapManager.boundMaxY - mapManager.boundY));
+
+        if (hero.pet.removed || !hero.pet.locationInfo.isLoaded()) return;
         loc = hero.pet.locationInfo.now;
 
         int x = translateX(loc.x),

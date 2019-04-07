@@ -1,6 +1,4 @@
 {
-  "WORKING_MAP": 28,
-  "CURRENT_MODULE": 4,
   "AVOIDED": {
     "-1": {
       "resolution": 30,
@@ -222,6 +220,8 @@
     }
   },
   "GENERAL": {
+    "CURRENT_MODULE": 4,
+    "WORKING_MAP": 26,
     "OFFENSIVE": {
       "CONFIG": 1,
       "FORMATION": "7"
@@ -1890,6 +1890,7 @@
     },
     "ZONE_RESOLUTION": 100,
     "REFRESH_TIME": 0,
+    "FOCUS_ON_RELOAD": true,
     "DEV_STUFF": false,
     "FULL_DEBUG": false
   }

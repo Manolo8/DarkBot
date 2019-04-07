@@ -1,5 +1,6 @@
 package com.github.manolo8.darkbot.core.manager;
 
+import com.github.manolo8.darkbot.config.types.suppliers.OptionList;
 import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.objects.Map;
@@ -8,15 +9,19 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class StarManager {
+    private static StarManager INSTANCE;
 
     private static int INVALID_MAP_ID = -999;
 
     private final Graph<Map, Portal> starSystem;
 
     public StarManager() {
+        INSTANCE = this;
         String[] HOME_MAPS = new String[]{"1-1", "2-1", "3-1"};
 
         starSystem = new StarBuilder()
@@ -74,7 +79,7 @@ public class StarManager {
                 .addGG(54, "GG NC") // New Client GG        (No access)
                 .addGG(55, "GG δ").accessBy(5, HOME_MAPS)
                 .addGG(56, "GG Orb")// The forgotten gate   (No access)
-                .addGG(57, "GG Y6") // Year 6 (Anniversary) (No access)
+                .addGG(57, "GG Y6").accessBy(16, HOME_MAPS) // Year 6 (Anniversary)
                 .addGG(57, "HSG")   // High Score Gate      (No access)
                 .addGG(70, "GG ε").accessBy(53, HOME_MAPS)
                 .addGG(71, "GG ζ 1").accessOnlyBy(54, HOME_MAPS)
@@ -97,7 +102,7 @@ public class StarManager {
                 .addGG(304, "GG ς 5").accessBy(82, "GG ς 4")
                 .addGG(200, "LoW").accessOnlyBy(34, "1-3", "2-3", "3-3")
                 .addGG(229, "Quarantine Zone").accessOnlyBy(84, "1-7", "2-7", "3-7")
-                .addGG(227, "GG VoT 1").accessOnlyBy(54, "1-4", "2-4", "3-4") // Assume it's the same type as zeta
+                .addGG(227, "GG VoT 1").accessOnlyBy(54, "1-4", "2-4", "3-4") // Assume it's the same type as zeta?
                 .addGG(230, "GG VoT 2").accessOnlyBy(54, "GG VoT 1")
                 .addGG(231, "GG VoT 3").accessOnlyBy(54, "GG VoT 2")
                 .addGG(232, "GG VoT 4").accessOnlyBy(54, "GG VoT 3")
@@ -109,6 +114,12 @@ public class StarManager {
                 .addGG(412, "Gauntlet Of Plutus 2") // (No access), missing type ID (GOP1)
                 .addGG(413, "Gauntlet Of Plutus 3") // (No access), missing type ID (GOP2)
                 .addGG(305, "Compromising Invasion") // (No access)
+                .addGG(410, "GoP 1").accessOnlyBy(24, "1-8", "2-8", "3-8")
+                .addGG(411, "GoP 2").accessOnlyBy(24, "GoP 1")
+                .addGG(412, "GoP 3").accessOnlyBy(24, "GoP 2")
+                .addGG(413, "GoP 4").accessOnlyBy(24, "GoP 3")
+                .addGG(414, "GoP 5").accessOnlyBy(24, "GoP 4")
+                .addGG(415, "GoP Final").accessBy(24, "GoP 5")
                 // Special (No access)
                 .addMap(42, "???")
                 .addMap(61, "MMO Invasion").addMap(62, "EIC Invasion").addMap(63, "VRU Invasion")
@@ -133,7 +144,7 @@ public class StarManager {
     public Portal getOrCreate(int id, int type, int x, int y) {
         return starSystem.outgoingEdgesOf(HeroManager.instance.map).stream()
                 .filter(p -> (p.id != -1 && p.id == id)     // By id
-                        || (p.type != -1 && p.type == type) // By Type
+                        || (p.searchType != -1 && p.searchType == type) // By Type
                         || (p.x != -1 && p.y != -1 && p.inLoc(x, y)))  // By loc
                 .peek(p -> p.id = id)
                 .findAny().orElse(new Portal(id, type, x, y, null));
@@ -161,7 +172,7 @@ public class StarManager {
         return map;
     }
 
-    public Collection<String> getAccessibleMaps() {
+    public List<String> getAccessibleMaps() {
         return starSystem.vertexSet().stream()
                 .filter(m -> !m.gg)
                 .filter(m -> starSystem.inDegreeOf(m) > 0)
@@ -175,6 +186,41 @@ public class StarManager {
                         (starSystem.outDegreeOf(m) == 0 || starSystem.containsEdge(m, m)))
                 .map(m -> m.name)
                 .sorted().collect(Collectors.toList());
+    }
+
+    public static class MapSupplier implements Supplier<OptionList> {
+        @Override
+        public OptionList<Integer> get() {
+            return new MapList(false);
+        }
+    }
+
+    public static class MapList extends OptionList<Integer> {
+        boolean allowNull;
+
+        public MapList(boolean allowNull) {
+            this.allowNull = allowNull;
+            if (allowNull) setSelectedItem("*");
+        }
+
+        @Override
+        public Integer getValue(String text) {
+            if (allowNull && text.equals("*")) return -1;
+            return INSTANCE.byName(text).id;
+        }
+
+        @Override
+        public String getText(Integer value) {
+            if (allowNull && value == -1) return "*";
+            return INSTANCE.byId(value).name;
+        }
+
+        @Override
+        public List<String> getOptions() {
+            List<String> maps = INSTANCE.getAccessibleMaps();
+            if (allowNull) maps.add(0, "*");
+            return maps;
+        }
     }
 
 }
