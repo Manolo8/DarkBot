@@ -219,6 +219,8 @@ public class StarManager {
         public List<String> getOptions() {
             List<String> maps = INSTANCE.getAccessibleMaps();
             if (allowNull) maps.add(0, "*");
+            Collection<String> mapsGG = INSTANCE.getGGMaps();
+            maps.addAll(mapsGG);
             return maps;
         }
     }

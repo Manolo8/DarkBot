@@ -1,6 +1,7 @@
 package com.github.manolo8.darkbot.core;
 
 import com.github.manolo8.darkbot.config.Config;
+import com.sun.jna.Library;
 import com.sun.jna.platform.win32.User32;
 
 import java.nio.charset.StandardCharsets;

@@ -6,10 +6,12 @@ import com.github.manolo8.darkbot.core.entities.Box;
 import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.utils.Time;
 
+import java.util.Comparator;
 import java.util.List;
 
 import static com.github.manolo8.darkbot.Main.API;
@@ -28,16 +30,26 @@ public class GGModule implements Module {
     private Drive drive;
     private Location direction;
     private int radiusFix;
+    private Long ability;
+    private boolean sab;
 
     public Npc target;
     private boolean shooting;
     private long clickDelay;
     private long lastNpc = System.currentTimeMillis();
     private long timeSinceNpc;
-
+    private int currentTarget = 0;
+    private final CollectorModule collectorModule;
+    private boolean repairing;
+    private boolean jump;
     private long waiting;
 
+    public GGModule(){
+        this.collectorModule = new CollectorModule();
+    }
+
     @Override
+
     public void install(Main main) {
         this.main = main;
         this.config = main.config;
@@ -51,34 +63,56 @@ public class GGModule implements Module {
 
     @Override
     public boolean canRefresh() {
-        return timeSinceNpc > 2 * 60 * 1000 && (timeSinceNpc <  15 * 60 * 1000 || timeSinceNpc > 25 * 60 * 1000);
+        if(collectorModule.isNotWaiting()) {
+            return target == null;
+        }
+
+        return false;
     }
 
     @Override
     public String status() {
-        timeSinceNpc = System.currentTimeMillis() - this.lastNpc;
-        return timeSinceNpc > 1000 ? "Waiting: " + Time.toString(timeSinceNpc) : null;
+        return "Loot: " + lootStatus() + " - Collect: " + collectorModule.status();
+    }
+
+    private String lootStatus() {
+        return jump ? "Jumping port" : repairing ? "Repairing" :
+                target != null ? "Killing npc" + (shooting ? " S" : "") + (ability != null ? " A" : "") + (sab ? " SAB" : "")
+                        : "Roaming";
     }
 
     @Override
     public void tick() {
         if (System.currentTimeMillis() < waiting) return;
 
-        if (findTarget()) {
-            hero.attackMode();
-            lastNpc = System.currentTimeMillis();
-            setTargetAndTryStartLaserAttack();
-            removeLowHeal();
-            moveToAnSafePosition();
-        } else if (timeSinceNpc > 10000 && !hero.drive.isMoving()) hero.attackMode();
+        if (checkCurrentMap()) {
+
+            if (findTarget()) {
+                hero.attackMode();
+                lastNpc = System.currentTimeMillis();
+                setTargetAndTryStartLaserAttack();
+                removeLowHeal();
+                moveToAnSafePosition();
+            } /*else if (target == null) {
+                hero.roamMode();
+                collectorModule.findBox();
+
+                if(collectorModule.current != null) {
+                    if (!collectorModule.tryCollectNearestBox() && (!drive.isMoving() || drive.isOutOfMap())) {
+                        drive.moveRandom();
+                    }
+                }
+            }*/ else if (timeSinceNpc > 10000 && !hero.drive.isMoving()) hero.attackMode();
+        }
     }
 
     private boolean findTarget() {
         if (target == null || target.removed) {
             if (!npcs.isEmpty()) {
                 for ( int i = 0; npcs.size()<i;i++ ){
-                    if(!npcs.get(i).isLowHealh()){
+                    if(!isLowHealh(npcs.get(i))){
                         target = npcs.get(i);
+                        currentTarget = i;
                     }
                 }
                 target = npcs.get(0);
@@ -94,9 +128,8 @@ public class GGModule implements Module {
     private void removeLowHeal() {
         if (main.mapManager.isTarget(target) && (target.health.hpPercent() < 0.25)) {
             if (!allLowLife()) {
-                if(!target.isLowHealh()){
-                    npcs.remove(0);
-                    target.setLowHealh();
+                if(!isLowHealh(target)){
+                    npcs.remove(currentTarget);
                     npcs.add(target);
                     target = null;
                 }
@@ -104,11 +137,17 @@ public class GGModule implements Module {
         }
     }
 
+    public boolean isLowHealh(Npc npc){
+        if (npc.health.hpPercent() < 0.25)  return true;
+
+        return false;
+    }
+
     private boolean allLowLife(){
         boolean alllowl = true;
 
         for (int i=0; i < npcs.size();i++) {
-            if (!npcs.get(i).isLowHealh()) {
+            if (!isLowHealh(npcs.get(i))) {
                 alllowl = false;
             }
         }
@@ -132,7 +171,6 @@ public class GGModule implements Module {
             hero.setTarget(target);
             setRadiusAndClick();
             clickDelay = System.currentTimeMillis();
-
             shooting = false;
         }
     }
@@ -152,8 +190,6 @@ public class GGModule implements Module {
 
         double angle = targetLoc.angle(heroLoc), distance = heroLoc.distance(targetLoc),
                 angleDiff = Math.abs(target.locationInfo.angle - heroLoc.angle(target.locationInfo.now)) % TAU;
-
-
 
         double radius = target.npcInfo.radius;
         if (radius < 500) {
@@ -178,6 +214,21 @@ public class GGModule implements Module {
         if (distance >= 10000) direction.toAngle(targetLoc, angle, 500);
 
         drive.move(direction);
+    }
+
+    private boolean checkCurrentMap() {
+        boolean mapWrong = config.GENERAL.WORKING_MAP != hero.map.id;
+
+        if (mapWrong) {
+
+            hero.runMode();
+
+            main.setModule(new MapModule()).setTarget(main.starManager.byId(main.config.GENERAL.WORKING_MAP));
+
+            return false;
+        }
+
+        return true;
     }
 
 }
