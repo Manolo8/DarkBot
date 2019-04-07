@@ -298,6 +298,7 @@ public class MapDrawer extends JPanel {
                 g2.drawOval(translateX(loc.x) - 5, translateY(loc.y) - 5, 10, 10);
                 if (!config.MISCELLANEOUS.DEV_STUFF) continue;
                 drawString(g2, portal.id + "", translateX(loc.x), translateY(loc.y), Align.MID);
+                drawString(g2, portal.type + "", translateX(loc.x), translateY(loc.y+200), Align.MID);
             }
 
             for (BattleStation station : this.battleStations) {
