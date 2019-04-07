@@ -1763,7 +1763,7 @@
           74
         ],
         "kill": true,
-        "radius": 500.0,
+        "radius": 600.0,
         "noCircle": false,
         "ignoreAttacked": false
       },
@@ -1890,7 +1890,7 @@
     },
     "ZONE_RESOLUTION": 100,
     "REFRESH_TIME": 0,
-    "DEV_STUFF": false,
+    "DEV_STUFF": true,
     "FULL_DEBUG": false
   }
 }
