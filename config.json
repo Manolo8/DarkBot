@@ -239,7 +239,7 @@
       "REPAIR_HP_NO_NPC": 0.0,
       "REPAIR_TO_HP": 1.0,
       "SHIP_ABILITY": "9",
-      "MAX_DEATHS": 10,
+      "MAX_DEATHS": 1,
       "REVIVE_LOCATION": 1,
       "WAIT_AFTER_REVIVE": 120
     }
@@ -377,7 +377,7 @@
       "PERCENT": 0.8,
       "NPC_AMOUNT": 12000
     },
-    "AMMO_KEY": "3",
+    "AMMO_KEY": "2",
     "SHIP_ABILITY": "0",
     "SHIP_ABILITY_MIN": 150000,
     "RUN_CONFIG_IN_CIRCLE": true,
@@ -1792,8 +1792,8 @@
         "mapList": [
           74
         ],
-        "kill": false,
-        "radius": 400.0,
+        "kill": true,
+        "radius": 620.0,
         "noCircle": false,
         "ignoreAttacked": false
       },
@@ -1802,8 +1802,8 @@
         "mapList": [
           74
         ],
-        "kill": false,
-        "radius": 400.0,
+        "kill": true,
+        "radius": 620.0,
         "noCircle": false,
         "ignoreAttacked": false
       },
@@ -1852,8 +1852,8 @@
         "mapList": [
           74
         ],
-        "kill": false,
-        "radius": 400.0,
+        "kill": true,
+        "radius": 600.0,
         "noCircle": false,
         "ignoreAttacked": false
       },
@@ -1863,7 +1863,7 @@
           74
         ],
         "kill": false,
-        "radius": 400.0,
+        "radius": 600.0,
         "noCircle": false,
         "ignoreAttacked": false
       }

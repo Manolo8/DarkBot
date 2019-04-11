@@ -19,7 +19,7 @@ import static java.lang.Double.max;
 import static java.lang.Double.min;
 
 public class GGModule implements Module {
-
+    //V1 BETA 3
     private static final double TAU = Math.PI * 2;
 
     private Main main;
@@ -41,8 +41,12 @@ public class GGModule implements Module {
     private int currentTarget = 0;
     private final CollectorModule collectorModule;
     private boolean repairing;
-    private boolean jump;
     private long waiting;
+    private int rangeNPCFix = 0;
+    private long lastCheck = System.currentTimeMillis();
+    private int lasNpcHealth = 0;
+    private int lasPlayerHealth = 0;
+
 
     public GGModule(){
         this.collectorModule = new CollectorModule();
@@ -72,20 +76,19 @@ public class GGModule implements Module {
 
     @Override
     public String status() {
-        return "Loot: " + lootStatus() + " - Collect: " + collectorModule.status();
+        return "Loot: " + lootStatus();
     }
 
     private String lootStatus() {
-        return jump ? "Jumping port" : repairing ? "Repairing" :
+        return repairing ? "Repairing" :
                 target != null ? "Killing npc" + (shooting ? " S" : "") + (ability != null ? " A" : "") + (sab ? " SAB" : "")
                         : "Roaming";
     }
 
     @Override
     public void tick() {
-        if (System.currentTimeMillis() < waiting) return;
-
-        if (checkCurrentMap()) {
+        if (main.hero.map.gg){
+            if (System.currentTimeMillis() < waiting) return;
 
             if (findTarget()) {
                 hero.attackMode();
@@ -94,28 +97,30 @@ public class GGModule implements Module {
                 removeLowHeal();
                 moveToAnSafePosition();
             } /*else if (target == null) {
-                hero.roamMode();
-                collectorModule.findBox();
+            hero.roamMode();
+            collectorModule.findBox();
 
-                if(collectorModule.current != null) {
-                    if (!collectorModule.tryCollectNearestBox() && (!drive.isMoving() || drive.isOutOfMap())) {
-                        drive.moveRandom();
-                    }
+            if(collectorModule.current != null) {
+                if (!collectorModule.tryCollectNearestBox() && (!drive.isMoving() || drive.isOutOfMap())) {
+                    drive.moveRandom();
                 }
-            }*/ else if (timeSinceNpc > 10000 && !hero.drive.isMoving()) hero.attackMode();
+            }
+        }*/ else if (!main.mapManager.entities.portals.isEmpty()){
+                hero.runMode();
+                this.main.setModule(new MapModule()).setTarget(main.starManager.byId(main.mapManager.entities.portals.get(0).id));
+            }
         }
     }
 
     private boolean findTarget() {
         if (target == null || target.removed) {
             if (!npcs.isEmpty()) {
-                for ( int i = 0; npcs.size()<i;i++ ){
-                    if(!isLowHealh(npcs.get(i))){
+                for (int i = 0; npcs.size() < i; i++) {
+                    if (!isLowHealh(npcs.get(i))) {
                         target = npcs.get(i);
                         currentTarget = i;
                     }
                 }
-                target = npcs.get(0);
             } else {
                 target = null;
             }
@@ -128,10 +133,11 @@ public class GGModule implements Module {
     private void removeLowHeal() {
         if (main.mapManager.isTarget(target) && (target.health.hpPercent() < 0.25)) {
             if (!allLowLife()) {
-                if(!isLowHealh(target)){
+                if(isLowHealh(target)){
                     npcs.remove(currentTarget);
                     npcs.add(target);
                     target = null;
+                    return;
                 }
             }
         }
@@ -144,15 +150,19 @@ public class GGModule implements Module {
     }
 
     private boolean allLowLife(){
-        boolean alllowl = true;
+        int npcsLowLife = 0;
 
         for (int i=0; i < npcs.size();i++) {
-            if (!isLowHealh(npcs.get(i))) {
-                alllowl = false;
+            if (isLowHealh(npcs.get(i))) {
+                npcsLowLife++;
             }
         }
 
-        return alllowl;
+        if (npcsLowLife >= npcs.size()) {
+            return true;
+        }
+
+        return false;
     }
 
     private void setTargetAndTryStartLaserAttack() {
@@ -173,6 +183,7 @@ public class GGModule implements Module {
             clickDelay = System.currentTimeMillis();
             shooting = false;
         }
+        timeSinceNpc = System.currentTimeMillis();
     }
 
     private void setRadiusAndClick() {
@@ -188,13 +199,13 @@ public class GGModule implements Module {
         if (target == null || target.locationInfo == null) return;
         Location targetLoc = target.locationInfo.destinationInTime(400);
 
-        double angle = targetLoc.angle(heroLoc), distance = heroLoc.distance(targetLoc),
-                angleDiff = Math.abs(target.locationInfo.angle - heroLoc.angle(target.locationInfo.now)) % TAU;
+        double angle = targetLoc.angle(heroLoc), distance = heroLoc.distance(targetLoc), radius = target.npcInfo.radius;;
 
-        double radius = target.npcInfo.radius;
+        dinamicNPCRange(distance);
         if (radius < 500) {
             radius = 550;
         }
+        radius += rangeNPCFix;
 
         if (distance > radius) {
             radiusFix -= (distance - radius) / 2;
@@ -216,19 +227,14 @@ public class GGModule implements Module {
         drive.move(direction);
     }
 
-    private boolean checkCurrentMap() {
-        boolean mapWrong = config.GENERAL.WORKING_MAP != hero.map.id;
+    private void dinamicNPCRange(double distance){
+        if (lastCheck <= System.currentTimeMillis()-10000 && distance <= 10000) {
+            if (lasNpcHealth == target.health.hp) { rangeNPCFix -= 50;}
+            lasNpcHealth = target.health.hp;
 
-        if (mapWrong) {
-
-            hero.runMode();
-
-            main.setModule(new MapModule()).setTarget(main.starManager.byId(main.config.GENERAL.WORKING_MAP));
-
-            return false;
+            if (lasPlayerHealth < hero.health.hp && rangeNPCFix < 600) { rangeNPCFix += 50; }
+            lasPlayerHealth =  hero.health.hp;
         }
-
-        return true;
     }
 
 }
