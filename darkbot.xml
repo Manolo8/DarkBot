@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="darkbot" default="all">
+  
+  
+  <property file="darkbot.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.zip"/>
+    <include name="*.egg"/>
+    <include name="*.ane"/>
+    <include name="*.jar"/>
+    <include name="*.ear"/>
+    <include name="*.klib"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.11" value="${jdk.home.11}/bin"/>
+  <path id="jdk.classpath.11">
+    <fileset dir="${jdk.home.11}">
+      <include name="../jdk-11.0.1!/java.base"/>
+      <include name="../jdk-11.0.1!/java.compiler"/>
+      <include name="../jdk-11.0.1!/java.datatransfer"/>
+      <include name="../jdk-11.0.1!/java.desktop"/>
+      <include name="../jdk-11.0.1!/java.instrument"/>
+      <include name="../jdk-11.0.1!/java.logging"/>
+      <include name="../jdk-11.0.1!/java.management"/>
+      <include name="../jdk-11.0.1!/java.management.rmi"/>
+      <include name="../jdk-11.0.1!/java.naming"/>
+      <include name="../jdk-11.0.1!/java.net.http"/>
+      <include name="../jdk-11.0.1!/java.prefs"/>
+      <include name="../jdk-11.0.1!/java.rmi"/>
+      <include name="../jdk-11.0.1!/java.scripting"/>
+      <include name="../jdk-11.0.1!/java.se"/>
+      <include name="../jdk-11.0.1!/java.security.jgss"/>
+      <include name="../jdk-11.0.1!/java.security.sasl"/>
+      <include name="../jdk-11.0.1!/java.smartcardio"/>
+      <include name="../jdk-11.0.1!/java.sql"/>
+      <include name="../jdk-11.0.1!/java.sql.rowset"/>
+      <include name="../jdk-11.0.1!/java.transaction.xa"/>
+      <include name="../jdk-11.0.1!/java.xml"/>
+      <include name="../jdk-11.0.1!/java.xml.crypto"/>
+      <include name="../jdk-11.0.1!/jdk.accessibility"/>
+      <include name="../jdk-11.0.1!/jdk.aot"/>
+      <include name="../jdk-11.0.1!/jdk.attach"/>
+      <include name="../jdk-11.0.1!/jdk.charsets"/>
+      <include name="../jdk-11.0.1!/jdk.compiler"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.cryptoki"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.ec"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.mscapi"/>
+      <include name="../jdk-11.0.1!/jdk.dynalink"/>
+      <include name="../jdk-11.0.1!/jdk.editpad"/>
+      <include name="../jdk-11.0.1!/jdk.hotspot.agent"/>
+      <include name="../jdk-11.0.1!/jdk.httpserver"/>
+      <include name="../jdk-11.0.1!/jdk.internal.ed"/>
+      <include name="../jdk-11.0.1!/jdk.internal.jvmstat"/>
+      <include name="../jdk-11.0.1!/jdk.internal.le"/>
+      <include name="../jdk-11.0.1!/jdk.internal.opt"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.ci"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.compiler"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.compiler.management"/>
+      <include name="../jdk-11.0.1!/jdk.jartool"/>
+      <include name="../jdk-11.0.1!/jdk.javadoc"/>
+      <include name="../jdk-11.0.1!/jdk.jcmd"/>
+      <include name="../jdk-11.0.1!/jdk.jconsole"/>
+      <include name="../jdk-11.0.1!/jdk.jdeps"/>
+      <include name="../jdk-11.0.1!/jdk.jdi"/>
+      <include name="../jdk-11.0.1!/jdk.jdwp.agent"/>
+      <include name="../jdk-11.0.1!/jdk.jfr"/>
+      <include name="../jdk-11.0.1!/jdk.jlink"/>
+      <include name="../jdk-11.0.1!/jdk.jshell"/>
+      <include name="../jdk-11.0.1!/jdk.jsobject"/>
+      <include name="../jdk-11.0.1!/jdk.jstatd"/>
+      <include name="../jdk-11.0.1!/jdk.localedata"/>
+      <include name="../jdk-11.0.1!/jdk.management"/>
+      <include name="../jdk-11.0.1!/jdk.management.agent"/>
+      <include name="../jdk-11.0.1!/jdk.management.jfr"/>
+      <include name="../jdk-11.0.1!/jdk.naming.dns"/>
+      <include name="../jdk-11.0.1!/jdk.naming.rmi"/>
+      <include name="../jdk-11.0.1!/jdk.net"/>
+      <include name="../jdk-11.0.1!/jdk.pack"/>
+      <include name="../jdk-11.0.1!/jdk.rmic"/>
+      <include name="../jdk-11.0.1!/jdk.scripting.nashorn"/>
+      <include name="../jdk-11.0.1!/jdk.scripting.nashorn.shell"/>
+      <include name="../jdk-11.0.1!/jdk.sctp"/>
+      <include name="../jdk-11.0.1!/jdk.security.auth"/>
+      <include name="../jdk-11.0.1!/jdk.security.jgss"/>
+      <include name="../jdk-11.0.1!/jdk.unsupported"/>
+      <include name="../jdk-11.0.1!/jdk.unsupported.desktop"/>
+      <include name="../jdk-11.0.1!/jdk.xml.dom"/>
+      <include name="../jdk-11.0.1!/jdk.zipfs"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.11}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.11}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.11"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.darcula.classpath">
+    <pathelement location="${basedir}/lib/darcula.jar"/>
+  </path>
+  
+  <path id="library.maven:_com.bulenkov:darcula:1.0.0.classpath"/>
+  
+  <path id="library.maven:_com.google.code.gson:gson:2.8.5.classpath">
+    <pathelement location="${path.variable.maven_repository}/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar"/>
+  </path>
+  
+  <path id="library.maven:_com.miglayout:miglayout:3.7.4.classpath">
+    <pathelement location="${path.variable.maven_repository}/com/miglayout/miglayout/3.7.4/miglayout-3.7.4.jar"/>
+  </path>
+  
+  <path id="library.maven:_net.java.dev.jna:jna-platform:5.2.0.classpath">
+    <pathelement location="${path.variable.maven_repository}/net/java/dev/jna/jna-platform/5.2.0/jna-platform-5.2.0.jar"/>
+  </path>
+  
+  <path id="library.maven:_net.java.dev.jna:jna:5.2.0.classpath">
+    <pathelement location="${path.variable.maven_repository}/net/java/dev/jna/jna/5.2.0/jna-5.2.0.jar"/>
+  </path>
+  
+  <path id="library.maven:_org.jgrapht:jgrapht-core:1.3.0.classpath">
+    <pathelement location="${path.variable.maven_repository}/org/jgrapht/jgrapht-core/1.3.0/jgrapht-core-1.3.0.jar"/>
+  </path>
+  
+  <path id="library.maven:_org.jheaps:jheaps:0.9.classpath">
+    <pathelement location="${path.variable.maven_repository}/org/jheaps/jheaps/0.9/jheaps-0.9.jar"/>
+  </path>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <fileset dir="${javac2.home}">
+      <include name="javac2.jar"/>
+      <include name="jdom.jar"/>
+      <include name="asm-all*.jar"/>
+      <include name="forms-*.jar"/>
+    </fileset>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/module_darkbot.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.darkbot" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.darkbot" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.darkbot:jar" value="${basedir}/classes/artifacts/DarkBOT_jar"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.DarkBOT.jar" value="${artifacts.temp.dir}/DarkBOT.jar"/>
+  </target>
+  
+  <target name="artifact.darkbot:jar" depends="init.artifacts, compile.module.darkbot" description="Build &#39;DarkBOT:jar&#39; artifact">
+    <property name="artifact.temp.output.darkbot:jar" value="${artifacts.temp.dir}/DarkBOT_jar"/>
+    <mkdir dir="${artifact.temp.output.darkbot:jar}"/>
+    <jar destfile="${temp.jar.path.DarkBOT.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${darkbot.output.dir}"/>
+      <zipfileset src="${path.variable.maven_repository}/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar"/>
+      <zipfileset src="${basedir}/lib/darcula.jar"/>
+    </jar>
+    <copy file="${temp.jar.path.DarkBOT.jar}" tofile="${artifact.temp.output.darkbot:jar}/DarkBOT.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.darkbot:jar" description="Build all artifacts">
+    <mkdir dir="${artifact.output.darkbot:jar}"/>
+    <copy todir="${artifact.output.darkbot:jar}">
+      <fileset dir="${artifact.temp.output.darkbot:jar}"/>
+    </copy>
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>

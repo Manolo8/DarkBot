@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_darkbot" default="compile.module.darkbot">
+  <dirname property="module.darkbot.basedir" file="${ant.file.module_darkbot}"/>
+  
+  <property name="module.jdk.home.darkbot" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.darkbot" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.darkbot" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.darkbot" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="darkbot.output.dir" value="${module.darkbot.basedir}/target/classes"/>
+  <property name="darkbot.testoutput.dir" value="${module.darkbot.basedir}/target/test-classes"/>
+  
+  <path id="darkbot.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="darkbot.module.production.classpath">
+    <path refid="${module.jdk.classpath.darkbot}"/>
+    <path refid="library.darcula.classpath"/>
+    <path refid="library.maven:_com.miglayout:miglayout:3.7.4.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna:5.2.0.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna-platform:5.2.0.classpath"/>
+    <path refid="library.maven:_com.google.code.gson:gson:2.8.5.classpath"/>
+    <path refid="library.maven:_com.bulenkov:darcula:1.0.0.classpath"/>
+    <path refid="library.maven:_org.jgrapht:jgrapht-core:1.3.0.classpath"/>
+    <path refid="library.maven:_org.jheaps:jheaps:0.9.classpath"/>
+  </path>
+  
+  <path id="darkbot.runtime.production.module.classpath">
+    <pathelement location="${darkbot.output.dir}"/>
+    <path refid="library.darcula.classpath"/>
+    <path refid="library.maven:_com.miglayout:miglayout:3.7.4.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna:5.2.0.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna-platform:5.2.0.classpath"/>
+    <path refid="library.maven:_com.google.code.gson:gson:2.8.5.classpath"/>
+    <path refid="library.maven:_com.bulenkov:darcula:1.0.0.classpath"/>
+    <path refid="library.maven:_org.jgrapht:jgrapht-core:1.3.0.classpath"/>
+    <path refid="library.maven:_org.jheaps:jheaps:0.9.classpath"/>
+  </path>
+  
+  <path id="darkbot.module.classpath">
+    <path refid="${module.jdk.classpath.darkbot}"/>
+    <pathelement location="${darkbot.output.dir}"/>
+    <path refid="library.darcula.classpath"/>
+    <path refid="library.maven:_com.miglayout:miglayout:3.7.4.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna:5.2.0.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna-platform:5.2.0.classpath"/>
+    <path refid="library.maven:_com.google.code.gson:gson:2.8.5.classpath"/>
+    <path refid="library.maven:_com.bulenkov:darcula:1.0.0.classpath"/>
+    <path refid="library.maven:_org.jgrapht:jgrapht-core:1.3.0.classpath"/>
+    <path refid="library.maven:_org.jheaps:jheaps:0.9.classpath"/>
+  </path>
+  
+  <path id="darkbot.runtime.module.classpath">
+    <pathelement location="${darkbot.testoutput.dir}"/>
+    <pathelement location="${darkbot.output.dir}"/>
+    <path refid="library.darcula.classpath"/>
+    <path refid="library.maven:_com.miglayout:miglayout:3.7.4.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna:5.2.0.classpath"/>
+    <path refid="library.maven:_net.java.dev.jna:jna-platform:5.2.0.classpath"/>
+    <path refid="library.maven:_com.google.code.gson:gson:2.8.5.classpath"/>
+    <path refid="library.maven:_com.bulenkov:darcula:1.0.0.classpath"/>
+    <path refid="library.maven:_org.jgrapht:jgrapht-core:1.3.0.classpath"/>
+    <path refid="library.maven:_org.jheaps:jheaps:0.9.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.darkbot">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.darkbot">
+    <patternset refid="excluded.from.module.darkbot"/>
+  </patternset>
+  
+  <path id="darkbot.module.sourcepath">
+    <dirset dir="${module.darkbot.basedir}">
+      <include name="src/main/java"/>
+      <include name="src/main/resources"/>
+      <include name="lib"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.darkbot" depends="compile.module.darkbot.production,compile.module.darkbot.tests" description="Compile module DarkBOT"/>
+  
+  <target name="compile.module.darkbot.production" depends="register.custom.compilers" description="Compile module DarkBOT; production classes">
+    <mkdir dir="${darkbot.output.dir}"/>
+    <javac2 destdir="${darkbot.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.darkbot}/javac">
+      <compilerarg line="${compiler.args.darkbot}"/>
+      <bootclasspath refid="darkbot.module.bootclasspath"/>
+      <classpath refid="darkbot.module.production.classpath"/>
+      <src refid="darkbot.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.darkbot"/>
+    </javac2>
+    
+    <copy todir="${darkbot.output.dir}">
+      <fileset dir="${module.darkbot.basedir}/src/main/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.darkbot.basedir}/src/main/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.darkbot.basedir}/lib">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.darkbot.tests" depends="register.custom.compilers,compile.module.darkbot.production" description="compile module DarkBOT; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.darkbot" description="cleanup module">
+    <delete dir="${darkbot.output.dir}"/>
+    <delete dir="${darkbot.testoutput.dir}"/>
+  </target>
+</project>
