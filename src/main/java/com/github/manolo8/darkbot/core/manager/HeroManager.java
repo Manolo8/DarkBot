@@ -38,7 +38,7 @@ public class HeroManager extends Ship implements Manager {
         instance = this;
 
         this.main = main;
-        this.drive = new Drive(this, main.mapManager);
+        this.drive = new Drive(this, main.mapManager, main.mouseManager);
         main.status.add(drive::toggleRunning);
         this.pet = new Pet(0);
         this.map = main.starManager.byId(-1);
@@ -107,7 +107,7 @@ public class HeroManager extends Ship implements Manager {
         if (portal.removed) return;
         if (System.currentTimeMillis() - portalTime > 10000 || (System.currentTimeMillis() - portalTime > 1000 &&
                 map.id == currMap() && (nextMap() == -1 || portal.target == null || nextMap() != portal.target.id))) {
-            API.keyboardClick('j');
+            API.keyboardClick('J');
             portalTime = System.currentTimeMillis();
         }
     }

@@ -120,7 +120,7 @@ public class GuiManager implements Manager {
         if (System.currentTimeMillis() - lastRepair > 10000) {
             deaths++;
             API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
-            API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
+            MouseManager.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
             lastRepair = System.currentTimeMillis();
             if (main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE != 0) this.main.backpage.checkDronesAfterKill();
             return true;
@@ -167,7 +167,7 @@ public class GuiManager implements Manager {
 
             return false;
         } else if (isDead()) {
-            main.hero.drive.stop(false);
+            main.hero.drive.stop();
 
             if (lastDeath == -1) lastDeath = System.currentTimeMillis();
 
