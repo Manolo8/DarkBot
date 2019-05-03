@@ -210,7 +210,7 @@ public class EventModule implements Module {
         if (distance < 300) {
             drop.setCollected(true);
 
-            drive.stop(false);
+            drive.stop();
             drop.clickable.setRadius(800);
             drive.clickCenter(true, drop.locationInfo.now);
             drop.clickable.setRadius(0);

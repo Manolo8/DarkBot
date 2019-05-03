@@ -11,7 +11,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Comparator;
 
 public class DarkBotAPI implements IDarkBotAPI {
 
@@ -30,16 +29,15 @@ public class DarkBotAPI implements IDarkBotAPI {
 
     public void createWindow() {
         new Thread(() -> {
-            createWindow0();
-            System.exit(0);
+            createWindow0(".\\Browser\\DarkBotBrowser.exe");
         }, "BotBrowser").start();
         new Thread(() -> {
-            while ((window = USER_32.FindWindow("DarkBrowser", "DarkBrowser")) == null || !USER_32.IsWindow(window)) Time.sleep(100);
+            while ((window = USER_32.FindWindow(null, "Darkbot Browser")) == null || !USER_32.IsWindow(window)) Time.sleep(100);
             USER_32.SetWindowPos(window, new WinDef.HWND(new Pointer(config.MISCELLANEOUS.DISPLAY.ALWAYS_ON_TOP ? -1 : 0)), 0, 0, 0, 0, NO_MOVE | NO_RESIZE);
         }).start();
     }
 
-    private native void createWindow0();
+    private native void createWindow0(String path);
 
     public native boolean isValid();
 

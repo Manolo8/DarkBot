@@ -30,12 +30,12 @@ public class Drive {
 
     private Location tempDest, endLoc, lastSegment;
 
-    private long lastClick;
+    private int clicked;
     public long lastMoved;
 
-    public Drive(HeroManager hero, MapManager map) {
+    public Drive(HeroManager hero, MapManager map, MouseManager mouse) {
         this.map = map;
-        this.mouse = new MouseManager(map);
+        this.mouse = mouse;
         this.hero = hero;
         this.heroLoc = hero.locationInfo;
         this.pathFinder = new PathFinder(map);
@@ -61,17 +61,20 @@ public class Drive {
         lastSegment = next;
 
         boolean diffAngle = Math.abs(now.angle(next) - last.angle(now)) > 0.1;
-        if (hero.timeTo(now.distance(next)) > 100 || (diffAngle && heroLoc.isMoving())) {
-            if (heroLoc.isMoving() && !diffAngle) {
-                if (System.currentTimeMillis() - lastClick > 2000) click(next);
-                return;
+        if (hero.timeTo(now.distance(next)) > 100) {
+            clicked++;
+            if (heroLoc.isMoving() && !diffAngle) return;
+            if (!force && heroLoc.isMoving() && !newPath && clicked > 3) stop();
+            else {
+                clicked = 0;
+                mouse.holdTowards(next, heroLoc.isMoving());
             }
-
-            if (!force && heroLoc.isMoving() && !newPath && System.currentTimeMillis() - lastClick > 250) stop(false);
-            else click(next);
         } else {
             paths.removeFirst();
-            if (paths.isEmpty()) this.endLoc = null;
+            if (paths.isEmpty()) {
+                this.endLoc = null;
+                stop();
+            }
         }
     }
 
@@ -79,13 +82,6 @@ public class Drive {
         if (paths.isEmpty()) return null;
         PathPoint point = paths.getFirst();
         return new Location(point.x, point.y);
-    }
-
-    private void click(Location loc) {
-        if (System.currentTimeMillis() - lastClick > 300) {
-            lastClick = System.currentTimeMillis();
-            mouse.clickLoc(loc);
-        }
     }
 
     public boolean canMove(Location location) {
@@ -107,15 +103,11 @@ public class Drive {
 
     public void toggleRunning(boolean running) {
         this.force = running;
-        stop(true);
+        stop();
     }
 
-    public void stop(boolean current) {
-        if (heroLoc.isMoving() && current) {
-            Location stopLoc = heroLoc.now.copy();
-            stopLoc.toAngle(heroLoc.now, heroLoc.last.angle(heroLoc.now), 100);
-            mouse.clickLoc(stopLoc);
-        }
+    public void stop() {
+        mouse.release();
 
         endLoc = null;
         if (!paths.isEmpty()) paths.clear();

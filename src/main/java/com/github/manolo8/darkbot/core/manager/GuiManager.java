@@ -119,7 +119,7 @@ public class GuiManager implements Manager {
         if (System.currentTimeMillis() - repairTime > 10000) {
             deaths++;
             API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
-            API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
+            MouseManager.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
             repairTime = System.currentTimeMillis();
         }
     }
@@ -171,7 +171,7 @@ public class GuiManager implements Manager {
 
             return false;
         } else if (isDead()) {
-            main.hero.drive.stop(false);
+            main.hero.drive.stop();
 
             tryRevive();
 

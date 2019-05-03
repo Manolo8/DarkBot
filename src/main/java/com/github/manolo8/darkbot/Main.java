@@ -10,6 +10,7 @@ import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.GuiManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.MapManager;
+import com.github.manolo8.darkbot.core.manager.MouseManager;
 import com.github.manolo8.darkbot.core.manager.PingManager;
 import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
@@ -39,7 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.prefs.Preferences;
 
 public class Main extends Thread {
-    public static final String VERSION = "1.13.9";
+    public static final String VERSION = "1.14 alpha";
 
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
@@ -50,8 +51,9 @@ public class Main extends Thread {
 
     public static IDarkBotAPI API;
 
-    public final MapManager mapManager;
     public final StarManager starManager;
+    public final MapManager mapManager;
+    public final MouseManager mouseManager;
     public final HeroManager hero;
     public final GuiManager guiManager;
     public final StatsManager statsManager;
@@ -102,6 +104,7 @@ public class Main extends Thread {
 
         starManager = new StarManager();
         mapManager = new MapManager(this);
+        mouseManager = new MouseManager(mapManager);
         hero = new HeroManager(this);
         guiManager = new GuiManager(this);
         statsManager = new StatsManager(this);

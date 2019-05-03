@@ -115,7 +115,7 @@ public class CollectorModule implements Module {
         double distance = hero.locationInfo.distance(current);
 
         if (distance < 200) {
-            drive.stop(false);
+            drive.stop();
             current.clickable.setRadius(800);
             drive.clickCenter(true, current.locationInfo.now);
             current.clickable.setRadius(0);

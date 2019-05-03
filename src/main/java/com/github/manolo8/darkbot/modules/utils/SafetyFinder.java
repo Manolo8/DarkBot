@@ -115,7 +115,7 @@ public class SafetyFinder {
                         // Also jump if taking damage & you would jump away from enemy.
                         || (hero.health.hpDecreasedIn(200) && Escaping.ENEMY.shouldJump(safety))) {
                     prevMap = hero.map;
-                    drive.stop(false);
+                    drive.stop();
                     hero.jumpPortal((Portal) safety.entity);
                     jumpState = JumpState.JUMPING;
                     return false;
