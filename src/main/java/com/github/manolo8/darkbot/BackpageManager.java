@@ -74,14 +74,12 @@ public class BackpageManager extends Thread {
     }
 
     public HttpURLConnection getConnection(String params) throws Exception{
-        if (!isInvalid()) {
-            HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params)
-                    .openConnection();
-            conn.setInstanceFollowRedirects(false);
-            conn.setRequestProperty("Cookie", "dosid=" + this.sid);
-            return conn;
-        }
-        return null;
+        if (isInvalid()) throw new UnsupportedOperationException("Can't connect when sid is invalid");
+        HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params)
+                .openConnection();
+        conn.setInstanceFollowRedirects(false);
+        conn.setRequestProperty("Cookie", "dosid=" + this.sid);
+        return conn;
     }
 
     public String getDataInventory(String params){
