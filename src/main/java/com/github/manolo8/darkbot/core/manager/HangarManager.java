@@ -56,7 +56,7 @@ public class HangarManager {
         updateHangars();
         updateDrones();
         for (Drone drone : drones){
-            if (drone.getDamage() >= main.config.GENERAL.SAFETY.REPAIR_DRONE_PORCENTAGE){
+            if ((drone.getDamage()/100) >= main.config.GENERAL.SAFETY.REPAIR_DRONE_PORCENTAGE){
                 repairDron(drone);
                 System.out.println("Drone Repair");
             }
