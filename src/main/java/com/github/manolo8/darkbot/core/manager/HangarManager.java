@@ -52,6 +52,17 @@ public class HangarManager {
         return true;
     }
 
+    public void checkDrones() {
+        updateHangars();
+        updateDrones();
+        for (Drone drone : drones){
+            if (drone.getDamage() >= main.config.GENERAL.SAFETY.REPAIR_DRONE_PORCENTAGE){
+                repairDron(drone);
+                System.out.println("Drone Repair");
+            }
+        }
+    }
+
     public void updateDrones() {
         try {
             String hangarID = getActiveHangar();
@@ -89,11 +100,11 @@ public class HangarManager {
         }
     }
 
-    private boolean repairDron(Drone drone, String activeHangarId){
+    private boolean repairDron(Drone drone){
         try {
             String decodeParams =
                     "{\"action\":\"repairDrone\",\"lootId\":\"" + drone.getLoot() + "\",\"repairPrice\":" + drone.getRepairPrice() +
-                            ",\"params\":{\"hi\":" + activeHangarId + "}," +
+                            ",\"params\":{\"hi\":" + getActiveHangar() + "}," +
                             "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
                             "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}";
             String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
@@ -124,7 +135,6 @@ public class HangarManager {
     }
 
     public String getActiveHangar(){
-        updateHangars();
         for(Hangar hangar : hangars){
             if (hangar.isHangar_is_active()){
                 return hangar.getHangarID();

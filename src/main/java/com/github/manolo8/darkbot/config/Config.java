@@ -76,6 +76,9 @@ public class Config {
             @Option("Wait after revive (sec)")
             @Num(max = 60 * 60, step = 10)
             public int WAIT_AFTER_REVIVE = 90;
+            @Option("Repair Drone Percentage")
+            @Editor(JPercentField.class)
+            public int REPAIR_DRONE_PORCENTAGE = 90;
         }
 
         public @Option("Running") Running RUNNING = new Running();
