@@ -1,5 +1,6 @@
 package com.github.manolo8.darkbot;
 
+import com.github.manolo8.darkbot.core.manager.HangarManager;
 import com.github.manolo8.darkbot.utils.Base64Utils;
 import com.github.manolo8.darkbot.utils.Time;
 
@@ -8,6 +9,7 @@ import java.net.URL;
 
 public class BackpageManager extends Thread {
     private final Main main;
+    private final HangarManager hangarManager;
     private static final int SECOND = 1000, MINUTE = 60 * SECOND;
 
     private static final String[] ACTIONS = new String[] {
@@ -23,10 +25,12 @@ public class BackpageManager extends Thread {
     private long waitTime = 0;
     private long lastUpdate = System.currentTimeMillis();
     private int sidStatus = -1;
+    private boolean checkDrones = false;
 
     public BackpageManager(Main main) {
         super("BackpageManager");
         this.main = main;
+        this.hangarManager = new HangarManager(main);
         start();
     }
 
@@ -43,11 +47,20 @@ public class BackpageManager extends Thread {
                 waitTime = validTick();
             }
 
+            if(checkDrones) {
+                hangarManager.checkDrones();
+                checkDrones = false;
+            }
+
             if (sidStatus == 302) break;
 
             this.waitTime = (int) (waitTime + waitTime * Math.random());
             sleep(waitTime);
         }
+    }
+
+    public void checkDronesAfterKill() {
+        this.checkDrones = true;
     }
 
     private boolean isInvalid() {
