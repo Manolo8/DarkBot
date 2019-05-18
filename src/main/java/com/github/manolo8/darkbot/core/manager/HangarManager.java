@@ -9,16 +9,11 @@ import com.google.gson.*;
 
 import java.util.ArrayList;
 
-import static com.github.manolo8.darkbot.Main.API;
-
 public class HangarManager {
 
     private final Main main;
-    private BackpageManager backpageManager;
-    private boolean disconnecting = false;
-    private Character exitKey = 'l';
+    private final BackpageManager backpageManager;
     private long lastChangeHangar = 0;
-    private long disconectTime = 0;
     private ArrayList<Hangar> hangars;
     private ArrayList<Drone> drones;
 
@@ -30,21 +25,14 @@ public class HangarManager {
     }
 
     public boolean changeHangar(String hangarID) {
-        if (!this.disconnecting) {
-            disconnect();
-        }
         if (this.lastChangeHangar <= System.currentTimeMillis() - 40000 && this.main.backpage.sidStatus().contains("OK")) {
-            if (this.disconectTime <= System.currentTimeMillis() - 20000) {
-
-                String url = "indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
-                try {
-                    backpageManager.getConnection(url).getResponseCode();
-                    this.disconnecting = false;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                this.lastChangeHangar = System.currentTimeMillis();
+            String url = "indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
+            try {
+                backpageManager.getConnection(url).getResponseCode();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            this.lastChangeHangar = System.currentTimeMillis();
         } else {
             return false;
         }
@@ -139,11 +127,5 @@ public class HangarManager {
             }
         }
         return null;
-    }
-
-    public void disconnect() {
-        API.keyboardClick(exitKey);
-        disconectTime = System.currentTimeMillis();
-        disconnecting = true;
     }
 }
