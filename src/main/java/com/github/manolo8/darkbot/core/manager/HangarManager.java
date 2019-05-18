@@ -29,14 +29,6 @@ public class HangarManager {
     private ArrayList<Hangar> hangars;
     private ArrayList<Dron> drones;
 
-    /*
-     * Para sacar los vants
-     * /flashAPI/inventory.php/action=getHangar&params=
-     * Params es:
-     * {"params":{"hi": HANGARID}}
-     * En base 64
-     */
-
     public HangarManager(Main main){
         this.main = main;
         this.hangars = new ArrayList<Hangar>();
