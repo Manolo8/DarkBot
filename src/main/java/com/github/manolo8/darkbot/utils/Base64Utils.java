@@ -16,6 +16,7 @@ public class Base64Utils{
             responseb.append(currentLine);
         }
 
+        input.close();
         in.close();
 
         return new String(Base64.getDecoder().decode(responseb.toString()),"UTF-8");
