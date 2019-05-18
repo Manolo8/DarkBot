@@ -13,6 +13,7 @@ public class HangarManager {
 
     private final Main main;
     private final BackpageManager backpageManager;
+    private static final Gson GSON = new Gson();
     private long lastChangeHangar = 0;
     private ArrayList<Hangar> hangars;
     private ArrayList<Drone> drones;
@@ -44,7 +45,7 @@ public class HangarManager {
         updateHangars();
         updateDrones();
         for (Drone drone : drones){
-            if ((drone.getDamage()/100) >= this.main.config.MISCELLANEOUS.REPAIR_DRONE_PORCENTAGE){
+            if ((drone.getDamage()/100) >= this.main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE){
                 repairDrone(drone);
                 System.out.println("Drone Repair");
             }
@@ -68,7 +69,7 @@ public class HangarManager {
                         if (hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
                             JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
                             for (JsonElement dron : dronesArray){
-                                this.drones.add(new Gson().fromJson(dron,Drone.class));
+                                this.drones.add(GSON.fromJson(dron,Drone.class));
                             }
                         }
                     }
@@ -76,7 +77,7 @@ public class HangarManager {
                     if (element.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
                         JsonArray dronesArray = element.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
                         for (JsonElement dron : dronesArray){
-                           this.drones.add(new Gson().fromJson(dron,Drone.class));
+                           this.drones.add(GSON.fromJson(dron,Drone.class));
                         }
                     }
                 }
@@ -115,7 +116,7 @@ public class HangarManager {
             JsonArray hangarsArray =  new JsonParser().parse(decodeString).getAsJsonObject().get("data").getAsJsonObject()
                     .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
             for (JsonElement hangar : hangarsArray) {
-                this.hangars.add(new Gson().fromJson(hangar,Hangar.class));
+                this.hangars.add(GSON.fromJson(hangar,Hangar.class));
             }
         }
     }
