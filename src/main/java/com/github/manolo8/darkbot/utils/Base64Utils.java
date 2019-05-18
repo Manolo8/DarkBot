@@ -19,8 +19,13 @@ public class Base64Utils{
         input.close();
         in.close();
 
-        return new String(Base64.getDecoder().decode(responseb.toString()),"UTF-8");
+        return base64Decode(responseb.toString());
     }
+
+    public static String base64Decode(String text) throws Exception {
+        return new String(Base64.getDecoder().decode(text),"UTF-8");
+    }
+    
     public static String base64Encode(String text) throws Exception {
         return Base64.getEncoder().encodeToString(text.getBytes("UTF-8"));
     }
