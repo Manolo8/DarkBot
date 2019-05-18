@@ -61,32 +61,24 @@ public class HangarManager {
                 String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
                 String url = "flashAPI/inventory.php?action=getHangar&params="+encodeParams;
                 String json = this.backpageManager.getDataInventory(url);
-                JsonArray hangarArray =  new JsonParser().parse(json).getAsJsonObject().get("data")
-                        .getAsJsonObject().get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
 
-                for (JsonElement hangar : hangarArray) {
-                    if (hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
-                        JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
-                        for (JsonElement dron : dronesArray){
-                            JsonObject dronJson = dron.getAsJsonObject();
-                            String lootId = "drone_iris";
-                            switch (dronJson.get("L").getAsInt()){
-                                case 1:
-                                    lootId = "drone_flax";
-                                    break;
-                                case 2:
-                                    lootId = "drone_iris";
-                                    break;
-                                case 3:
-                                    lootId = "drone_apis";
-                                    break;
-                                case 4:
-                                    lootId = "drone_zeus";
-                                    break;
+                JsonElement element = new JsonParser().parse(json).getAsJsonObject().get("data")
+                        .getAsJsonObject().get("ret").getAsJsonObject().get("hangars");
+
+                if (element.isJsonArray()) {
+                    for (JsonElement hangar : element.getAsJsonArray()) {
+                        if (hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
+                            JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
+                            for (JsonElement dron : dronesArray){
+                                this.drones.add(new Gson().fromJson(dron,Drone.class));
                             }
-                            int damage = Integer.parseInt(dronJson.get("HP").getAsString().replace("%"," ").trim());
-                            this.drones.add(new Drone(lootId,dronJson.get("repair").getAsInt(),dronJson.get("I").getAsString(),
-                                    dronJson.get("currency").getAsString(),dronJson.get("LV").getAsInt(),damage));
+                        }
+                    }
+                } else {
+                    if (element.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
+                        JsonArray dronesArray = element.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
+                        for (JsonElement dron : dronesArray){
+                           this.drones.add(new Gson().fromJson(dron,Drone.class));
                         }
                     }
                 }
@@ -100,7 +92,7 @@ public class HangarManager {
     private boolean repairDron(Drone drone, String activeHangarId){
         try {
             String decodeParams =
-                    "{\"action\":\"repairDrone\",\"lootId\":\"" + drone.getLootId() + "\",\"repairPrice\":" + drone.getRepairPrice() +
+                    "{\"action\":\"repairDrone\",\"lootId\":\"" + drone.getLoot() + "\",\"repairPrice\":" + drone.getRepairPrice() +
                             ",\"params\":{\"hi\":" + activeHangarId + "}," +
                             "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
                             "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}";
@@ -125,10 +117,8 @@ public class HangarManager {
         if (decodeString != null) {
             JsonArray hangarsArray =  new JsonParser().parse(decodeString).getAsJsonObject().get("data").getAsJsonObject()
                     .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
-
             for (JsonElement hangar : hangarsArray) {
-                this.hangars.add(new Hangar(hangar.getAsJsonObject().get("hangarID").getAsString(),
-                        hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()));
+                this.hangars.add(new Gson().fromJson(hangar,Hangar.class));
             }
         }
     }

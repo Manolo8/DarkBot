@@ -1,14 +1,26 @@
 package com.github.manolo8.darkbot.core.entities;
 
-public class Drone {
-    private String lootId;
-    private int repairPrice;
-    private String itemId;
-    private String repairCurrency;
-    private int droneLevel;
-    private int damage;
+import com.google.gson.annotations.SerializedName;
 
-    public Drone(String lootId, int repairPrice, String itemId, String repairCurrency, int droneLevel, int damage) {
+public class Drone {
+
+    @SerializedName("L")
+    private int lootId;
+
+    @SerializedName("repair")
+    private int repairPrice;
+
+    @SerializedName("I")
+    private String itemId;
+    @SerializedName("currency")
+    private String repairCurrency;
+    @SerializedName("LV")
+    private int droneLevel;
+
+    @SerializedName("HP")
+    private String damage;
+
+    public Drone(int lootId, int repairPrice, String itemId, String repairCurrency, int droneLevel, String damage) {
         this.lootId = lootId;
         this.repairPrice = repairPrice;
         this.itemId = itemId;
@@ -17,8 +29,19 @@ public class Drone {
         this.damage = damage;
     }
 
-    public String getLootId() {
-        return lootId;
+    public String getLoot() {
+        switch (lootId){
+            case 1:
+                return "drone_flax";
+            case 2:
+                return "drone_iris";
+            case 3:
+                return "drone_apis";
+            case 4:
+                return "drone_zeus";
+        }
+
+        return "drone_iris";
     }
 
     public int getRepairPrice() {
@@ -38,6 +61,6 @@ public class Drone {
     }
 
     public int getDamage() {
-        return damage;
+        return Integer.parseInt(damage.replace("%"," ").trim());
     }
 }
