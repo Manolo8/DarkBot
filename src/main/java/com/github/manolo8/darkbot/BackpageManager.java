@@ -2,8 +2,12 @@ package com.github.manolo8.darkbot;
 
 import com.github.manolo8.darkbot.utils.Time;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 
 public class BackpageManager extends Thread {
     private final Main main;
@@ -67,11 +71,47 @@ public class BackpageManager extends Thread {
     }
 
     private int sidKeepAlive() throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(instance + "indexInternal.es?action=" + getRandomAction())
+        return getConnection(instance + "indexInternal.es?action=" + getRandomAction()).getResponseCode();
+    }
+
+    public HttpURLConnection getConnection(String url) throws Exception{
+        HttpURLConnection conn= (HttpURLConnection) new URL(url)
                 .openConnection();
         conn.setInstanceFollowRedirects(false);
         conn.setRequestProperty("Cookie", "dosid=" + sid);
-        return conn.getResponseCode();
+
+        return conn;
+    }
+
+    public String getDataInventory(String params){
+        String data = null;
+        InputStream inputStream;
+        HttpURLConnection conn = null;
+        String url = instance + params;
+        try {
+            conn = getConnection(url);
+            conn.setInstanceFollowRedirects(false);
+            conn.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
+            inputStream = conn.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder responseb = new StringBuilder();
+            String currentLine;
+
+            while ((currentLine = in.readLine()) != null)
+                responseb.append(currentLine);
+
+            in.close();
+            inputStream.close();
+            byte[] base64Decode = Base64.getDecoder().decode(responseb.toString());
+            data = new String(base64Decode, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null ){
+                conn.disconnect();
+            }
+        }
+        return data;
     }
 
     private boolean sleep(int millis) {

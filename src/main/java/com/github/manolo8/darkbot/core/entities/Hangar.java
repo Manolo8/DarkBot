@@ -5,11 +5,11 @@ import java.util.ArrayList;
 public class Hangar {
 
     private String hangarID;
-    private boolean hangar_is_active;
+    private boolean hangarIsActive;
 
-    public Hangar(String hangarID, boolean hangar_is_active) {
+    public Hangar(String hangarID, boolean hangarIsActive) {
         this.hangarID = hangarID;
-        this.hangar_is_active = hangar_is_active;
+        this.hangarIsActive = hangarIsActive;
     }
 
     public String getHangarID() {
@@ -17,7 +17,7 @@ public class Hangar {
     }
 
     public boolean isHangar_is_active() {
-        return hangar_is_active;
+        return hangarIsActive;
     }
 
 }

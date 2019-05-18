@@ -1,6 +1,6 @@
 package com.github.manolo8.darkbot.core.entities;
 
-public class Dron {
+public class Drone {
     private String lootId;
     private int repairPrice;
     private String itemId;
@@ -8,7 +8,7 @@ public class Dron {
     private int droneLevel;
     private int damage;
 
-    public Dron(String lootId, int repairPrice, String itemId, String repairCurrency, int droneLevel, int damage) {
+    public Drone(String lootId, int repairPrice, String itemId, String repairCurrency, int droneLevel, int damage) {
         this.lootId = lootId;
         this.repairPrice = repairPrice;
         this.itemId = itemId;

@@ -1,9 +1,9 @@
 package com.github.manolo8.darkbot.core.manager;
 
+import com.github.manolo8.darkbot.BackpageManager;
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.entities.Dron;
+import com.github.manolo8.darkbot.core.entities.Drone;
 import com.github.manolo8.darkbot.core.entities.Hangar;
-import com.github.manolo8.darkbot.core.objects.swf.Array;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -22,105 +22,42 @@ import static com.github.manolo8.darkbot.Main.API;
 public class HangarManager {
 
     private final Main main;
+    private final BackpageManager backpageManager;
     private boolean disconnecting = false;
     private Character exitKey = 'l';
     private long lastChangeHangar = 0;
     private long disconectTime = 0;
     private ArrayList<Hangar> hangars;
-    private ArrayList<Dron> drones;
-
-    /*
-     * Para sacar los vants
-     * /flashAPI/inventory.php/action=getHangar&params=
-     * Params es:
-     * {"params":{"hi": HANGARID}}
-     * En base 64
-     */
+    private ArrayList<Drone> drones;
 
     public HangarManager(Main main){
         this.main = main;
+        this.backpageManager = main.backpage;
         this.hangars = new ArrayList<Hangar>();
-        this.drones = new ArrayList<Dron>();
+        this.drones = new ArrayList<Drone>();
     }
 
     public boolean changeHangar(String hangarID) {
-        HttpURLConnection conn = null;
         if (!this.disconnecting) {
             disconnect();
         }
-        if (this.lastChangeHangar <= System.currentTimeMillis() - 40000 && this.main.backpage.sidStatus().contains("OK") || !hangarID.isEmpty()) {
+        if (this.lastChangeHangar <= System.currentTimeMillis() - 40000 && this.main.backpage.sidStatus().contains("OK")) {
             if (this.disconectTime <= System.currentTimeMillis() - 20000) {
-                String instance = this.main.statsManager.instance, sid = this.main.statsManager.sid;
-                if (instance == null || instance.isEmpty() || sid == null || sid.isEmpty()) return false;
-                String url = instance + "/indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
+
+                String url = "/indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
                 try {
-                    conn = (HttpURLConnection) new URL(url)
-                            .openConnection();
-                    conn.setInstanceFollowRedirects(false);
-                    conn.setRequestProperty("Cookie", "dosid=" + sid);
-                    conn.getResponseCode();
-                    conn.disconnect();
+                    backpageManager.getConnection(url).getResponseCode();
                     this.disconnecting = false;
                 } catch (Exception e) {
                     e.printStackTrace();
-                } finally {
-                    if (conn != null) {
-                        conn.disconnect();
-                    }
                 }
                 this.lastChangeHangar = System.currentTimeMillis();
             }
-
         } else {
             return false;
         }
 
         return true;
-    }
-
-    private String getDataInventory(String params){
-        String data = null;
-        HttpURLConnection conn = null;
-        InputStream inputStream;
-        String instance = this.main.statsManager.instance, sid = this.main.statsManager.sid;
-        if (instance == null || instance.isEmpty() || sid == null || sid.isEmpty()) return data;
-
-        String url = instance + params;
-        try {
-            conn = (HttpURLConnection) new URL(url)
-                    .openConnection();
-            conn.setInstanceFollowRedirects(false);
-            conn.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
-            conn.setRequestProperty("Cookie", "dosid=" + sid);
-            int responseCode = conn.getResponseCode();
-            if (200 <= responseCode && responseCode <= 299) {
-                inputStream = conn.getInputStream();
-            } else {
-                inputStream = conn.getErrorStream();
-            }
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder responseb = new StringBuilder();
-            String currentLine;
-
-            while ((currentLine = in.readLine()) != null)
-                responseb.append(currentLine);
-
-            in.close();
-            inputStream.close();
-
-            byte[] base64Decode = Base64.getDecoder().decode(responseb.toString());
-            data = new String(base64Decode, "UTF-8");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (conn != null ){
-                conn.disconnect();
-            }
-        }
-
-        return data;
     }
 
     public void updateDrones() {
@@ -131,16 +68,12 @@ public class HangarManager {
                 String decodeParams = "{\"params\":{\"hi\":" + hangarID + "}}";
                 String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
                 String url = "/flashAPI/inventory.php?action=getHangar&params="+encodeParams;
-                String json = getDataInventory(url);
-                JsonObject object =  new JsonParser().parse(json).getAsJsonObject();
-                JsonObject data = object.get("data").getAsJsonObject();
-                JsonObject ret  = data.get("ret").getAsJsonObject();
-                JsonArray hangardata = ret.get("hangars").getAsJsonArray();
+                String json = backpageManager.getDataInventory(url);
+                JsonArray hangarArray =  new JsonParser().parse(json).getAsJsonObject().get("data")
+                        .getAsJsonObject().get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
 
-                for (JsonElement hangar : hangardata.getAsJsonArray()) {
-                    boolean active = hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean();
-
-                    if (active) {
+                for (JsonElement hangar : hangarArray) {
+                    if (hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) {
                         JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
                         for (JsonElement dron : dronesArray){
                             JsonObject dronJson = dron.getAsJsonObject();
@@ -160,47 +93,49 @@ public class HangarManager {
                                     break;
                             }
                             int damage = Integer.parseInt(dronJson.get("HP").getAsString().replace("%"," ").trim());
-                            this.drones.add(new Dron(lootId,dronJson.get("repair").getAsInt(),dronJson.get("I").getAsString(),
+                            this.drones.add(new Drone(lootId,dronJson.get("repair").getAsInt(),dronJson.get("I").getAsString(),
                                     dronJson.get("currency").getAsString(),dronJson.get("LV").getAsInt(),damage));
                         }
                     }
                 }
             }
 
-        } catch (Exception e){}
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
-    private boolean repairDron(Dron dron, String activeHangarId){
+    private boolean repairDron(Drone drone, String activeHangarId){
         try {
             String decodeParams =
-                    "{\"action\":\"repairDrone\",\"lootId\":\"" + dron.getLootId() + "\",\"repairPrice\":" + dron.getRepairPrice() +
+                    "{\"action\":\"repairDrone\",\"lootId\":\"" + drone.getLootId() + "\",\"repairPrice\":" + drone.getRepairPrice() +
                             ",\"params\":{\"hi\":" + activeHangarId + "}," +
-                            "\"itemId\":\"" + dron.getItemId() + "\",\"repairCurrency\":\"" +dron.getRepairCurrency() +
-                            "\",\"quantity\":1,\"droneLevel\":" + dron.getDroneLevel() + "}";
+                            "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
+                            "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}";
             String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
             String url = "/flashAPI/inventory.php?action=repairDrone&params="+encodeParams;
-            String json = getDataInventory(url);
+            String json = backpageManager.getDataInventory(url);
             if (json.contains("'isError':0")){
                 return true;
             } else {
                 return false;
             }
         } catch (Exception e){
+            e.printStackTrace();
             return false;
         }
     }
 
     public void updateHangars() {
         String params = "/flashAPI/inventory.php?action=getHangarList";
-        String decodeString = getDataInventory(params);
+        String decodeString = backpageManager.getDataInventory(params);
 
-        JsonObject object =  new JsonParser().parse(decodeString).getAsJsonObject();
-        JsonArray hangarsArray  = object.get("data").getAsJsonObject().get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
+        JsonArray hangarsArray =  new JsonParser().parse(decodeString).getAsJsonObject().get("data").getAsJsonObject()
+                .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
 
         for (JsonElement hangar : hangarsArray) {
-            boolean active = hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean();
-            String hangarID = hangar.getAsJsonObject().get("hangarID").getAsString();
-            this.hangars.add(new Hangar(hangarID,active));
+            this.hangars.add(new Hangar(hangar.getAsJsonObject().get("hangarID").getAsString(),
+                    hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()));
         }
     }
 
