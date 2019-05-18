@@ -3,7 +3,6 @@ package com.github.manolo8.darkbot;
 import com.github.manolo8.darkbot.utils.Time;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -71,45 +70,38 @@ public class BackpageManager extends Thread {
     }
 
     private int sidKeepAlive() throws Exception {
-        return getConnection(instance + "indexInternal.es?action=" + getRandomAction()).getResponseCode();
+        return getConnection("indexInternal.es?action=" + getRandomAction()).getResponseCode();
     }
 
-    public HttpURLConnection getConnection(String url) throws Exception{
-        HttpURLConnection conn= (HttpURLConnection) new URL(url)
-                .openConnection();
-        conn.setInstanceFollowRedirects(false);
-        conn.setRequestProperty("Cookie", "dosid=" + sid);
-
-        return conn;
+    public HttpURLConnection getConnection(String params) throws Exception{
+        if (!isInvalid()) {
+            HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params)
+                    .openConnection();
+            conn.setInstanceFollowRedirects(false);
+            conn.setRequestProperty("Cookie", "dosid=" + this.sid);
+            return conn;
+        }
+        return null;
     }
 
     public String getDataInventory(String params){
         String data = null;
-        InputStream inputStream;
-        HttpURLConnection conn = null;
-        String url = instance + params;
         try {
-            conn = getConnection(url);
-            conn.setInstanceFollowRedirects(false);
+            HttpURLConnection conn = getConnection(params);
             conn.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
-            inputStream = conn.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             StringBuilder responseb = new StringBuilder();
             String currentLine;
 
-            while ((currentLine = in.readLine()) != null)
+            while ((currentLine = in.readLine()) != null){
                 responseb.append(currentLine);
+            }
 
             in.close();
-            inputStream.close();
             byte[] base64Decode = Base64.getDecoder().decode(responseb.toString());
             data = new String(base64Decode, "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (conn != null ){
-                conn.disconnect();
-            }
         }
         return data;
     }

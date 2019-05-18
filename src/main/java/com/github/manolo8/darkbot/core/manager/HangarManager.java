@@ -4,16 +4,8 @@ import com.github.manolo8.darkbot.BackpageManager;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Drone;
 import com.github.manolo8.darkbot.core.entities.Hangar;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 
@@ -22,7 +14,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public class HangarManager {
 
     private final Main main;
-    private final BackpageManager backpageManager;
+    private BackpageManager backpageManager;
     private boolean disconnecting = false;
     private Character exitKey = 'l';
     private long lastChangeHangar = 0;
@@ -44,7 +36,7 @@ public class HangarManager {
         if (this.lastChangeHangar <= System.currentTimeMillis() - 40000 && this.main.backpage.sidStatus().contains("OK")) {
             if (this.disconectTime <= System.currentTimeMillis() - 20000) {
 
-                String url = "/indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
+                String url = "indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
                 try {
                     backpageManager.getConnection(url).getResponseCode();
                     this.disconnecting = false;
@@ -67,8 +59,8 @@ public class HangarManager {
             if (hangarID != null) {
                 String decodeParams = "{\"params\":{\"hi\":" + hangarID + "}}";
                 String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
-                String url = "/flashAPI/inventory.php?action=getHangar&params="+encodeParams;
-                String json = backpageManager.getDataInventory(url);
+                String url = "flashAPI/inventory.php?action=getHangar&params="+encodeParams;
+                String json = this.backpageManager.getDataInventory(url);
                 JsonArray hangarArray =  new JsonParser().parse(json).getAsJsonObject().get("data")
                         .getAsJsonObject().get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
 
@@ -113,8 +105,8 @@ public class HangarManager {
                             "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
                             "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}";
             String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
-            String url = "/flashAPI/inventory.php?action=repairDrone&params="+encodeParams;
-            String json = backpageManager.getDataInventory(url);
+            String url = "flashAPI/inventory.php?action=repairDrone&params="+encodeParams;
+            String json = this.backpageManager.getDataInventory(url);
             if (json.contains("'isError':0")){
                 return true;
             } else {
@@ -127,15 +119,17 @@ public class HangarManager {
     }
 
     public void updateHangars() {
-        String params = "/flashAPI/inventory.php?action=getHangarList";
-        String decodeString = backpageManager.getDataInventory(params);
+        String params = "flashAPI/inventory.php?action=getHangarList";
+        String decodeString = this.main.backpage.getDataInventory(params);
 
-        JsonArray hangarsArray =  new JsonParser().parse(decodeString).getAsJsonObject().get("data").getAsJsonObject()
-                .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
+        if (decodeString != null) {
+            JsonArray hangarsArray =  new JsonParser().parse(decodeString).getAsJsonObject().get("data").getAsJsonObject()
+                    .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
 
-        for (JsonElement hangar : hangarsArray) {
-            this.hangars.add(new Hangar(hangar.getAsJsonObject().get("hangarID").getAsString(),
-                    hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()));
+            for (JsonElement hangar : hangarsArray) {
+                this.hangars.add(new Hangar(hangar.getAsJsonObject().get("hangarID").getAsString(),
+                        hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()));
+            }
         }
     }
 
