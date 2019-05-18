@@ -5,21 +5,21 @@ import com.google.gson.annotations.SerializedName;
 public class Hangar {
 
     @SerializedName("hangarID")
-    private String hangarID;
+    private String hangarId;
 
     @SerializedName("hangar_is_active")
     private boolean hangarIsActive;
 
-    public Hangar(String hangarID, boolean hangarIsActive) {
-        this.hangarID = hangarID;
+    public Hangar(String hangarId, boolean hangarIsActive) {
+        this.hangarId = hangarId;
         this.hangarIsActive = hangarIsActive;
     }
 
     public String getHangarID() {
-        return hangarID;
+        return hangarId;
     }
 
-    public boolean isHangar_is_active() {
+    public boolean hangarIsActive() {
         return hangarIsActive;
     }
 

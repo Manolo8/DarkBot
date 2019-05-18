@@ -76,9 +76,6 @@ public class Config {
             @Option("Wait after revive (sec)")
             @Num(max = 60 * 60, step = 10)
             public int WAIT_AFTER_REVIVE = 90;
-            @Option("Repair Drone Percentage")
-            @Editor(JPercentField.class)
-            public double REPAIR_DRONE_PORCENTAGE = 0.9;
         }
 
         public @Option("Running") Running RUNNING = new Running();
@@ -191,6 +188,9 @@ public class Config {
         @Option(value = "Refresh every", description = "Every how many minutes to refresh")
         @Num(max = 60 * 12, step = 10)
         public int REFRESH_TIME = 0;
+        @Option("Repair Drone Percentage")
+        @Editor(JPercentField.class)
+        public double REPAIR_DRONE_PORCENTAGE = 0.9;
         @Option("Focus browser window on reload")
         public boolean FOCUS_ON_RELOAD = true;
         @Option("Developer stuff shown")

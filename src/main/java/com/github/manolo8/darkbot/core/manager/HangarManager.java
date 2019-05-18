@@ -4,10 +4,10 @@ import com.github.manolo8.darkbot.BackpageManager;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Drone;
 import com.github.manolo8.darkbot.core.entities.Hangar;
+import com.github.manolo8.darkbot.utils.Base64Utils;
 import com.google.gson.*;
 
 import java.util.ArrayList;
-import java.util.Base64;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -56,8 +56,8 @@ public class HangarManager {
         updateHangars();
         updateDrones();
         for (Drone drone : drones){
-            if ((drone.getDamage()/100) >= main.config.GENERAL.SAFETY.REPAIR_DRONE_PORCENTAGE){
-                repairDron(drone);
+            if ((drone.getDamage()/100) >= this.main.config.MISCELLANEOUS.REPAIR_DRONE_PORCENTAGE){
+                repairDrone(drone);
                 System.out.println("Drone Repair");
             }
         }
@@ -68,8 +68,7 @@ public class HangarManager {
             String hangarID = getActiveHangar();
 
             if (hangarID != null) {
-                String decodeParams = "{\"params\":{\"hi\":" + hangarID + "}}";
-                String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
+                String encodeParams = Base64Utils.base64Encode("{\"params\":{\"hi\":" + hangarID + "}}");
                 String url = "flashAPI/inventory.php?action=getHangar&params="+encodeParams;
                 String json = this.backpageManager.getDataInventory(url);
 
@@ -100,14 +99,13 @@ public class HangarManager {
         }
     }
 
-    private boolean repairDron(Drone drone){
+    private boolean repairDrone(Drone drone){
         try {
-            String decodeParams =
-                    "{\"action\":\"repairDrone\",\"lootId\":\"" + drone.getLoot() + "\",\"repairPrice\":" + drone.getRepairPrice() +
-                            ",\"params\":{\"hi\":" + getActiveHangar() + "}," +
-                            "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
-                            "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}";
-            String encodeParams = Base64.getEncoder().encodeToString(decodeParams.getBytes("UTF-8"));
+            String encodeParams = Base64Utils.base64Encode( "{\"action\":\"repairDrone\",\"lootId\":\""
+                    + drone.getLoot() + "\",\"repairPrice\":" + drone.getRepairPrice() +
+                    ",\"params\":{\"hi\":" + getActiveHangar() + "}," +
+                    "\"itemId\":\"" + drone.getItemId() + "\",\"repairCurrency\":\"" + drone.getRepairCurrency() +
+                    "\",\"quantity\":1,\"droneLevel\":" + drone.getDroneLevel() + "}");
             String url = "flashAPI/inventory.php?action=repairDrone&params="+encodeParams;
             String json = this.backpageManager.getDataInventory(url);
             if (json.contains("'isError':0")){
@@ -136,7 +134,7 @@ public class HangarManager {
 
     public String getActiveHangar(){
         for(Hangar hangar : hangars){
-            if (hangar.isHangar_is_active()){
+            if (hangar.hangarIsActive()){
                 return hangar.getHangarID();
             }
         }

@@ -1,12 +1,12 @@
 package com.github.manolo8.darkbot;
 
+import com.github.manolo8.darkbot.utils.Base64Utils;
 import com.github.manolo8.darkbot.utils.Time;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 
 public class BackpageManager extends Thread {
     private final Main main;
@@ -98,8 +98,7 @@ public class BackpageManager extends Thread {
             }
 
             in.close();
-            byte[] base64Decode = Base64.getDecoder().decode(responseb.toString());
-            data = new String(base64Decode, "UTF-8");
+            data = Base64Utils.base64Decode(responseb.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
