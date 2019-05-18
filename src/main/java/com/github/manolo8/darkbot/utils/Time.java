@@ -2,6 +2,11 @@ package com.github.manolo8.darkbot.utils;
 
 public class Time {
     
+    public static String toString(Integer time) {
+        if (time == null) return "-";
+        return toString(time.intValue());
+    }
+
     public static String toString(long time) {
         StringBuilder builder = new StringBuilder();
         int seconds = (int)(time / 1000L);
@@ -24,6 +29,12 @@ public class Time {
         }
         builder.append(seconds);
         return builder.toString();
+    }
+
+    public static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignore) {}
     }
     
 }

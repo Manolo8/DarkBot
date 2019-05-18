@@ -78,7 +78,16 @@ public class Entity extends Updatable {
         }
     }
 
+    public void added() {
+        removed = false;
+    }
+
     public void removed() {
         removed = true;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(id);
     }
 }

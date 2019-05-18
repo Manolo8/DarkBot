@@ -2,17 +2,19 @@ package com.github.manolo8.darkbot.core.manager;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.ConfigEntity;
+import com.github.manolo8.darkbot.config.SafetyInfo;
 import com.github.manolo8.darkbot.config.ZoneInfo;
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.itf.MapChange;
-import com.github.manolo8.darkbot.core.utils.ClickPoint;
+import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.utils.EntityList;
-import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.core.utils.Lazy;
+
+import java.util.Set;
 
 import static com.github.manolo8.darkbot.Main.API;
-import static java.lang.Math.random;
 
 public class MapManager implements Manager {
 
@@ -22,18 +24,20 @@ public class MapManager implements Manager {
 
     private long mapAddressStatic;
     private long viewAddressStatic;
-    public long mapAddress;
+    private long mapAddress;
     private long viewAddress;
     private long boundsAddress;
     long eventAddress;
 
-    public static int id;
+    public static int id = -1;
+    public Lazy<Map> mapChange = new Lazy<>();
 
     public ZoneInfo preferred;
     public ZoneInfo avoided;
+    public Set<SafetyInfo> safeties;
 
-    public static int internalWidth = 15000;
-    public static int internalHeight = 10000;
+    public static int internalWidth = 21000;
+    public static int internalHeight = 13100;
 
     public static int clientWidth;
     public static int clientHeight;
@@ -67,9 +71,9 @@ public class MapManager implements Manager {
 
         if (mapAddress != temp) {
             update(temp);
+        } else {
+            entities.update();
         }
-
-        entities.update();
 
         updateBounds();
         checkMirror();
@@ -88,6 +92,9 @@ public class MapManager implements Manager {
             main.hero.map = main.starManager.byId(id);
             preferred = ConfigEntity.INSTANCE.getOrCreatePreferred();
             avoided = ConfigEntity.INSTANCE.getOrCreateAvoided();
+            safeties = ConfigEntity.INSTANCE.getOrCreateSafeties();
+
+            mapChange.send(main.hero.map);
 
             if (main.module instanceof MapChange) {
                 ((MapChange) main.module).onMapChange();
@@ -95,7 +102,7 @@ public class MapManager implements Manager {
         }
     }
 
-    void checkMirror() {
+    private void checkMirror() {
         long temp = API.readMemoryLong(eventAddress) + 4 * 14;
 
         if (API.readMemoryBoolean(temp)) {
@@ -103,7 +110,7 @@ public class MapManager implements Manager {
         }
     }
 
-    void updateBounds() {
+    private void updateBounds() {
         long temp = API.readMemoryLong(viewAddressStatic);
 
         if (viewAddress != temp) {

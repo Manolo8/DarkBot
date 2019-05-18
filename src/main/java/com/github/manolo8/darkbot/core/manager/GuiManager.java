@@ -7,6 +7,8 @@ import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.core.objects.swf.Dictionary;
 import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
+import java.util.function.Predicate;
+
 import static com.github.manolo8.darkbot.Main.API;
 
 public class GuiManager implements Manager {
@@ -30,7 +32,16 @@ public class GuiManager implements Manager {
     public final Gui eventProgress;
     public final PetManager pet;
 
-    private boolean runLoadChecks = true;
+    private LoadStatus checks = LoadStatus.WAITING;
+    private enum LoadStatus {
+        WAITING(q -> q.lastUpdatedIn(5000) && q.visible),
+        MISSION_CLOSING(q -> q.show(false)),
+        CLICKING_AMMO(q -> true), DONE(q -> false);
+        Predicate<Gui> canAdvance;
+        LoadStatus(Predicate<Gui> next) {
+            this.canAdvance = next;
+        }
+    }
 
     public int deaths;
 
@@ -64,7 +75,7 @@ public class GuiManager implements Manager {
         botInstaller.invalid.add(value -> {
             if (!value) {
                 validTime = System.currentTimeMillis();
-                runLoadChecks = true;
+                checks = LoadStatus.WAITING;
             }
         });
 
@@ -75,8 +86,9 @@ public class GuiManager implements Manager {
             repairAddress = 0;
             lostConnection.reset();
             connecting.reset();
-            pet.reset();
             eventProgress.reset();
+            pet.reset();
+            checks = LoadStatus.WAITING;
         });
     }
 
@@ -85,14 +97,14 @@ public class GuiManager implements Manager {
 
         lostConnection.update();
         connecting.update();
-        pet.update();
-        eventProgress.update();
         quests.update();
+        eventProgress.update();
+        pet.update();
 
-        if (runLoadChecks && quests.lastUpdatedIn(5000)) {
-            API.keyboardClick(main.config.LOOT.AMMO_KEY);
-            quests.show(false);
-            runLoadChecks = false;
+
+        if (checks != LoadStatus.DONE && checks.canAdvance.test(quests)) {
+            if (checks == LoadStatus.CLICKING_AMMO) API.keyboardClick(main.config.LOOT.AMMO_KEY);
+            checks = LoadStatus.values()[checks.ordinal() + 1];
         }
     }
 
@@ -107,7 +119,7 @@ public class GuiManager implements Manager {
         if (System.currentTimeMillis() - repairTime > 10000) {
             deaths++;
             API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
-            API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
+            MouseManager.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
             repairTime = System.currentTimeMillis();
         }
     }
@@ -159,7 +171,7 @@ public class GuiManager implements Manager {
 
             return false;
         } else if (isDead()) {
-            main.hero.drive.stop(false);
+            main.hero.drive.stop();
 
             tryRevive();
 

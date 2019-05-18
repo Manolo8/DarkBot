@@ -2,6 +2,7 @@ package com.github.manolo8.darkbot.gui.tree.components;
 
 import com.github.manolo8.darkbot.config.BoxInfo;
 import com.github.manolo8.darkbot.config.Config;
+import com.github.manolo8.darkbot.config.ConfigEntity;
 import com.github.manolo8.darkbot.config.NpcInfo;
 import com.github.manolo8.darkbot.config.tree.ConfigField;
 import com.github.manolo8.darkbot.core.utils.Lazy;
@@ -27,7 +28,7 @@ public class JBoxInfoTable extends InfoTable implements OptionEditor {
         private Map<String, BoxInfo> BOX_INFOS;
 
         BoxTableModel(Map<String, BoxInfo> BOX_INFOS, Lazy<String> added) {
-            super(new String[]{"Name", "Collect", "Wait"}, 0);
+            super(new String[]{"Name", "Collect", "Wait (ms)"}, 0);
             (this.BOX_INFOS = BOX_INFOS).forEach(this::addEntry);
             added.add(n -> addEntry(n, BOX_INFOS.get(n)));
         }
@@ -52,6 +53,8 @@ public class JBoxInfoTable extends InfoTable implements OptionEditor {
             BoxInfo info = BOX_INFOS.get((String) this.getValueAt(row, 0));
             if (column == 1) info.collect = (Boolean) value;
             else if (column == 2) info.waitTime = (Integer) value;
+
+            ConfigEntity.changed();
         }
     }
 

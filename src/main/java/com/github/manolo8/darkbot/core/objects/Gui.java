@@ -2,6 +2,7 @@ package com.github.manolo8.darkbot.core.objects;
 
 import com.github.manolo8.darkbot.core.itf.Updatable;
 import com.github.manolo8.darkbot.core.manager.MapManager;
+import com.github.manolo8.darkbot.core.manager.MouseManager;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -65,6 +66,7 @@ public class Gui extends Updatable {
         this.visible = false;
         this.height = 0;
         this.width = 0;
+        this.update = 0;
     }
 
     public boolean lastUpdatedIn(long time) {
@@ -72,7 +74,7 @@ public class Gui extends Updatable {
     }
 
     public void click(int plusX, int plusY) {
-        API.mouseClick(x + plusX, y + plusY);
+        MouseManager.mouseClick(x + plusX, y + plusY);
     }
 
     public boolean show(boolean value) {
@@ -80,7 +82,7 @@ public class Gui extends Updatable {
         if (value != visible) {
 
             if (System.currentTimeMillis() - 1500 > time) {
-                API.mouseClick((int) minimized.x + 5, (int) minimized.y + 5);
+                MouseManager.mouseClick((int) minimized.x + 5, (int) minimized.y + 5);
                 time = System.currentTimeMillis();
             }
 

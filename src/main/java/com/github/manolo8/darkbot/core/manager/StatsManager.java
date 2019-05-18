@@ -9,6 +9,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public class StatsManager implements Manager {
 
     private long address;
+    private long settingsAddress;
 
     public double credits;
     public double uridium;
@@ -39,7 +40,10 @@ public class StatsManager implements Manager {
             address = value;
             sid = API.readMemoryString(API.readMemoryLong(address + 168));
         });
-        botInstaller.settingsAddress.add(value -> instance = API.readMemoryString(API.readMemoryLong(value + 588)));
+        botInstaller.settingsAddress.add(value -> {
+            settingsAddress = value;
+            instance = null;
+        });
     }
 
 
@@ -53,6 +57,11 @@ public class StatsManager implements Manager {
 
         deposit = API.readMemoryInt(API.readMemoryLong(address + 240) + 40);
         depositTotal = API.readMemoryInt(API.readMemoryLong(address + 248) + 40);
+
+        if (settingsAddress == 0) return;
+        if (instance == null || instance.isEmpty() || !instance.startsWith("http")) {
+            instance = API.readMemoryString(API.readMemoryLong(settingsAddress + 588));
+        }
     }
 
 
@@ -87,11 +96,13 @@ public class StatsManager implements Manager {
     }
 
     private void updateExperience(double experience) {
+        if (experience == 0) return;
         if (this.experience != 0) earnedExperience += experience - this.experience;
         this.experience = experience;
     }
 
     private void updateHonor(double honor) {
+        if (honor == 0) return;
         if (this.honor != 0) earnedHonor += honor - this.honor;
         this.honor = honor;
     }

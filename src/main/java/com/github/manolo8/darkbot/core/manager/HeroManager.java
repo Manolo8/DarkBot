@@ -38,7 +38,7 @@ public class HeroManager extends Ship implements Manager {
         instance = this;
 
         this.main = main;
-        this.drive = new Drive(this, main.mapManager);
+        this.drive = new Drive(this, main.mapManager, main.mouseManager);
         main.status.add(drive::toggleRunning);
         this.pet = new Pet(0);
         this.map = main.starManager.byId(-1);
@@ -87,17 +87,27 @@ public class HeroManager extends Ship implements Manager {
         this.target = entity;
     }
 
+    public boolean hasTarget() {
+        return this.target != null && !target.removed;
+    }
+
     public long timeTo(double distance) {
         return (long) (distance * 1000 / shipInfo.speed);
     }
 
-    public int nextMap() {
-        return API.readMemoryInt(API.readMemoryInt(settingsAddress + 204));
+    // 208 -> next map, 212 -> curr map, 216 -> prev map
+    private int nextMap() {
+        return API.readMemoryInt(settingsAddress + 208);
+    }
+    private int currMap() {
+        return API.readMemoryInt(settingsAddress + 212);
     }
 
     public void jumpPortal(Portal portal) {
-        if ((portal.target == null || portal.target.id != nextMap()) && System.currentTimeMillis() - portalTime > 10000) {
-            API.keyboardClick('j');
+        if (portal.removed) return;
+        if (System.currentTimeMillis() - portalTime > 10000 || (System.currentTimeMillis() - portalTime > 1000 &&
+                map.id == currMap() && (nextMap() == -1 || portal.target == null || nextMap() != portal.target.id))) {
+            API.keyboardClick('J');
             portalTime = System.currentTimeMillis();
         }
     }

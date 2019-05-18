@@ -1,6 +1,7 @@
 package com.github.manolo8.darkbot.core.entities;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.ConfigEntity;
 import com.github.manolo8.darkbot.core.objects.Map;
 
 public class Portal extends Entity {
@@ -28,5 +29,17 @@ public class Portal extends Entity {
         super.update();
 
         type = Main.API.readMemoryInt(address + 112);
+        if (locationInfo.isMoving()) ConfigEntity.INSTANCE.updateSafetyFor(this);
+    }
+
+    @Override
+    public void added() {
+        super.added();
+        ConfigEntity.INSTANCE.updateSafetyFor(this);
+    }
+
+    @Override
+    public String toString() {
+        return id + "," + type;
     }
 }
