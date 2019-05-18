@@ -15,6 +15,7 @@ public class GuiManager implements Manager {
 
     private final Main main;
     private final Dictionary guis;
+    private final HangarManager hangarManager;
 
     private long reconnectTime;
     private long repairTime;
@@ -48,6 +49,7 @@ public class GuiManager implements Manager {
     public GuiManager(Main main) {
         this.main = main;
 
+        this.hangarManager = new HangarManager(main);
         this.validTime = System.currentTimeMillis();
         this.guis = new Dictionary(0);
 
@@ -122,7 +124,7 @@ public class GuiManager implements Manager {
             API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
             repairTime = System.currentTimeMillis();
 
-            new HangarManager(this.main).checkDrones();
+            this.hangarManager.checkDrones();
         }
     }
 
