@@ -45,12 +45,12 @@ public class BackpageManager extends Thread {
                 waitTime = SECOND;
             } else {
                 waitTime = validTick();
+                if(checkDrones) {
+                    hangarManager.checkDrones();
+                    checkDrones = false;
+                }
             }
 
-            if(checkDrones) {
-                hangarManager.checkDrones();
-                checkDrones = false;
-            }
 
             if (sidStatus == 302) break;
 
