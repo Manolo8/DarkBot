@@ -52,8 +52,8 @@ public class HangarManager {
         boolean repaired = true;
         for (Drone drone : drones) {
             if (drone.getDamage() / 100d >= main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE) {
-                repaired &= repairDrone(drone);
                 Time.sleep(2000);
+                repaired &= repairDrone(drone);
             }
         }
         return repaired;
@@ -72,9 +72,10 @@ public class HangarManager {
                     .getAsJsonObject().get("ret").getAsJsonObject().get("hangars");
 
             for (JsonElement hangar : (element.isJsonArray() ? element.getAsJsonArray() : Collections.singleton(element))) {
-                if (!hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) continue;
+                if (!hangar.getAsJsonObject().get("1").getAsJsonObject().get("hangar_is_active").getAsBoolean()) continue;
 
-                JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
+                JsonArray dronesArray = hangar.getAsJsonObject().get("1").getAsJsonObject().get("general")
+                    .getAsJsonObject().get("drones").getAsJsonArray();
                 this.drones = GSON.fromJson(dronesArray, DRONE_LIST);
             }
 
