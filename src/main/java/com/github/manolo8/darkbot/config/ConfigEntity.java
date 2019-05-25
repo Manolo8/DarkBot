@@ -20,6 +20,9 @@ public class ConfigEntity {
     public NpcInfo getOrCreateNpcInfo(String name) {
         int mapId = MapManager.id;
         NpcInfo info = config.LOOT.NPC_INFOS.get(name);
+        
+        if (config.LOOT.GROUP_GG_NPCS) name = name.replaceAll("\\d{1,3}$", "");
+        
         if (info == null) {
             info = new NpcInfo();
 
