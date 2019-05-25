@@ -130,6 +130,8 @@ public class Config {
         public int SHIP_ABILITY_MIN = 150_000;
         @Option(value = "Run config to chase", description = "Use run config to follow escaping npcs")
         public boolean RUN_CONFIG_IN_CIRCLE = true;
+        @Option(value = "Group GG NPCs", description = "Deletes wave number from GG NPCs")
+        public boolean GROUP_GG_NPCS = false;
 
         @Option("Npcs")
         @Editor(JNpcInfoTable.class)
