@@ -68,7 +68,7 @@ public class HeroManager extends Ship implements Manager {
         super.update();
         pet.update();
 
-        config = API.readMemoryInt(settingsAddress + 56);
+        config = API.readMemoryInt(settingsAddress + 52);
 
         long petAddress = API.readMemoryLong(address + 176);
         if (petAddress != pet.address) pet.update(petAddress);
