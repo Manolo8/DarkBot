@@ -97,10 +97,10 @@ public class HeroManager extends Ship implements Manager {
 
     // 208 -> next map, 212 -> curr map, 216 -> prev map
     private int nextMap() {
-        return API.readMemoryInt(settingsAddress + 208);
+        return API.readMemoryInt(settingsAddress + 204);
     }
     private int currMap() {
-        return API.readMemoryInt(settingsAddress + 212);
+        return API.readMemoryInt(settingsAddress + 208);
     }
 
     public void jumpPortal(Portal portal) {
