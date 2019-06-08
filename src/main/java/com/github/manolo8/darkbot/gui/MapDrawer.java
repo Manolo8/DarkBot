@@ -359,7 +359,7 @@ public class MapDrawer extends JPanel {
             Location loc = ship.locationInfo.now;
             g2.setColor(ship.playerInfo.isEnemy() ? ENEMIES : ALLIES);
             drawEntity(g2, ship.locationInfo.now, false);
-            if (config.MISCELLANEOUS.DISPLAY.SHOW_NAMES && !config.MISCELLANEOUS.DEV_STUFF)
+            if (config.MISCELLANEOUS.DISPLAY.SHOW_NAMES)
                 drawString(g2, ship.playerInfo.username, translateX(loc.x), translateY(loc.y) - 5, Align.MID);
         }
 
