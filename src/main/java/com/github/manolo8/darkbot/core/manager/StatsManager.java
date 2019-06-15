@@ -28,6 +28,7 @@ public class StatsManager implements Manager {
     public double earnedHonor;
 
     public volatile String sid;
+    public volatile int id;
     public volatile String instance;
 
     public StatsManager(Main main) {
@@ -39,6 +40,7 @@ public class StatsManager implements Manager {
         botInstaller.userDataAddress.add(value -> {
             address = value;
             sid = API.readMemoryString(API.readMemoryLong(address + 168));
+            id = API.readMemoryInt(address + 48);
         });
         botInstaller.settingsAddress.add(value -> {
             settingsAddress = value;
