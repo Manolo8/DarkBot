@@ -1,5 +1,6 @@
 package com.github.manolo8.darkbot.core.entities;
 
+import com.github.manolo8.darkbot.config.ConfigEntity;
 import com.github.manolo8.darkbot.core.itf.Obstacle;
 import com.github.manolo8.darkbot.core.objects.PlayerInfo;
 import com.github.manolo8.darkbot.core.utils.pathfinder.Area;
@@ -11,11 +12,12 @@ public class BattleStation
         implements Obstacle {
 
     public PlayerInfo info;
+    public Area area;
+    public int hullId;
 
-    private Area area;
-
-    public BattleStation(int id) {
+    public BattleStation(int id, int hullId) {
         super(id);
+        this.hullId = hullId;
 
         this.info = new PlayerInfo();
         this.area = new Area(0, 0, 0, 0);
@@ -26,8 +28,16 @@ public class BattleStation
         super.update();
 
         info.update();
-        if (locationInfo.isMoving())
-            area.set(locationInfo.now, 300, 300);
+        if (locationInfo.isMoving()) {
+            area.set(locationInfo.now, 1200, 1000);
+            ConfigEntity.INSTANCE.updateSafetyFor(this);
+        }
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        ConfigEntity.INSTANCE.updateSafetyFor(this);
     }
 
     @Override
@@ -49,6 +59,11 @@ public class BattleStation
 
     @Override
     public boolean use() {
-        return info.isEnemy();
+        return hullId > 0 && hullId < 255 && info.isEnemy();
+    }
+
+    @Override
+    public String toString() {
+        return id + "," + hullId;
     }
 }

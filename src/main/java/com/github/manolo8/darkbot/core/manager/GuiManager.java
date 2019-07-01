@@ -7,6 +7,8 @@ import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.core.objects.swf.Dictionary;
 import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
+import java.util.function.Predicate;
+
 import static com.github.manolo8.darkbot.Main.API;
 
 public class GuiManager implements Manager {
@@ -15,7 +17,8 @@ public class GuiManager implements Manager {
     private final Dictionary guis;
 
     private long reconnectTime;
-    private long repairTime;
+    private long lastDeath = -1;
+    private long lastRepair;
     private long validTime;
 
     private long repairAddress;
@@ -26,8 +29,21 @@ public class GuiManager implements Manager {
 
     private final Gui lostConnection;
     private final Gui connecting;
+    private final Gui quests;
+    public final Gui eventProgress;
+    public final Gui oreTrade;
+    public final PetManager pet;
 
-    public boolean check;
+    private LoadStatus checks = LoadStatus.WAITING;
+    private enum LoadStatus {
+        WAITING(q -> q.lastUpdatedIn(5000) && q.visible),
+        MISSION_CLOSING(q -> q.show(false)),
+        CLICKING_AMMO(q -> true), DONE(q -> false);
+        Predicate<Gui> canAdvance;
+        LoadStatus(Predicate<Gui> next) {
+            this.canAdvance = next;
+        }
+    }
 
     public int deaths;
 
@@ -37,8 +53,12 @@ public class GuiManager implements Manager {
         this.validTime = System.currentTimeMillis();
         this.guis = new Dictionary(0);
 
-        this.lostConnection = new Gui(0);
-        this.connecting = new Gui(0);
+        this.lostConnection = new Gui();
+        this.connecting = new Gui();
+        this.quests = new Gui();
+        this.eventProgress = new Gui();
+        this.oreTrade = new Gui();
+        this.pet = new PetManager(main);
 
         this.main.status.add(value -> validTime = System.currentTimeMillis());
     }
@@ -47,14 +67,20 @@ public class GuiManager implements Manager {
     public void install(BotInstaller botInstaller) {
 
         this.guis.addLazy("lost_connection", lostConnection::update);
-        this.guis.addLazy("connecting", value -> System.out.println("HAS CONNECTING!"));
         this.guis.addLazy("connection", connecting::update);
+        this.guis.addLazy("quests", this.quests::update);
+        this.guis.addLazy("eventProgress", this.eventProgress::update);
+        this.guis.addLazy("ore_trade", this.oreTrade::update);
+        this.guis.addLazy("pet", this.pet::update);
 
         botInstaller.screenManagerAddress.add(value -> screenAddress = value);
         botInstaller.mainAddress.add(value -> mainAddress = value);
 
         botInstaller.invalid.add(value -> {
-            if (!value) validTime = System.currentTimeMillis();
+            if (!value) {
+                validTime = System.currentTimeMillis();
+                checks = LoadStatus.WAITING;
+            }
         });
 
         botInstaller.guiManagerAddress.add(value -> {
@@ -64,33 +90,47 @@ public class GuiManager implements Manager {
             repairAddress = 0;
             lostConnection.reset();
             connecting.reset();
-
-            check = true;
+            eventProgress.reset();
+            oreTrade.reset();
+            pet.reset();
+            checks = LoadStatus.WAITING;
         });
     }
 
     public void tick() {
-
         guis.update();
 
         lostConnection.update();
         connecting.update();
+        quests.update();
+        eventProgress.update();
+        oreTrade.update();
+        pet.update();
+
+
+        if (checks != LoadStatus.DONE && checks.canAdvance.test(quests)) {
+            if (checks == LoadStatus.CLICKING_AMMO) API.keyboardClick(main.config.LOOT.AMMO_KEY);
+            checks = LoadStatus.values()[checks.ordinal() + 1];
+        }
     }
 
     private void tryReconnect(Gui gui) {
         if (System.currentTimeMillis() - reconnectTime > 5000) {
             reconnectTime = System.currentTimeMillis();
-            API.mouseClick(gui.x + 46, gui.y + 180);
+            gui.click(46, 180);
         }
     }
 
-    private void tryRevive() {
-        if (System.currentTimeMillis() - repairTime > 10000) {
+    private boolean tryRevive() {
+        if (System.currentTimeMillis() - lastRepair > 10000) {
             deaths++;
-            API.writeMemoryLong(repairAddress + 32, main.config.REPAIR_LOCAL + 1);
+            API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
             API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
-            repairTime = System.currentTimeMillis();
+            lastRepair = System.currentTimeMillis();
+            if (main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE != 0) this.main.backpage.checkDronesAfterKill();
+            return true;
         }
+        return false;
     }
 
     private boolean isInvalidShip() {
@@ -100,24 +140,16 @@ public class GuiManager implements Manager {
     private boolean isDead() {
         if (repairAddress != 0) {
             return API.readMemoryBoolean(repairAddress + 40);
-        } else {
-            if (isInvalidShip()) {
-
-                long[] values = API.queryMemory(ByteUtils.getBytes(guiAddress, mainAddress), 1);
-
-                if (values.length == 1)
-                    repairAddress = values[0] - 56;
-
-                return false;
-            } else {
-                return false;
-            }
+        } else if (isInvalidShip()) {
+            long[] values = API.queryMemory(ByteUtils.getBytes(guiAddress, mainAddress), 1);
+            if (values.length == 1) repairAddress = values[0] - 56;
         }
+        return false;
     }
 
     private void checkInvalid() {
         if (System.currentTimeMillis() - validTime > 90 * 1000 + (main.hero.map.id == -1 ? 180 * 1000 : 0)) {
-            API.refresh();
+            API.handleRefresh();
             validTime = System.currentTimeMillis();
         }
     }
@@ -134,29 +166,41 @@ public class GuiManager implements Manager {
         } else if (connecting.visible) {
 
             if (connecting.lastUpdatedIn(30000)) {
-                API.refresh();
+                API.handleRefresh();
                 connecting.reset();
             }
 
             return false;
         } else if (isDead()) {
+            main.hero.drive.stop(false);
 
-            tryRevive();
+            if (lastDeath == -1) lastDeath = System.currentTimeMillis();
 
-            if (deaths >= main.config.MAX_DEATHS)
+            if (System.currentTimeMillis() - lastDeath < main.config.GENERAL.SAFETY.WAIT_BEFORE_REVIVE ||
+                    !tryRevive()) return false;
+
+            lastDeath = -1;
+
+            if (deaths >= main.config.GENERAL.SAFETY.MAX_DEATHS)
                 main.setRunning(false);
             else
                 checkInvalid();
 
-
             return false;
-        } else if (main.hero.locationInfo.isMoving()) {
+        } else if (System.currentTimeMillis() - lastRepair < main.config.GENERAL.SAFETY.WAIT_AFTER_REVIVE * 1000) {
             validTime = System.currentTimeMillis();
+            return false;
+        } else if (main.hero.locationInfo.isLoaded()
+                && (main.hero.locationInfo.isMoving() || System.currentTimeMillis() - main.hero.drive.lastMoved > 20 * 1000)
+                && (main.hero.health.hpIncreasedIn(30_000) || main.hero.health.hpDecreasedIn(30_000) || main.hero.health.hpPercent() == 1)
+                && (main.hero.health.shIncreasedIn(30_000) || main.hero.health.shDecreasedIn(30_000) || main.hero.health.shieldPercent() == 1 || main.hero.health.shieldPercent() == 0)) {
+            validTime = System.currentTimeMillis() - main.pingManager.ping;
         }
 
         checkInvalid();
 
-        return true;
+        lastDeath = -1;
+        return main.hero.locationInfo.isLoaded();
     }
 
 }

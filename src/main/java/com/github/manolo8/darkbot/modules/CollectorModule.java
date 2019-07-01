@@ -10,6 +10,7 @@ import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
 
+import java.util.Comparator;
 import java.util.List;
 
 import static com.github.manolo8.darkbot.Main.API;
@@ -52,6 +53,14 @@ public class CollectorModule implements Module {
     }
 
     @Override
+    public String status() {
+        if (current == null) return "Roaming";
+
+        return current.isCollected() ? "Collecting " + current.type + " " + (waiting - System.currentTimeMillis()) + "ms"
+                : "Moving to " + current.type;
+    }
+
+    @Override
     public boolean canRefresh() {
         return isNotWaiting();
     }
@@ -60,7 +69,7 @@ public class CollectorModule implements Module {
     public void tick() {
 
         if (isNotWaiting() && checkCurrentMap()) {
-
+            main.guiManager.pet.setEnabled(true);
             checkInvisibility();
             checkDangerous();
 
@@ -74,14 +83,13 @@ public class CollectorModule implements Module {
 
 
     private boolean checkCurrentMap() {
-        boolean mapWrong = config.WORKING_MAP != hero.map.id;
+        boolean mapWrong = config.GENERAL.WORKING_MAP != hero.map.id;
 
         if (mapWrong) {
 
             hero.runMode();
 
-            main.setModule(new MapModule())
-                    .setTargetAndBack(main.starManager.fromId(main.config.WORKING_MAP));
+            main.setModule(new MapModule()).setTarget(main.starManager.byId(main.config.GENERAL.WORKING_MAP));
 
             return false;
         }
@@ -89,11 +97,11 @@ public class CollectorModule implements Module {
         return true;
     }
 
-    boolean isNotWaiting() {
-        return System.currentTimeMillis() > waiting;
+    public boolean isNotWaiting() {
+        return System.currentTimeMillis() > waiting || current == null || current.removed;
     }
 
-    boolean tryCollectNearestBox() {
+    public boolean tryCollectNearestBox() {
 
         if (current != null) {
             collectBox();
@@ -106,13 +114,13 @@ public class CollectorModule implements Module {
     private void collectBox() {
         double distance = hero.locationInfo.distance(current);
 
-        if (distance < 600) {
-
-            current.clickable.setRadius(1200);
-            drive.clickCenter(1);
+        if (distance < 200) {
+            drive.stop(false);
+            current.clickable.setRadius(800);
+            drive.clickCenter(true, current.locationInfo.now);
             current.clickable.setRadius(0);
 
-            current.setCollected(true);
+            current.setCollected();
 
             waiting = System.currentTimeMillis() + current.boxInfo.waitTime + hero.timeTo(distance) + 30;
 
@@ -122,7 +130,7 @@ public class CollectorModule implements Module {
     }
 
     private void checkDangerous() {
-        if (config.STAY_AWAY_FROM_ENEMIES) {
+        if (config.COLLECT.STAY_AWAY_FROM_ENEMIES) {
 
             Location dangerous = findClosestEnemyAndAddToDangerousList();
 
@@ -131,12 +139,12 @@ public class CollectorModule implements Module {
     }
 
     private void checkInvisibility() {
-        if (config.AUTO_CLOACK
+        if (config.COLLECT.AUTO_CLOACK
                 && !hero.invisible
                 && System.currentTimeMillis() - invisibleTime > 60000
         ) {
             invisibleTime = System.currentTimeMillis();
-            API.keyboardClick(config.AUTO_CLOACK_KEY);
+            API.keyboardClick(config.COLLECT.AUTO_CLOACK_KEY);
         }
     }
 
@@ -166,26 +174,13 @@ public class CollectorModule implements Module {
         drive.move(target);
     }
 
-    void findBox() {
+    public void findBox() {
         LocationInfo locationInfo = hero.locationInfo;
-        double distance = 100_000;
-        Box closest = null;
 
-        for (Box box : boxes) {
-            if (canCollect(box)) {
-                double distanceCurrent = locationInfo.distance(box.locationInfo);
-                if (distanceCurrent < distance) {
-                    distance = distanceCurrent;
-                    closest = box;
-                }
-            }
-        }
-
-        if (current == null || current.isCollected() || closest != null && isBetter(closest)) {
-            current = closest;
-        } else {
-            current = null;
-        }
+        Box best = boxes.stream()
+                .filter(this::canCollect)
+                .min(Comparator.comparingDouble(locationInfo::distance)).orElse(null);
+        this.current = current == null || best == null || current.isCollected() || isBetter(best) ? best : current;
     }
 
     private boolean canCollect(Box box) {
