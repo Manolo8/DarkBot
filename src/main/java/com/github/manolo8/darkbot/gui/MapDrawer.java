@@ -190,6 +190,8 @@ public class MapDrawer extends JPanel {
         }
 
         drawStats(g2,
+                "Total Uridium: " + formatter.format(statsManager.uridium),
+                "Total Credits: " + formatter.format(statsManager.credits),
                 "cre/h " + formatter.format(statsManager.earnedCredits()),
                 "uri/h " + formatter.format(statsManager.earnedUridium()),
                 "exp/h " + formatter.format(statsManager.earnedExperience()),

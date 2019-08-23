@@ -22,12 +22,14 @@ public class ExtraButton extends TitleBarButton<JFrame> {
         JMenuItem home = new JMenuItem("HOME"),
                 reload = new JMenuItem("RELOAD"),
                 discord = new JMenuItem("DISCORD"),//, UIUtils.getIcon("discord")),
-                copySid = new JMenuItem("COPY SID");
+                copySid = new JMenuItem("COPY SID"),
+                resetstats = new JMenuItem("RESET_STATS");
 
         extraOptions.add(home);
         extraOptions.add(reload);
         extraOptions.add(copySid);
         extraOptions.add(discord);
+        extraOptions.add(resetstats);
         home.addActionListener(e -> {
             String sid = main.statsManager.sid, instance = main.statsManager.instance;
             if (sid == null || sid.isEmpty() || instance == null || instance.isEmpty()) return;
@@ -42,6 +44,10 @@ public class ExtraButton extends TitleBarButton<JFrame> {
         discord.addActionListener(e -> SystemUtils.openUrl("https://discord.gg/KFd8vZT"));
         copySid.addActionListener(e -> SystemUtils.toClipboard(main.statsManager.sid));
 
+        resetstats.addActionListener(e -> {   // reset stats
+            main.statsManager.resetStats();
+            main.guiManager.deaths = 0;
+        });
         extraOptions.setBorder(UIUtils.getBorder());
 
         extraOptions.addPopupMenuListener(new PopupMenuListenerAdapter() {

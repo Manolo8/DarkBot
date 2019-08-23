@@ -46,7 +46,13 @@ public class StatsManager implements Manager {
         });
     }
 
-
+    public void resetStats() {
+        this.earnedCredits = 0;
+        this.earnedUridium = 0;
+        this.earnedExperience = 0;
+        this.earnedHonor = 0;
+        this.runningTime = 1;
+    }
     public void tick() {
         if (address == 0) return;
         updateCredits(API.readMemoryDouble(address + 288));
