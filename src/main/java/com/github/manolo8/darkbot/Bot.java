@@ -1,7 +1,7 @@
 package com.github.manolo8.darkbot;
 
 import com.bulenkov.darcula.DarculaLaf;
-import com.github.manolo8.darkbot.extensions.util.VerifierChecker;
+import com.github.manolo8.darkbot.utils.AuthAPI;
 
 import javax.swing.*;
 
@@ -13,7 +13,7 @@ public class Bot {
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
-        VerifierChecker.getAuthApi().setupAuth();
+        AuthAPI.getInstance().setupAuth();
         new Main();
     }
 }
