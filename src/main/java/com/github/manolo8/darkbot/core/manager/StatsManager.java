@@ -9,6 +9,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public class StatsManager implements Manager {
 
     private long address;
+    private long settingsAddress;
 
     public double credits;
     public double uridium;
@@ -17,8 +18,8 @@ public class StatsManager implements Manager {
     public int deposit;
     public int depositTotal;
 
-    private long started;
-    private long runningTime;
+    private long started = System.currentTimeMillis();
+    private long runningTime = 1;
     private boolean lastStatus;
 
     public double earnedCredits;
@@ -26,13 +27,10 @@ public class StatsManager implements Manager {
     public double earnedExperience;
     public double earnedHonor;
 
-    public String sid;
-
-    private StringBuilder builder;
+    public volatile String sid;
+    public volatile String instance;
 
     public StatsManager(Main main) {
-        builder = new StringBuilder();
-
         main.status.add(this::toggle);
     }
 
@@ -42,18 +40,27 @@ public class StatsManager implements Manager {
             address = value;
             sid = API.readMemoryString(API.readMemoryLong(address + 168));
         });
+        botInstaller.settingsAddress.add(value -> {
+            settingsAddress = value;
+            instance = null;
+        });
     }
 
 
     public void tick() {
-        if (address != 0) {
-            updateCredits(API.readMemoryDouble(address + 288));
-            updateUridium(API.readMemoryDouble(address + 296));
-            updateExperience(API.readMemoryDouble(address + 312));
-            updateHonor(API.readMemoryDouble(address + 320));
+        if (address == 0) return;
+        updateCredits(API.readMemoryDouble(address + 288));
+        updateUridium(API.readMemoryDouble(address + 296));
+        //API.readMemoryDouble(address + 304); // Jackpot
+        updateExperience(API.readMemoryDouble(address + 312));
+        updateHonor(API.readMemoryDouble(address + 320));
 
-            deposit = API.readMemoryInt(API.readMemoryLong(address + 240) + 40);
-            depositTotal = API.readMemoryInt(API.readMemoryLong(address + 248) + 40);
+        deposit = API.readMemoryInt(API.readMemoryLong(address + 240) + 40);
+        depositTotal = API.readMemoryInt(API.readMemoryLong(address + 248) + 40);
+
+        if (settingsAddress == 0) return;
+        if (instance == null || instance.isEmpty() || !instance.startsWith("http")) {
+            instance = API.readMemoryString(API.readMemoryLong(settingsAddress + 592));
         }
     }
 
@@ -89,51 +96,19 @@ public class StatsManager implements Manager {
     }
 
     private void updateExperience(double experience) {
+        if (experience == 0) return;
         if (this.experience != 0) earnedExperience += experience - this.experience;
         this.experience = experience;
     }
 
     private void updateHonor(double honor) {
+        if (honor == 0) return;
         if (this.honor != 0) earnedHonor += honor - this.honor;
         this.honor = honor;
     }
 
     public long runningTime() {
         return runningTime + (lastStatus ? (System.currentTimeMillis() - started) : 0);
-    }
-
-    public String runningTimeStr() {
-        builder.setLength(0);
-
-        int seconds = (int) (runningTime() / 1000);
-        int hours = seconds / 3600;
-        int minutes = seconds / 60;
-
-
-        if (hours > 0) {
-
-            if (hours < 10)
-                builder.append('0');
-
-            builder.append(hours).append(':');
-        }
-
-        if (minutes > 0) {
-
-            if (minutes < 10)
-                builder.append('0');
-
-            builder.append(minutes).append(':');
-        }
-
-        seconds = seconds % 60;
-
-        if (seconds < 10)
-            builder.append('0');
-
-        builder.append(seconds);
-
-        return builder.toString();
     }
 
     public double earnedCredits() {

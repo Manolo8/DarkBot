@@ -36,7 +36,6 @@ public class BotInstaller {
     public final Lazy<Long> userDataAddress;
     public final Lazy<Long> settingsAddress;
 
-
     private long timer;
 
     public BotInstaller() {
@@ -80,11 +79,7 @@ public class BotInstaller {
     }
 
     public void verify() {
-        if (install0()) {
-            invalid.send(false);
-        } else {
-            invalid.send(true);
-        }
+        invalid.send(!install0());
     }
 
     private void checkUserData() {
@@ -94,15 +89,23 @@ public class BotInstaller {
 
         if (id == 0) return;
 
-        long[] address = API.queryMemoryInt(id, 100);
+        long[] address = API.queryMemoryInt(id, 10);
 
         for (long value : address) {
 
             int level = API.readMemoryInt(value + 4);
             int speed = API.readMemoryInt(value + 8);
             int bool = API.readMemoryInt(value + 12);
+            int val = API.readMemoryInt(value + 16);
+            int cargo = API.readMemoryInt(API.readMemoryLong(value - 48 + 240) + 40);
+            int maxCargo = API.readMemoryInt(API.readMemoryLong(value - 48 + 248) + 40);
 
-            if (level >= 0 && level <= 32 && speed > 50 && speed < 2000 && (bool == 1 || bool == 2)) {
+            if (level >= 0 && level <= 32
+                    && speed > 50 && speed < 2000
+                    && (bool == 1 || bool == 2)
+                    && val == 0
+                    && cargo >= 0
+                    && maxCargo >= 100 && maxCargo < 100_000) {
                 userDataAddress.send(value - 48);
                 break;
             }
@@ -156,8 +159,9 @@ public class BotInstaller {
     }
 
     private void checkInvalid() {
-        if (System.currentTimeMillis() - timer > 180000) {
-            API.refresh();
+        if (timer != 0 && System.currentTimeMillis() - timer > 180000) {
+            System.out.println("Triggering refresh: bot installer was invalid for too long");
+            API.handleRefresh();
             timer = System.currentTimeMillis();
         }
     }

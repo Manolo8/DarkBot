@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 public class Lazy<C> {
 
-    private final List<Consumer<C>> consumers;
+    protected final List<Consumer<C>> consumers;
 
     public C value;
 
@@ -37,5 +37,29 @@ public class Lazy<C> {
                 consumer.accept(value);
             }
         }
+    }
+
+    public static class Sync<C> extends Lazy<C> {
+        private C newValue;
+
+        @Override
+        public void send(C value) {
+            newValue = value;
+        }
+
+        public void tick() {
+            super.send(newValue);
+        }
+    }
+
+    public static class NoCache<C> extends Lazy<C> {
+
+        @Override
+        public void send(C value) {
+            for (Consumer<C> consumer : consumers) {
+                consumer.accept(value);
+            }
+        }
+
     }
 }

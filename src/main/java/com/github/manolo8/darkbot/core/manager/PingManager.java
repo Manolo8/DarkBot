@@ -31,20 +31,19 @@ public class PingManager implements Manager {
 
             searchPingManager();
 
-        } else {
+        } else if (System.currentTimeMillis() - lastCheck >= 2000) {
+            lastPings.update();
 
-            if (System.currentTimeMillis() - lastCheck >= 1000) {
-                lastPings.update();
+            if (currentIndex == lastPings.size)
+                ping += System.currentTimeMillis() - lastCheck;
+            else if (lastPings.size > 0)
+                ping = lastPings.elements[lastPings.size - 1];
 
-                if (currentIndex == lastPings.size)
-                    ping += 1000;
-                else if (lastPings.size > 0)
-                    ping = lastPings.elements[lastPings.size - 1];
+            currentIndex = lastPings.size;
 
-                currentIndex = lastPings.size;
-
-                lastCheck = System.currentTimeMillis();
-            }
+            lastCheck = System.currentTimeMillis();
+            if (ping < 0 || ping > 30_000)
+                System.out.println("Weird ping value (outside of 0-20K): " + ping);
         }
     }
 
@@ -72,8 +71,11 @@ public class PingManager implements Manager {
                 if (API.readMemoryInt(address + 12) != 0 || API.readMemoryInt(address + 36) != 0)
                     continue;
 
-                pingAddress = API.readMemoryLong(address + 40);
-                lastPings.update(pingAddress);
+                address = API.readMemoryLong(address + 40);
+                if (API.readMemoryInt(address + 64) == 0) continue;
+
+                this.lastPings.update(pingAddress = address);
+                break;
             }
         }
     }

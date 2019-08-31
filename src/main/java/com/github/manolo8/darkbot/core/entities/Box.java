@@ -7,7 +7,8 @@ import static com.github.manolo8.darkbot.Main.API;
 
 public class Box extends Entity {
 
-    protected boolean collected;
+    private long collectedUntil, reset = 7_000;
+    public String type;
 
     public BoxInfo boxInfo;
 
@@ -16,17 +17,22 @@ public class Box extends Entity {
     }
 
     public boolean isCollected() {
-        return collected;
+        return removed || System.currentTimeMillis() < collectedUntil;
     }
 
-    public void setCollected(boolean collected) {
-        this.collected = collected;
+    public void setCollected() {
+        collectedUntil = System.currentTimeMillis() + reset;
+        reset += reset < 15_000 ? 3_000 : 120_000;
     }
 
     @Override
     public void update(long address) {
         super.update(address);
 
+        if (traits.elements.length == 0) {
+            boxInfo = new BoxInfo();
+            return;
+        }
         long data = traits.elements[0];
 
         data = API.readMemoryLong(data + 64);
@@ -36,12 +42,9 @@ public class Box extends Entity {
         data = API.readMemoryLong(data + 16);
         data = API.readMemoryLong(data + 24);
 
-        String type = API.readMemoryString(data);
+        type = API.readMemoryString(data);
 
-        if (type.length() > 5) {
-            int index;
-            type = (index = type.indexOf(',')) > 0 ? type.substring(4, index) : type.substring(4);
-        }
+        if (type.length() > 5) type = type.split(",")[0].replace("box_", "").replace("_box", "");
 
         boxInfo = ConfigEntity.INSTANCE.getOrCreateBoxInfo(type);
     }

@@ -8,17 +8,15 @@ public class ShipInfo extends Updatable {
 
     public int speed;
     public long target;
-
-    public ShipInfo() {
-    }
-
-    public ShipInfo(long address) {
-        this.address = address;
-    }
+    private long keepTargetTime;
 
     @Override
     public void update() {
-        target = API.readMemoryLong(address + 112);
+        long newTarget = API.readMemoryLong(address + 112);
+        if (newTarget != 0 || keepTargetTime > System.currentTimeMillis()) {
+            target = newTarget;
+            if (target != 0) keepTargetTime = System.currentTimeMillis() + 500;
+        }
         speed = API.readMemoryInt(API.readMemoryLong(address + 72) + 40);
     }
 

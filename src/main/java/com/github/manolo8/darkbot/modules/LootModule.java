@@ -2,24 +2,23 @@ package com.github.manolo8.darkbot.modules;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.config.NpcInfo;
 import com.github.manolo8.darkbot.core.entities.Npc;
-import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.modules.utils.NpcAttacker;
+import com.github.manolo8.darkbot.modules.utils.SafetyFinder;
 
+import java.util.Comparator;
 import java.util.List;
 
-import static com.github.manolo8.darkbot.Main.API;
-import static java.lang.Double.max;
 import static java.lang.Double.min;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+import static java.lang.Math.random;
 
+@Feature(name = "Npc Killer", description = "Npc-only module. Will never pick up resources.")
 public class LootModule implements Module {
 
     private Main main;
@@ -32,21 +31,15 @@ public class LootModule implements Module {
 
     private Config config;
 
-    public Npc target;
-
-    private int radiusFix;
-
-    private long laserTime;
-    private long clickDelay;
-    private int times;
-    private boolean sab;
-
-    private boolean locked;
-    private boolean repairing;
+    protected NpcAttacker attack;
+    private long refreshing;
+    private SafetyFinder safety;
 
     @Override
     public void install(Main main) {
         this.main = main;
+        this.attack = new NpcAttacker(main);
+        this.safety = new SafetyFinder(main);
 
         this.hero = main.hero;
         this.drive = main.hero.drive;
@@ -57,271 +50,174 @@ public class LootModule implements Module {
     }
 
     @Override
+    public String status() {
+        return safety.state() != SafetyFinder.Escaping.NONE ? safety.status() :
+                attack.hasTarget() ? attack.status() : "Roaming";
+    }
+
+    @Override
     public boolean canRefresh() {
-        return target == null;
+        if (!attack.hasTarget()) refreshing = System.currentTimeMillis() + 10000;
+        return !attack.hasTarget() && safety.state() == SafetyFinder.Escaping.WAITING;
     }
 
     @Override
     public void tick() {
-
         if (checkDangerousAndCurrentMap()) {
+            main.guiManager.pet.setEnabled(true);
 
             if (findTarget()) {
                 moveToAnSafePosition();
-                doKillTargetTick();
-            } else if (!drive.isMoving()) {
-                drive.moveRandom();
-            }
-
-        }
-
-    }
-
-    void doKillTargetTick() {
-        if (main.mapManager.isTarget(target)) {
-
-            if (main.mapManager.isCurrentTargetOwned()) {
-
-                if (checkIfIsAttackingAndCanContinue()) {
-                    checkSab();
-                }
-
+                ignoreInvalidTarget();
+                attack.doKillTargetTick();
             } else {
-                target.setTimerTo(90000);
-                target = null;
+                hero.roamMode();
+                if (!drive.isMoving()) drive.moveRandom();
             }
-
-        } else {
-            setTargetAndTryStartLaserAttack();
         }
     }
 
     boolean checkDangerousAndCurrentMap() {
-
-        if (config.WORKING_MAP != hero.map.id) {
-
-            main.setModule(new MapModule())
-                    .setTargetAndBack(main.starManager.fromId(main.config.WORKING_MAP));
-
-        } else if ((repairing = repairing || hero.health.hpPercent() < config.REPAIR_HP) || hasEnemies()) {
-
-            if (repairing)
-                repairing = hero.health.hpPercent() >= config.WAIT_HP;
-
-            Portal portal = main.starManager.next(hero.map, hero.locationInfo, hero.map);
-
-            if (portal.locationInfo.distance(hero) < 100) {
-                if (isUnderAttack())
-                    hero.jumpPortal(portal);
-            } else
-                drive.move(portal);
-
-        } else
-            return true;
-
-        hero.runMode();
-
-        return false;
+        safety.setRefreshing(System.currentTimeMillis() <= refreshing);
+        return safety.tick() && checkMap();
     }
 
-    boolean findTarget() {
-        if (target == null || target.removed) {
-            target = closestNpc(hero.locationInfo.now);
-            locked = false;
+    private boolean checkMap() {
+        if (this.config.GENERAL.WORKING_MAP != this.hero.map.id && !main.mapManager.entities.portals.isEmpty()) {
+            this.main.setModule(new MapModule())
+                    .setTarget(this.main.starManager.byId(this.main.config.GENERAL.WORKING_MAP));
+            return false;
         }
-
-        return target != null;
-    }
-
-    private void checkSab() {
-        if (config.AUTO_SAB && hero.health.shieldPercent() < 0.6 && target.health.shield > 12000) {
-
-            if (!sab) {
-                API.keyboardClick(config.AUTO_SAB_KEY);
-                sab = true;
-            }
-
-        } else if (sab) {
-            API.keyboardClick(config.AMMO_KEY);
-            sab = false;
-        }
-    }
-
-    private boolean checkIfIsAttackingAndCanContinue() {
-
-        long laser = System.currentTimeMillis() - laserTime;
-
-        boolean attacking = hero.isAttacking(target);
-        boolean bugged = (!target.health.isDecreasedIn(1000) && laser > 1000);
-
-        if ((!attacking || bugged) && hero.locationInfo.distance(target) < 800 && laser > 1500 + times * 10000) {
-            setRadiusAndClick(2);
-            times++;
-            laserTime = System.currentTimeMillis();
-        }
-
         return true;
     }
 
-    private void setTargetAndTryStartLaserAttack() {
-        if (hero.locationInfo.distance(target) <= target.npcInfo.radius && System.currentTimeMillis() - clickDelay > 1000) {
+    boolean findTarget() {
+        return (attack.target = closestNpc(hero.locationInfo.now)) != null;
+    }
 
-            hero.setTarget(target);
-
-            setRadiusAndClick(1);
-            API.keyboardClick(config.AMMO_KEY);
-            clickDelay = System.currentTimeMillis();
-            locked = true;
-            times = 0;
-
-        } else if (!locked) {
-            target = null;
+    void ignoreInvalidTarget() {
+        double closestDist = drive.closestDistance(attack.target.locationInfo.now);
+        if (!main.mapManager.isTarget(attack.target)) {
+            if (closestDist > 600) {
+                attack.target.setTimerTo(1000);
+                hero.setTarget(attack.target = null);
+            }
+        } else if (!(attack.target.npcInfo.extra.ignoreOwnership || main.mapManager.isCurrentTargetOwned())
+                || (hero.locationInfo.distance(attack.target) > config.LOOT.NPC_DISTANCE_IGNORE) // Too far away from ship
+                || (closestDist > 650 && attack.target.health.hpPercent() > 0.90)   // Too far into obstacle and full hp
+                || (closestDist > 500 && !attack.target.locationInfo.isMoving() // Inside obstacle, waiting & and regen shields
+                        && (attack.target.health.shIncreasedIn(1000) || attack.target.health.shieldPercent() > 0.99))) {
+            attack.target.setTimerTo(5000);
+            hero.setTarget(attack.target = null);
+        } else if (attack.target.playerInfo.username.contains("Invoke") && attack.target.npcInfo.extra.passive
+                && attack.target == hero.target && !attack.castingAbility()) {
+            attack.target.setTimerTo(600_000);
+            hero.setTarget(attack.target = null);
         }
-
     }
 
-    private void setRadiusAndClick(int times) {
-        target.clickable.setRadius(800);
-
-        drive.clickCenter(times);
-
-        target.clickable.setRadius(0);
-    }
-
+    private boolean backwards = false;
     void moveToAnSafePosition() {
+        Npc target = attack.target;
+        Location direction = drive.movingTo();
+        Location heroLoc = hero.locationInfo.now;
+        Location targetLoc = target.locationInfo.destinationInTime(400);
 
-        double hp = target.health.hpPercent();
+        double distance = heroLoc.distance(target.locationInfo.now);
+        double angle = targetLoc.angle(heroLoc);
+        double radius = target.npcInfo.radius;
+        boolean noCircle = target.npcInfo.extra.noCircle;
 
-        if (hp == 1) {
-            drive.move(target);
+        radius = attack.modifyRadius(radius);
+        if (radius > 750) noCircle = false;
+
+        double angleDiff;
+        if (noCircle) {
+            if (targetLoc.distance(direction) <= radius) {
+                setConfig(direction);
+                return;
+            }
+            distance = 100 + random() * (radius - 110);
+            angleDiff = (random() * 0.1) - 0.05;
         } else {
-
-            LocationInfo heroInfo = hero.locationInfo;
-            LocationInfo targetInfo = target.locationInfo;
-
-            Location locationHero = heroInfo.now;
-            Location locationCurrent = targetInfo.destinationInTime(200);
-
-            double radius = target.npcInfo.radius;
-
-            double distance = heroInfo.now.distance(targetInfo.now);
-            double angle = locationCurrent.angle(locationHero);
-
-            if (distance > radius) {
-                radiusFix -= (distance - radius) / 2;
-                radiusFix = (int) max(radiusFix, -target.npcInfo.radius / 2);
-            } else {
-                radiusFix += (radius - distance) / 6;
-                radiusFix = (int) min(radiusFix, target.npcInfo.radius / 2);
-            }
-
-            if (distance > 2 * radius && target.health.hpPercent() < 0.25) {
-                hero.runMode();
-            } else {
-                hero.attackMode();
-            }
-
-            radius += radiusFix;
-
-            double speed = min(200, target.locationInfo.speed) * 0.625;
-            double moveDistance = hero.shipInfo.speed * 0.625 + speed;
-
-            double x = locationCurrent.x - cos(angle) * radius;
-            double y = locationCurrent.y - sin(angle) * radius;
-
-            boolean circle = (moveDistance = (moveDistance - (locationHero.distance(x, y)))) > 0;
-
-            if (circle) {
-                double add = moveDistance / radius;
-
-                angle += add;
-
-                x = locationCurrent.x - cos(angle) * radius;
-                y = locationCurrent.y - sin(angle) * radius;
-            }
-
-            drive.move(x, y);
-
-
+            double maxRadFix = target.npcInfo.radius / 2,
+                    radiusFix = (int) Math.max(Math.min(radius - distance, maxRadFix), -maxRadFix);
+            distance = (radius += radiusFix);
+            // Moved distance + speed - distance to chosen radius same angle, divided by radius
+            angleDiff = Math.max((hero.shipInfo.speed * 0.625) + (min(200, target.locationInfo.speed) * 0.625)
+                    - heroLoc.distance(Location.of(targetLoc, angle, radius)), 0) / radius;
         }
+        direction = getBestDir(targetLoc, angle, angleDiff, distance);
+
+        while (!drive.canMove(direction) && distance < 10000)
+            direction.toAngle(targetLoc, angle += backwards ? -0.3 : 0.3, distance += 2);
+        if (distance >= 10000) direction.toAngle(targetLoc, angle, 500);
+
+        setConfig(direction);
+
+        drive.move(direction);
     }
 
-    private boolean isUnderAttack() {
-        for (Ship ship : ships) {
-            if (ship.playerInfo.isEnemy()) {
+    private Location getBestDir(Location targetLoc, double angle, double angleDiff, double distance) {
+        int iteration = 1;
+        double forwardScore = 0, backScore = 0;
+        do {
+            forwardScore += score(Location.of(targetLoc, angle + (angleDiff * iteration), distance));
+            backScore += score(Location.of(targetLoc, angle - (angleDiff * iteration), distance));
+            // Toggle direction if either one of the directions is perfect, or one is 300 better.
+            if (forwardScore < 0 != backScore < 0 || Math.abs(forwardScore - backScore) > 300) break;
+        } while (iteration++ < config.LOOT.MAX_CIRCLE_ITERATIONS);
 
-                if (ship.isAttacking(hero)) {
-                    return true;
-                }
-
-            }
-        }
-        return false;
+        if (iteration <= config.LOOT.MAX_CIRCLE_ITERATIONS) backwards = backScore > forwardScore;
+        return Location.of(targetLoc, angle + angleDiff * (backwards ? -1 : 1), distance);
     }
 
-    private boolean hasEnemies() {
+    private double score(Location loc) {
+        return (drive.canMove(loc) ? 0 : -1000) - npcs.stream() // Consider barrier as bad as 1000 radius units.
+                .filter(n -> attack.target != n)
+                .mapToDouble(n -> Math.max(0, n.npcInfo.radius - n.locationInfo.now.distance(loc)))
+                .sum();
+    }
 
-        if (config.RUN_FROM_ENEMIES || config.RUN_FROM_ENEMIES_IN_SIGHT) {
-            for (Ship ship : ships) {
-                if (ship.playerInfo.isEnemy()) {
-
-                    if (config.RUN_FROM_ENEMIES_IN_SIGHT)
-                        return true;
-
-                    if (ship.isAttacking(hero)) {
-                        ship.setTimerTo(400_000);
-                        return true;
-                    } else if (ship.isInTimer()) {
-                        return true;
-                    }
-
-                }
-            }
-        }
-
-        return false;
+    public void setConfig(Location direction) {
+        if (!attack.hasTarget()) hero.roamMode();
+        else if (config.LOOT.RUN_CONFIG_IN_CIRCLE
+                && attack.target.health.hpPercent() < 0.25
+                && hero.locationInfo.now.distance(direction) > attack.target.npcInfo.radius * 2) hero.runMode();
+        else if (hero.locationInfo.now.distance(direction) > attack.target.npcInfo.radius * 3) hero.roamMode();
+        else hero.attackMode();
     }
 
     private boolean isAttackedByOthers(Npc npc) {
-
-        for (Ship ship : ships) {
-            if (ship.isAttacking(npc)) {
-                npc.setTimerTo(90000);
-                return true;
-            }
+        for (Ship ship : this.ships) {
+            if (ship.address == hero.address || ship.address == hero.pet.address
+                    || !ship.isAttacking(npc)) continue;
+            if (!npc.npcInfo.extra.ignoreAttacked) npc.setTimerTo(20_000);
+            return true;
         }
-
         return false;
     }
 
     private Npc closestNpc(Location location) {
-
-        double distance = 0;
-        int priority = 0;
-
-        Npc maxPriority = null;
-        Npc minDistance = null;
-
-        for (Npc npc : npcs) {
-
-            if (npc.npcInfo.kill && !npc.isInTimer() && !isAttackedByOthers(npc)) {
-
-                double distanceCurrent = npc.locationInfo.now.distance(location);
-                int priorityCurrent = npc.npcInfo.priority;
-
-                if (minDistance == null || distanceCurrent < distance) {
-                    distance = distanceCurrent;
-                    minDistance = npc;
-                }
-
-                if (maxPriority == null || priorityCurrent >= priority) {
-                    priority = priorityCurrent;
-                    maxPriority = npc;
-                }
-
-            }
-        }
-
-        return minDistance == null ? null : priority > minDistance.npcInfo.priority ? maxPriority : minDistance;
+        int extraPriority = attack.hasTarget() &&
+                (hero.target == attack.target || hero.locationInfo.distance(attack.target) < 600)
+                ? 20 - (int)(attack.target.health.hpPercent() * 10) : 0;
+        return this.npcs.stream()
+                .filter(n -> (n == attack.target && hero.isAttacking(attack.target)) ||
+                        ((!config.GENERAL.ROAMING.ONLY_KILL_PREFERRED || main.mapManager.preferred.contains(n.locationInfo.now))
+                                && shouldKill(n)
+                                && drive.closestDistance(n.locationInfo.now) < 500))
+                .min(Comparator.<Npc>comparingInt(n -> n.npcInfo.priority - (n == attack.target ? extraPriority : 0))
+                        .thenComparing(n -> n.health.hpPercent())
+                        .thenComparing(n -> n.locationInfo.now.distance(location))).orElse(null);
     }
+
+    private boolean shouldKill(Npc n) {
+        boolean attacked = this.isAttackedByOthers(n);
+        return n.npcInfo.kill && !n.isInTimer() &&
+                (n.npcInfo.extra.ignoreAttacked || !attacked) && // Either ignore attacked, or not being attacked
+                (!n.npcInfo.extra.attackSecond || attacked) &&   // Either don't want to attack second, or being attacked
+                (n.playerInfo.username.contains("Invoke") || !n.npcInfo.extra.passive || n.isAttacking(hero));
+    }
+
 }

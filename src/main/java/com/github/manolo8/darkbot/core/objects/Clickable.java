@@ -11,57 +11,57 @@ public class Clickable extends Updatable {
     public int radius;
     public int priority;
 
-    private int defRadius;
-    private int defPriority;
+    public int defRadius = -1;
+    public int defPriority = -1;
 
     public void setPriority(int priority) {
-
-        update();
-
-        if (this.priority != priority && checkIntegrity()) {
-            if (defPriority == 0) defPriority = this.priority;
-            API.writeMemoryInt(address + 44, this.priority = priority);
-        }
+        if (this.priority == priority || isInvalid()) return;
+        if (defPriority == -1) this.defPriority = this.priority;
+        API.writeMemoryInt(address + 44, this.priority = priority);
     }
 
     public void setRadius(int radius) {
-
-        update();
-
-        if (this.radius != radius && checkIntegrity()) {
-            if (defRadius == 0) defRadius = this.radius;
-            API.writeMemoryInt(address + 40, radius);
-        }
+        if (this.radius == radius || isInvalid()) return;
+        if (defRadius == -1) this.defRadius = this.radius;
+        API.writeMemoryInt(address + 40, this.radius = radius);
     }
 
     public void reset() {
-
-        update();
-
-        if (checkIntegrity()) {
-            if (defRadius != 0 && defRadius != radius) API.writeMemoryInt(address + 40, defRadius);
-            if (defPriority != 0 && defPriority != priority) API.writeMemoryInt(address + 44, defPriority);
-            defRadius = 0;
-            defPriority = 0;
-        }
+        if (isInvalid()) return;
+        if (defRadius != -1 && defRadius != radius) API.writeMemoryInt(address + 40, radius = defRadius);
+        if (defRadius != -1 && defPriority != priority) API.writeMemoryInt(address + 44, priority = defPriority);
     }
 
     /**
      * @return prevent swf crash
      */
-    private boolean checkIntegrity() {
-        return API.readMemoryLong(address) == confirm;
+    private boolean isInvalid() {
+        return address == 0 || API.readMemoryLong(address) != confirm;
     }
 
     @Override
     public void update() {
+        if (isInvalid()) return;
+        int oldRad = radius, oldPri = priority;
         this.radius = API.readMemoryInt(address + 40);
         this.priority = API.readMemoryInt(address + 44);
+
+        if (radius != oldRad) {
+            if (oldRad != defRadius) defRadius = radius;
+            setRadius(oldRad);
+        }
+        if (priority != oldPri) {
+            if (oldPri != defPriority) defPriority = priority;
+            setPriority(oldPri);
+        }
     }
 
     @Override
     public void update(long address) {
         super.update(address);
+        if (address == 0) return;
         this.confirm = API.readMemoryLong(address);
+        this.radius = defRadius = API.readMemoryInt(address + 40);
+        this.priority = defPriority = API.readMemoryInt(address + 44);
     }
 }

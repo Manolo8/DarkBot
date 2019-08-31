@@ -1,146 +1,84 @@
 package com.github.manolo8.darkbot.gui;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.gui.components.ExitConfirmation;
+import com.github.manolo8.darkbot.gui.titlebar.MainTitleBar;
+import com.github.manolo8.darkbot.gui.utils.UIUtils;
+import com.github.manolo8.darkbot.gui.utils.window.WindowUtils;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
-
-import static com.github.manolo8.darkbot.Main.API;
+import java.util.function.Consumer;
 
 public class MainGui extends JFrame {
 
     private final Main main;
     private final ConfigGui configGui;
 
+    private final JPanel mainPanel = new JPanel();
+    private ExitConfirmation exitConfirmation;
     private MapDrawer mapDrawer;
 
-    private boolean visible;
-
-    private JButton toggleRunning;
-    private JButton toggleVisibility;
-    private JButton copySid;
-    private JButton openConfig;
+    public static final Image ICON = UIUtils.getImage("icon");
 
     public MainGui(Main main) throws HeadlessException {
         super("DarkBot");
 
+        this.configGui = new ConfigGui(main);
+        configGui.setIconImage(ICON);
+
         this.main = main;
 
-        this.configGui = new ConfigGui(main);
-
-        this.visible = true;
+        ToolTipManager.sharedInstance().setInitialDelay(350);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 480);
+        setSize(640, 480);
         setLocationRelativeTo(null);
+        setIconImage(ICON);
+
+        setComponentPosition();
+
+        WindowUtils.setupUndecorated(this, mainPanel);
         setVisible(true);
 
-        initComponents();
-        setComponentPosition();
-        setComponentEvent();
-    }
-
-    private void initComponents() {
-        mapDrawer = new MapDrawer(main);
-        toggleRunning = new JButton("START");
-        toggleVisibility = new JButton("HIDE");
-        copySid = new JButton("SID");
-        openConfig = new JButton("CONFIG");
+        setAlwaysOnTop(true);
+        toFront();
+        requestFocus();
+        setAlwaysOnTop(main.config.MISCELLANEOUS.DISPLAY.ALWAYS_ON_TOP);
     }
 
     private void setComponentPosition() {
-        getContentPane().setLayout(new GridBagLayout());
-
-        GridBagConstraints c = new GridBagConstraints();
-
-        c.fill = GridBagConstraints.BOTH;
-
-        c.weightx = 1.0;
-        c.weighty = 1.0;
-
-        add(mapDrawer, c);
-
-        c.weighty = 0;
-        c.gridy = 1;
-
-        Container container = new Container();
-
-        container.setLayout(new GridLayout(1, 4));
-
-        container.add(openConfig);
-        container.add(copySid);
-        container.add(toggleVisibility);
-        container.add(toggleRunning);
-
-        add(container, c);
+        mainPanel.setLayout(new MigLayout("ins 0, gap 0, wrap 1, fill", "[]", "[][][grow]"));
+        mainPanel.add(new MainTitleBar(main, this), "grow, span");
+        mainPanel.add(exitConfirmation = new ExitConfirmation(), "grow, span, hidemode 2");
+        mainPanel.add(mapDrawer = new MapDrawer(main), "grow, span");
     }
 
-    private void setComponentEvent() {
+    public void addConfigVisibilityListener(Consumer<Boolean> listener) {
+        configGui.addVisibilityListener(listener);
+    }
 
-        addWindowStateListener(e -> {
-            if (e.getNewState() == WindowEvent.WINDOW_CLOSING) {
-                main.saveConfig();
-            }
-        });
+    public void toggleConfig() {
+        boolean open = !configGui.isVisible();
+        configGui.setVisible(open);
+        if (open) {
+            configGui.setAlwaysOnTop(this.isAlwaysOnTop());
+            configGui.toFront();
+        }
+    }
 
-        toggleVisibility.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (visible) {
-                    toggleVisibility.setText("SHOW");
-                    API.setVisible(false);
-                    visible = false;
-                } else {
-                    toggleVisibility.setText("HIDE");
-                    API.setVisible(true);
-                    visible = true;
-                }
-            }
-        });
+    public void setCustomConfig(String name, Object config) {
+        configGui.setCustomConfig(name, config);
+    }
 
-        toggleRunning.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-
-                boolean running = main.isRunning();
-
-                if (running) {
-                    toggleRunning.setText("START");
-                    main.setRunning(false);
-                } else {
-                    toggleRunning.setText("STOP");
-                    main.setRunning(true);
-                }
-            }
-        });
-
-        copySid.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                String value = main.statsManager.sid;
-
-                if (value != null) {
-                    StringSelection selection = new StringSelection(value);
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
-                }
-
-            }
-        });
-
-        openConfig.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                configGui.setVisible(!configGui.isVisible());
-            }
-        });
+    public void tryClose() {
+        if (main.config.MISCELLANEOUS.CONFIRM_EXIT) exitConfirmation.setVisible(true);
+        else System.exit(0);
     }
 
     public void tick() {
-        validate();
-        repaint();
+        mapDrawer.repaint();
     }
+
 }

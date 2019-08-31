@@ -1,11 +1,19 @@
 package com.github.manolo8.darkbot.core.manager;
 
 import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.ConfigEntity;
+import com.github.manolo8.darkbot.config.SafetyInfo;
+import com.github.manolo8.darkbot.config.ZoneInfo;
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.itf.MapChange;
+import com.github.manolo8.darkbot.core.objects.Map;
+import com.github.manolo8.darkbot.core.objects.swf.Array;
 import com.github.manolo8.darkbot.core.utils.EntityList;
+import com.github.manolo8.darkbot.core.utils.Lazy;
+
+import java.util.Set;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -17,15 +25,21 @@ public class MapManager implements Manager {
 
     private long mapAddressStatic;
     private long viewAddressStatic;
-    public long mapAddress;
+    private long minimapAddressStatic;
+    private long mapAddress;
     private long viewAddress;
     private long boundsAddress;
-    private long eventAddress;
+    long eventAddress;
 
-    public static int id;
+    public static int id = -1;
+    public Lazy<Map> mapChange = new Lazy.NoCache<>();
 
-    public static int internalWidth;
-    public static int internalHeight;
+    public ZoneInfo preferred;
+    public ZoneInfo avoided;
+    public Set<SafetyInfo> safeties;
+
+    public static int internalWidth = 21000;
+    public static int internalHeight = 13100;
 
     public static int clientWidth;
     public static int clientHeight;
@@ -34,6 +48,10 @@ public class MapManager implements Manager {
     public double boundY;
     public double boundMaxX;
     public double boundMaxY;
+    public double width;
+    public double height;
+
+    private Array minimapLayers = new Array(0);
 
     public MapManager(Main main) {
         this.main = main;
@@ -44,11 +62,11 @@ public class MapManager implements Manager {
 
     @Override
     public void install(BotInstaller botInstaller) {
-
         botInstaller.screenManagerAddress.add(value -> {
-            mapAddressStatic = value + 256;
-            viewAddressStatic = value + 216;
             eventAddress = value + 200;
+            viewAddressStatic = value + 216;
+            minimapAddressStatic = value + 224;
+            mapAddressStatic = value + 256;
         });
 
     }
@@ -58,34 +76,38 @@ public class MapManager implements Manager {
 
         if (mapAddress != temp) {
             update(temp);
+        } else {
+            entities.update();
         }
 
-        entities.update();
-
         updateBounds();
+        updateMinimap();
         checkMirror();
     }
 
     private void update(long address) {
-
         mapAddress = address;
 
         internalWidth = API.readMemoryInt(address + 68);
         internalHeight = API.readMemoryInt(address + 72);
-        int tempId = API.readMemoryInt(address + 76);
-        entities.update(address);
+        int currMap = API.readMemoryInt(address + 76);
+        if (currMap != id) {
+            id = currMap;
+            main.hero.map = main.starManager.byId(id);
+            preferred = ConfigEntity.INSTANCE.getOrCreatePreferred();
+            avoided = ConfigEntity.INSTANCE.getOrCreateAvoided();
+            safeties = ConfigEntity.INSTANCE.getOrCreateSafeties();
 
-        if (tempId != id) {
-            id = tempId;
-            main.hero.map = main.starManager.fromId(id);
+            mapChange.send(main.hero.map);
 
             if (main.module instanceof MapChange) {
                 ((MapChange) main.module).onMapChange();
             }
         }
+        entities.update(address);
     }
 
-    void checkMirror() {
+    private void checkMirror() {
         long temp = API.readMemoryLong(eventAddress) + 4 * 14;
 
         if (API.readMemoryBoolean(temp)) {
@@ -93,8 +115,7 @@ public class MapManager implements Manager {
         }
     }
 
-    void updateBounds() {
-
+    private void updateBounds() {
         long temp = API.readMemoryLong(viewAddressStatic);
 
         if (viewAddress != temp) {
@@ -112,6 +133,26 @@ public class MapManager implements Manager {
         boundY = API.readMemoryDouble(updated + 88);
         boundMaxX = API.readMemoryDouble(updated + 112);
         boundMaxY = API.readMemoryDouble(updated + 120);
+        width = boundMaxX - boundX;
+        height = boundMaxY - boundY;
+    }
+
+    private void updateMinimap() {
+        long temp = API.readMemoryLong(minimapAddressStatic); // Minimap
+        temp = API.readMemoryLong(temp + 0xF8); // LayeredSprite
+        temp = API.readMemoryLong(temp + 0xA8); // Vector<Layer>
+        minimapLayers.update(temp);
+        minimapLayers.update();
+
+        for (int i = 0; i < minimapLayers.size; i++) {
+            long layer = minimapLayers.elements[i]; // Seems to be offset by 1 for some reason.
+            long layerIdx = API.readMemoryInt(layer + 0xA8);
+
+            if (layerIdx != Integer.MAX_VALUE) continue;
+
+            //Array layerObjects = new Array(API.readMemoryLong(layer + 0x58)); // 0x58 isn't right
+            //layerObjects.update();
+        }
     }
 
     public boolean isTarget(Entity entity) {
@@ -130,31 +171,4 @@ public class MapManager implements Manager {
         return API.readMemoryInt(temp + 40) == 1;
     }
 
-    public void translateMouseMove(double x, double y) {
-        API.mouseMove(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMousePress(double x, double y) {
-        API.mousePress(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMouseClick(double x, double y) {
-        API.mouseClick(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
-
-    public void translateMouseMoveRelease(double x, double y) {
-        API.mouseRelease(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
 }

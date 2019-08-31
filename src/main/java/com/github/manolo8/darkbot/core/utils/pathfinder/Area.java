@@ -6,20 +6,22 @@ import static java.lang.Math.min;
 
 public class Area {
 
-    public double maxX;
     public double minX;
-    public double maxY;
     public double minY;
+    public double maxX;
+    public double maxY;
 
     public boolean changed;
     public boolean cachedUsing;
 
-    public Area(double maxX, double minX, double maxY, double minY) {
-        this.maxX = maxX;
-        this.minX = minX;
-        this.maxY = maxY;
-        this.minY = minY;
-        this.changed = true;
+    public Area(double minX, double minY, double maxX, double maxY) {
+        this.minX = Math.floor(minX);
+        this.minY = Math.floor(minY);
+        this.maxX = Math.ceil(maxX);
+        this.maxY = Math.ceil(maxY);
+    }
+    public static Area ofSize(double minX, double minY, double width, double height) {
+        return new Area(minX, minY, minX + width, minY + height);
     }
 
     public boolean hasLineOfSight(PathPoint current, PathPoint destination) {
@@ -36,7 +38,7 @@ public class Area {
         else return y1 > y2 && lineCollisionLocation(x1, y1, x2, y2, minX, maxY, maxX, maxY);
     }
 
-    public void toSide(PathPoint point) {
+    public PathPoint toSide(PathPoint point) {
 
         int diffLeft = point.x - (int) minX;
         int diffRight = (int) maxX - point.x;
@@ -47,13 +49,14 @@ public class Area {
         int min = min(diffBottom, min(min(diffTop, diffLeft), diffRight));
 
         if (min == diffTop)
-            point.y = (int) minY - 1;
+            point.y = (int) minY - 5;
         else if (min == diffBottom)
-            point.y = (int) maxY + 1;
+            point.y = (int) maxY + 5;
         else if (min == diffLeft)
-            point.x = (int) minX - 1;
+            point.x = (int) minX - 5;
         else
-            point.x = (int) maxX + 1;
+            point.x = (int) maxX + 5;
+        return point;
     }
 
     private boolean lineCollisionLocation(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
@@ -65,10 +68,8 @@ public class Area {
     }
 
     public boolean inside(int x, int y) {
-        return (minX <= x &&
-                x <= maxX &&
-                minY <= y &&
-                y <= maxY);
+        return (minX <= x && x <= maxX &&
+                minY <= y && y <= maxY);
     }
 
     public void set(Location o, int addX, int addY) {
@@ -76,6 +77,16 @@ public class Area {
         this.minX = o.x - addX;
         this.maxY = o.y + addY;
         this.minY = o.y - addY;
+
+        changed = true;
+    }
+
+    public void set(double minX, double minY, double maxX, double maxY) {
+        if (this.minX == minX && this.minY == minY && this.maxX == maxX && this.maxY == maxY) return;
+        this.minX = minX;
+        this.minY = minY;
+        this.maxX = maxX;
+        this.maxY = maxY;
 
         changed = true;
     }
