@@ -17,7 +17,8 @@ public class GuiManager implements Manager {
     private final Dictionary guis;
 
     private long reconnectTime;
-    private long repairTime;
+    private long lastDeath = -1;
+    private long lastRepair;
     private long validTime;
 
     private long repairAddress;
@@ -30,6 +31,7 @@ public class GuiManager implements Manager {
     private final Gui connecting;
     private final Gui quests;
     public final Gui eventProgress;
+    public final Gui oreTrade;
     public final PetManager pet;
 
     private LoadStatus checks = LoadStatus.WAITING;
@@ -55,6 +57,7 @@ public class GuiManager implements Manager {
         this.connecting = new Gui();
         this.quests = new Gui();
         this.eventProgress = new Gui();
+        this.oreTrade = new Gui();
         this.pet = new PetManager(main);
 
         this.main.status.add(value -> validTime = System.currentTimeMillis());
@@ -67,6 +70,7 @@ public class GuiManager implements Manager {
         this.guis.addLazy("connection", connecting::update);
         this.guis.addLazy("quests", this.quests::update);
         this.guis.addLazy("eventProgress", this.eventProgress::update);
+        this.guis.addLazy("ore_trade", this.oreTrade::update);
         this.guis.addLazy("pet", this.pet::update);
 
         botInstaller.screenManagerAddress.add(value -> screenAddress = value);
@@ -87,6 +91,7 @@ public class GuiManager implements Manager {
             lostConnection.reset();
             connecting.reset();
             eventProgress.reset();
+            oreTrade.reset();
             pet.reset();
             checks = LoadStatus.WAITING;
         });
@@ -99,6 +104,7 @@ public class GuiManager implements Manager {
         connecting.update();
         quests.update();
         eventProgress.update();
+        oreTrade.update();
         pet.update();
 
 
@@ -115,14 +121,16 @@ public class GuiManager implements Manager {
         }
     }
 
-    private void tryRevive() {
-        if (System.currentTimeMillis() - repairTime > 10000) {
+    private boolean tryRevive() {
+        if (System.currentTimeMillis() - lastRepair > 10000) {
             deaths++;
             API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
             API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
-            repairTime = System.currentTimeMillis();
+            lastRepair = System.currentTimeMillis();
             if (main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE != 0) this.main.backpage.checkDronesAfterKill();
+            return true;
         }
+        return false;
     }
 
     private boolean isInvalidShip() {
@@ -132,23 +140,16 @@ public class GuiManager implements Manager {
     private boolean isDead() {
         if (repairAddress != 0) {
             return API.readMemoryBoolean(repairAddress + 40);
-        } else {
-            if (isInvalidShip()) {
-
-                long[] values = API.queryMemory(ByteUtils.getBytes(guiAddress, mainAddress), 1);
-
-                if (values.length == 1)
-                    repairAddress = values[0] - 56;
-
-                return false;
-            } else {
-                return false;
-            }
+        } else if (isInvalidShip()) {
+            long[] values = API.queryMemory(ByteUtils.getBytes(guiAddress, mainAddress), 1);
+            if (values.length == 1) repairAddress = values[0] - 56;
         }
+        return false;
     }
 
     private void checkInvalid() {
-        if (System.currentTimeMillis() - validTime > 90 * 1000 + (main.hero.map.id == -1 ? 180 * 1000 : 0)) {
+        if (System.currentTimeMillis() - validTime > 90_000 + (main.hero.map.id == -1 ? 180_000 : 0)) {
+            System.out.println("Triggering refresh: gui manger was invalid for too long");
             API.handleRefresh();
             validTime = System.currentTimeMillis();
         }
@@ -166,28 +167,41 @@ public class GuiManager implements Manager {
         } else if (connecting.visible) {
 
             if (connecting.lastUpdatedIn(30000)) {
+                System.out.println("Triggering refresh: connection window stuck for too long");
                 API.handleRefresh();
                 connecting.reset();
             }
 
             return false;
-        } else if (isDead()) {
+        }
+
+        if (isDead()) {
             main.hero.drive.stop(false);
 
-            tryRevive();
+            if (lastDeath == -1) lastDeath = System.currentTimeMillis();
 
-            if (deaths >= main.config.GENERAL.SAFETY.MAX_DEATHS)
-                main.setRunning(false);
-            else
-                checkInvalid();
+            if (System.currentTimeMillis() - lastDeath < (main.config.GENERAL.SAFETY.WAIT_BEFORE_REVIVE * 1000)
+                    || !tryRevive()) return false;
 
+            lastDeath = -1;
+
+            if (deaths >= main.config.GENERAL.SAFETY.MAX_DEATHS) main.setRunning(false);
+            else checkInvalid();
 
             return false;
-        } else if (System.currentTimeMillis() - repairTime < main.config.GENERAL.SAFETY.WAIT_AFTER_REVIVE * 1000) {
+        } else {
+            lastDeath = -1;
+        }
+
+
+        HeroManager hero = main.hero;
+        if (System.currentTimeMillis() - lastRepair < main.config.GENERAL.SAFETY.WAIT_AFTER_REVIVE * 1000) {
             validTime = System.currentTimeMillis();
             return false;
-        } else if (main.hero.locationInfo.isLoaded() && (main.hero.locationInfo.isMoving() ||
-                System.currentTimeMillis() - main.hero.drive.lastMoved > 20 * 1000)) {
+        } else if (hero.locationInfo.isLoaded()
+                && (hero.locationInfo.isMoving() || System.currentTimeMillis() - hero.drive.lastMoved > 20 * 1000)
+                && (hero.health.hpIncreasedIn(30_000) || hero.health.hpDecreasedIn(30_000) || hero.health.hpPercent() == 1 || (hero.hasTarget() && hero.isAttacking(hero.target)))
+                && (hero.health.shIncreasedIn(30_000) || hero.health.shDecreasedIn(30_000) || hero.health.shieldPercent() == 1 || hero.health.shieldPercent() == 0)) {
             validTime = System.currentTimeMillis() - main.pingManager.ping;
         }
 

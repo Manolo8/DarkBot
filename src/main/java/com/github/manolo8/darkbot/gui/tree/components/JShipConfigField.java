@@ -4,12 +4,12 @@ import com.bulenkov.iconloader.util.Gray;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.ConfigEntity;
 import com.github.manolo8.darkbot.config.tree.ConfigField;
+import com.github.manolo8.darkbot.gui.AdvancedConfig;
 import com.github.manolo8.darkbot.gui.tree.OptionEditor;
-import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
+import java.util.Objects;
 
 public class JShipConfigField extends JPanel implements OptionEditor {
 
@@ -17,15 +17,14 @@ public class JShipConfigField extends JPanel implements OptionEditor {
     private FormationField formation = new FormationField();
 
     private Config.ShipConfig editing;
-    private long valueSet;
 
     public JShipConfigField() {
-        super(new MigLayout("ins 0, gap 0", "[]5[][]10[]5[]"));
+        super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        setOpaque(false);
 
-        add(new JLabel("Config"));
         add(config1);
         add(config2);
-        add(new JLabel("Formation"));
+        add(new JLabel("      Formation  "));
         add(formation);
     }
 
@@ -48,43 +47,37 @@ public class JShipConfigField extends JPanel implements OptionEditor {
         this.editing = null;
         Config.ShipConfig conf = field.get();
         setConfig(conf.CONFIG);
-        formation.setText(conf.FORMATION + "");
+        formation.setText(Objects.toString(conf.FORMATION, ""));
         formation.requestFocus();
 
-        valueSet = System.currentTimeMillis();
         this.editing = conf;
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return AdvancedConfig.forcePreferredHeight(super.getPreferredSize());
     }
 
     private class ConfigButton extends JButton {
         ConfigButton(int config) {
             super(config + "");
             putClientProperty("JButton.buttonType", "square");
-            setBorder(BorderFactory.createLineBorder(Gray._80));
-            setMaximumSize(new Dimension(1000, 16));
+            setBorder(BorderFactory.createLineBorder(Gray._90));
+            //noinspection SuspiciousNameCombination
+            setPreferredSize(new Dimension(AdvancedConfig.EDITOR_HEIGHT, AdvancedConfig.EDITOR_HEIGHT));
             setFocusable(false);
 
             addActionListener(a -> setConfig(config));
         }
-
-        @Override
-        protected void processMouseEvent(MouseEvent e) {
-            if (System.currentTimeMillis() - valueSet > 10) super.processMouseEvent(e);
-        }
-
-        @Override
-        public Insets getInsets() {
-            return new Insets(5, 5, 5, 5);
-        }
     }
 
     private class FormationField extends JCharField {
-
         @Override
         protected void setValue(Character value) {
-            if (editing == null || value == null) return;
+            if (editing == null) return;
             editing.FORMATION = value;
             ConfigEntity.changed();
         }
-
     }
+
 }

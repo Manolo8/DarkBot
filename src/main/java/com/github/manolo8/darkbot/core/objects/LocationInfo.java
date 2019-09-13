@@ -11,6 +11,7 @@ public class LocationInfo extends Updatable {
     public final Location now;
     public final Location last;
 
+    private long lastUpdate;
     public double angle;
     public double speed;
 
@@ -30,15 +31,23 @@ public class LocationInfo extends Updatable {
 
     @Override
     public void update() {
+        double newX = API.readMemoryDouble(address + 32);
+        double newY = API.readMemoryDouble(address + 40);
+
+        // Update only if both x and y changed, or >100 ms since last update
+        if ((newX == now.x || newY == now.y) && System.currentTimeMillis() - lastUpdate < 100) return;
+        lastUpdate = System.currentTimeMillis();
 
         last.x = now.x;
         last.y = now.y;
 
-        now.x = API.readMemoryDouble(address + 32);
-        now.y = API.readMemoryDouble(address + 40);
+        now.x = newX;
+        now.y = newY;
 
-        angle = now.angle(last);
-        speed = now.distance(last) * 10;
+        if (isMoving() && !(last.x == 0 && last.y == 0)) {
+            angle = now.angle(last);
+            speed = now.distance(last) * 10;
+        }
     }
 
     public Location destinationInTime(long time) {
@@ -71,7 +80,7 @@ public class LocationInfo extends Updatable {
     }
 
     public boolean isLoaded() {
-        return now.x != 0 && now.y != 0;
+        return address != 0;
     }
 
     public boolean isMoving() {

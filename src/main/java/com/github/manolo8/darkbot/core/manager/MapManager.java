@@ -9,6 +9,7 @@ import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.itf.MapChange;
 import com.github.manolo8.darkbot.core.objects.Map;
+import com.github.manolo8.darkbot.core.objects.swf.Array;
 import com.github.manolo8.darkbot.core.utils.EntityList;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 
@@ -24,13 +25,14 @@ public class MapManager implements Manager {
 
     private long mapAddressStatic;
     private long viewAddressStatic;
+    private long minimapAddressStatic;
     private long mapAddress;
     private long viewAddress;
     private long boundsAddress;
     long eventAddress;
 
     public static int id = -1;
-    public Lazy<Map> mapChange = new Lazy<>();
+    public Lazy<Map> mapChange = new Lazy.NoCache<>();
 
     public ZoneInfo preferred;
     public ZoneInfo avoided;
@@ -49,6 +51,8 @@ public class MapManager implements Manager {
     public double width;
     public double height;
 
+    private Array minimapLayers = new Array(0);
+
     public MapManager(Main main) {
         this.main = main;
 
@@ -59,9 +63,10 @@ public class MapManager implements Manager {
     @Override
     public void install(BotInstaller botInstaller) {
         botInstaller.screenManagerAddress.add(value -> {
-            mapAddressStatic = value + 256;
-            viewAddressStatic = value + 216;
             eventAddress = value + 200;
+            viewAddressStatic = value + 216;
+            minimapAddressStatic = value + 224;
+            mapAddressStatic = value + 256;
         });
 
     }
@@ -76,6 +81,7 @@ public class MapManager implements Manager {
         }
 
         updateBounds();
+        updateMinimap();
         checkMirror();
     }
 
@@ -84,11 +90,9 @@ public class MapManager implements Manager {
 
         internalWidth = API.readMemoryInt(address + 68);
         internalHeight = API.readMemoryInt(address + 72);
-        int tempId = API.readMemoryInt(address + 76);
-        entities.update(address);
-
-        if (tempId != id) {
-            id = tempId;
+        int currMap = API.readMemoryInt(address + 76);
+        if (currMap != id) {
+            id = currMap;
             main.hero.map = main.starManager.byId(id);
             preferred = ConfigEntity.INSTANCE.getOrCreatePreferred();
             avoided = ConfigEntity.INSTANCE.getOrCreateAvoided();
@@ -100,6 +104,7 @@ public class MapManager implements Manager {
                 ((MapChange) main.module).onMapChange();
             }
         }
+        entities.update(address);
     }
 
     private void checkMirror() {
@@ -130,6 +135,24 @@ public class MapManager implements Manager {
         boundMaxY = API.readMemoryDouble(updated + 120);
         width = boundMaxX - boundX;
         height = boundMaxY - boundY;
+    }
+
+    private void updateMinimap() {
+        long temp = API.readMemoryLong(minimapAddressStatic); // Minimap
+        temp = API.readMemoryLong(temp + 0xF8); // LayeredSprite
+        temp = API.readMemoryLong(temp + 0xA8); // Vector<Layer>
+        minimapLayers.update(temp);
+        minimapLayers.update();
+
+        for (int i = 0; i < minimapLayers.size; i++) {
+            long layer = minimapLayers.elements[i]; // Seems to be offset by 1 for some reason.
+            long layerIdx = API.readMemoryInt(layer + 0xA8);
+
+            if (layerIdx != Integer.MAX_VALUE) continue;
+
+            //Array layerObjects = new Array(API.readMemoryLong(layer + 0x58)); // 0x58 isn't right
+            //layerObjects.update();
+        }
     }
 
     public boolean isTarget(Entity entity) {

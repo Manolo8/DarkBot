@@ -29,7 +29,7 @@ public class HeroManager extends Ship implements Manager {
 
     public int config;
     private long configTime;
-    private char formation = (char) -1;
+    private Character formation = null;
     private long formationTime;
     private long portalTime;
 
@@ -68,7 +68,7 @@ public class HeroManager extends Ship implements Manager {
         super.update();
         pet.update();
 
-        config = API.readMemoryInt(settingsAddress + 56);
+        config = API.readMemoryInt(settingsAddress + 52);
 
         long petAddress = API.readMemoryLong(address + 176);
         if (petAddress != pet.address) pet.update(petAddress);
@@ -97,10 +97,10 @@ public class HeroManager extends Ship implements Manager {
 
     // 208 -> next map, 212 -> curr map, 216 -> prev map
     private int nextMap() {
-        return API.readMemoryInt(settingsAddress + 208);
+        return API.readMemoryInt(settingsAddress + 204);
     }
     private int currMap() {
-        return API.readMemoryInt(settingsAddress + 212);
+        return API.readMemoryInt(settingsAddress + 208);
     }
 
     public void jumpPortal(Portal portal) {
@@ -112,27 +112,32 @@ public class HeroManager extends Ship implements Manager {
         }
     }
 
-    public void attackMode() {
-        setMode(this.main.config.GENERAL.OFFENSIVE);
+    public boolean attackMode() {
+        return setMode(this.main.config.GENERAL.OFFENSIVE);
     }
 
-    public void runMode() {
-        setMode(this.main.config.GENERAL.RUN);
+    public boolean runMode() {
+        return setMode(this.main.config.GENERAL.RUN);
     }
 
-    public void roamMode() {
-        setMode(main.config.GENERAL.ROAM);
+    public boolean roamMode() {
+        return setMode(main.config.GENERAL.ROAM);
     }
 
-    private void setMode(Config.ShipConfig config) {
+    public boolean isInMode(Config.ShipConfig config) {
+        return this.config == config.CONFIG && this.formation == config.FORMATION;
+    }
+
+    public boolean setMode(Config.ShipConfig config) {
         if (this.config != config.CONFIG && System.currentTimeMillis() - configTime > 5500L) {
             Main.API.keyboardClick('c');
             this.configTime = System.currentTimeMillis();
         }
         if (this.formation != config.FORMATION && System.currentTimeMillis() - formationTime > 3500L) {
             Main.API.keyboardClick(this.formation = config.FORMATION);
-            this.formationTime = System.currentTimeMillis();
+            if (formation != null) this.formationTime = System.currentTimeMillis();
         }
+        return isInMode(config);
     }
 
 }

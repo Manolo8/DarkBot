@@ -1,25 +1,47 @@
 package com.github.manolo8.darkbot.utils;
 
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
+import com.github.manolo8.darkbot.core.itf.Configurable;
+
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ReflectionUtils {
+    private ReflectionUtils() {};
+
+    /** A map from primitive types to their corresponding wrapper types. */
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER;
+    static {
+        Map<Class<?>, Class<?>> primitiveToWrapper = new HashMap<>(16);
+        primitiveToWrapper.put(boolean.class, Boolean.class);
+        primitiveToWrapper.put(byte.class, Byte.class);
+        primitiveToWrapper.put(char.class, Character.class);
+        primitiveToWrapper.put(double.class, Double.class);
+        primitiveToWrapper.put(float.class, Float.class);
+        primitiveToWrapper.put(int.class, Integer.class);
+        primitiveToWrapper.put(long.class, Long.class);
+        primitiveToWrapper.put(short.class, Short.class);
+        primitiveToWrapper.put(void.class, Void.class);
+
+        PRIMITIVE_TO_WRAPPER = Collections.unmodifiableMap(primitiveToWrapper);
+    }
+
+    public static <T> T createInstance(String className, String jarUrl) {
+        try {
+            URLClassLoader loader = new URLClassLoader(new URL[]{new File(jarUrl).toURI().toURL()});
+            return createInstance((Class<T>) loader.loadClass(className));
+        } catch (MalformedURLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to find class: " + className);
+        }
+    }
 
     public static <T> T createInstance(Class<T> clazz) {
         return createInstance(clazz, null, null);
@@ -30,52 +52,58 @@ public class ReflectionUtils {
             if (paramTyp != null) {
                 try {
                     return clazz.getConstructor(paramTyp).newInstance(param);
-                } catch (NoSuchMethodException ignore) {
-                }
+                } catch (NoSuchMethodException ignore) {}
             }
             return clazz.getConstructor().newInstance();
-        } catch (ReflectiveOperationException e) {
+        } catch (NoSuchMethodException e) {
             e.printStackTrace();
             throw new RuntimeException("No default constructor found for " + clazz.getName());
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error creating instance of " + clazz.getName(), e);
         }
     }
 
-    public static Class<?> compileModule(File original) throws Exception {
-        String moduleName = original.getName().replace(".java", "");
+    public static Object get(Field field, Object obj) {
+        try {
+            return field.get(obj);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null)
-            throw new UnsupportedOperationException("No java compiler found, invalid classpath");
-
-        try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
-            File source = new File("tmp/com/github/manolo8/darkbot/modules/" + original.getName());
-            if (!source.getParentFile().exists() && !source.getParentFile().mkdirs())
-                throw new IOException("Failed to create folder structure. No permission?");
-
-            Files.copy(original.toPath(), source.toPath(), REPLACE_EXISTING);
-
-            List<String> optionList = Arrays.asList("-classpath", System.getProperty("java.class.path") + ";dist/InlineCompiler.jar");
-
-            if (compiler.getTask(null, fileManager, diagnostics, optionList, null,
-                    fileManager.getJavaFileObjectsFromFiles(Collections.singletonList(source))).call())
-                return new URLClassLoader(new URL[]{new File("tmp").toURI().toURL()})
-                    .loadClass("com.github.manolo8.darkbot.modules." + moduleName);
-
-            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics())
-                System.err.format("Error (%d,%d) java: %s%n", diagnostic.getLineNumber(), diagnostic.getColumnNumber(), diagnostic.getMessage(null));
-            throw new UnsupportedOperationException("There was an error in the module. Look at the console for more details and ask the module creator.");
-        } finally {
-            try {
-                deleteFolder(new File("tmp"));
-            } catch (IOException ignore) {}
+    public static void set(Field field, Object obj, Object value) {
+        try {
+            field.set(obj, value);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private static void deleteFolder(File f) throws IOException {
-        if (!f.exists()) return;
-        if (f.isDirectory()) for (File c : f.listFiles()) deleteFolder(c);
-        if (!f.delete()) throw new FileNotFoundException("Failed to delete folders. No permission?: " + f);
+    public static <T> Class<T> wrapped(Class<T> type) {
+        if (!type.isPrimitive()) return type;
+        //noinspection unchecked
+        return (Class<T>) PRIMITIVE_TO_WRAPPER.get(type);
+    }
+
+    public static Type[] findGenericParameters(Class clazz, Class generic) {
+        Type[] params;
+        for (Type itf : clazz.getGenericInterfaces()) {
+            if ((params = getTypes(itf, generic)) != null) return params;
+        }
+        if ((params = getTypes(clazz.getGenericSuperclass(), generic)) != null) return params;
+
+        Class parent = clazz.getSuperclass();
+        if (parent != null) return findGenericParameters(generic, parent);
+        return null;
+    }
+
+    private static Type[] getTypes(Type type, Class expected) {
+        if (!(type instanceof ParameterizedType)) return null;
+        ParameterizedType paramType = (ParameterizedType) type;
+        if (paramType.getRawType() == expected) return paramType.getActualTypeArguments();
+        return null;
     }
 
 }

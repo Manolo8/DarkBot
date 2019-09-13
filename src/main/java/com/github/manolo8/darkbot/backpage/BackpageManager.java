@@ -1,12 +1,14 @@
 package com.github.manolo8.darkbot.backpage;
 
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.backpage.HangarManager;
+import com.github.manolo8.darkbot.core.itf.Task;
+import com.github.manolo8.darkbot.extensions.plugins.IssueHandler;
 import com.github.manolo8.darkbot.utils.Base64Utils;
 import com.github.manolo8.darkbot.utils.Time;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 public class BackpageManager extends Thread {
     private final Main main;
@@ -22,11 +24,14 @@ public class BackpageManager extends Thread {
 
     private String sid;
     private String instance;
+    private long lastRequest;
 
     private long sidLastUpdate = System.currentTimeMillis();
     private long sidNextUpdate = sidLastUpdate;
     private int sidStatus = -1;
-    private boolean checkDrones = false;
+    private long checkDrones = Long.MAX_VALUE;
+
+    private List<Task> tasks;
 
     public BackpageManager(Main main) {
         super("BackpageManager");
@@ -38,13 +43,12 @@ public class BackpageManager extends Thread {
     @Override
     public void run() {
         while (true) {
-            Time.sleep(5000);
+            Time.sleep(100);
 
             if (isInvalid()) {
                 sidStatus = -1;
                 continue;
             }
-
 
             if (System.currentTimeMillis() > sidNextUpdate) {
                 int waitTime = sidCheck();
@@ -52,18 +56,36 @@ public class BackpageManager extends Thread {
                 sidNextUpdate = sidLastUpdate + (int) (waitTime + waitTime * Math.random());
             }
 
-            if (checkDrones) {
-                hangarManager.checkDrones();
-                checkDrones = false;
+            if (System.currentTimeMillis() > checkDrones) {
+                try {
+                    boolean checked = hangarManager.checkDrones();
+
+                    System.out.println("Checked/repaired drones, all successful: " + checked);
+
+                    checkDrones = !checked ? System.currentTimeMillis() + 30_000 : Long.MAX_VALUE;
+                } catch (Exception e) {
+                    System.err.println("Failed to check & repair drones, retry in 5m");
+                    checkDrones = System.currentTimeMillis() + 300_000;
+                    e.printStackTrace();
+                }
             }
 
-
-            if (sidStatus == 302) break;
+            synchronized (main.pluginHandler.getBackgroundLock()) {
+                for (Task task : tasks) {
+                    try {
+                        task.tick();
+                    } catch (Exception e) {
+                        main.featureRegistry.getFeatureDefinition(task)
+                                .getIssues()
+                                .addWarning("Failed to tick", IssueHandler.createDescription(e));
+                    }
+                }
+            }
         }
     }
 
     public void checkDronesAfterKill() {
-        this.checkDrones = true;
+        this.checkDrones = System.currentTimeMillis();
     }
 
     private boolean isInvalid() {
@@ -84,28 +106,38 @@ public class BackpageManager extends Thread {
     }
 
     private int sidKeepAlive() throws Exception {
-        return getConnection("indexInternal.es?action=" + getRandomAction()).getResponseCode();
+        return getConnection("indexInternal.es?action=" + getRandomAction(), 5000).getResponseCode();
     }
 
-    public HttpURLConnection getConnection(String params) throws Exception{
+    public HttpURLConnection getConnection(String params, int minWait) throws Exception {
+        Time.sleep(lastRequest + minWait - System.currentTimeMillis());
+        return getConnection(params);
+    }
+
+    public HttpURLConnection getConnection(String params) throws Exception {
         if (isInvalid()) throw new UnsupportedOperationException("Can't connect when sid is invalid");
         HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params)
                 .openConnection();
         conn.setInstanceFollowRedirects(false);
         conn.setRequestProperty("Cookie", "dosid=" + this.sid);
+        lastRequest = System.currentTimeMillis();
         return conn;
     }
 
-    public String getDataInventory(String params){
+    public String getDataInventory(String params) {
         String data = null;
         try {
-            HttpURLConnection conn = getConnection(params);
+            HttpURLConnection conn = getConnection(params, 2500);
             conn.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
             data = Base64Utils.base64Decode(conn.getInputStream());
         } catch (Exception e) {
             e.printStackTrace();
         }
         return data;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
     }
 
     public synchronized String sidStatus() {

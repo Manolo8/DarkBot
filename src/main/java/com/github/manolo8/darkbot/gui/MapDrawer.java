@@ -239,6 +239,7 @@ public class MapDrawer extends JPanel {
     protected void drawCustomZones(Graphics2D g2) {
         g2.setColor(PREFER);
         drawCustomZone(g2, config.PREFERRED.get(hero.map.id));
+        if (config.GENERAL.ROAMING.SEQUENTIAL) drawCustomZonePath(g2, config.PREFERRED.get(hero.map.id));
         g2.setColor(AVOID);
         drawCustomZone(g2, config.AVOIDED.get(hero.map.id));
         g2.setColor(SAFETY);
@@ -255,7 +256,7 @@ public class MapDrawer extends JPanel {
         drawString(g2, running, mid, height / 2 + 35, Align.MID);
 
         g2.setFont(FONT_SMALL);
-        String info = "v" + Main.VERSION + " - Refresh: " +
+        String info = "v" + Main.VERSION_STRING + " - Refresh: " +
                 (main.isRunning() ? Time.toString(System.currentTimeMillis() - main.lastRefresh) : "00") +
                 "/" + Time.toString(config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000);
         drawString(g2, info, 5, 12, Align.LEFT);
@@ -282,14 +283,11 @@ public class MapDrawer extends JPanel {
         drawHealth(g2, hero.health, 10, this.getHeight() - 34, mid - 20);
 
         if (hero.target != null && !hero.target.removed) {
-            Ship ship = hero.target;
-
-            if (ship instanceof Npc) {
-                g2.setColor(ENEMIES);
-                g2.setFont(FONT_MID);
-                String name = ((Npc) ship).playerInfo.username;
-                drawString(g2, name, mid + 10 + (mid - 20) / 2, height - 40, Align.MID);
-            }
+            if (hero.target instanceof Npc || hero.target.playerInfo.isEnemy()) g2.setColor(this.ENEMIES);
+            else g2.setColor(this.ALLIES);
+            g2.setFont(FONT_MID);
+            String name = hero.target.playerInfo.username;
+            drawString(g2, name, mid + 10 + (mid - 20) / 2, height - 40, Align.MID);
 
             drawHealth(g2, hero.target.health, mid + 10, height - 34, mid - 20);
         }
@@ -302,7 +300,7 @@ public class MapDrawer extends JPanel {
 
         if (distance > 500) {
             last = hero.locationInfo.now.copy();
-        } else if (distance > 40) {
+        } else if (distance > 100) {
             positions.put(System.currentTimeMillis(), new Line(last, last = heroLocation.copy()));
         }
         positions.headMap(System.currentTimeMillis() - config.MISCELLANEOUS.DISPLAY.TRAIL_LENGTH * 1000).clear();
@@ -356,8 +354,11 @@ public class MapDrawer extends JPanel {
         for (Npc npc : npcs) drawEntity(g2, npc.locationInfo.now, npc.npcInfo.kill);
 
         for (Ship ship : ships) {
+            Location loc = ship.locationInfo.now;
             g2.setColor(ship.playerInfo.isEnemy() ? ENEMIES : ALLIES);
             drawEntity(g2, ship.locationInfo.now, false);
+            if (config.MISCELLANEOUS.DISPLAY.SHOW_NAMES)
+                drawString(g2, ship.playerInfo.username, translateX(loc.x), translateY(loc.y) - 5, Align.MID);
         }
 
         if (hero.target != null && !hero.target.removed) {
@@ -450,6 +451,16 @@ public class MapDrawer extends JPanel {
                 int startX = gridToMapX(x), startY = gridToMapY(y);
                 g2.fillRect(startX, startY, gridToMapX(x + 1) - startX, gridToMapY(y + 1) - startY);
             }
+        }
+    }
+
+    protected void drawCustomZonePath(Graphics2D g2, ZoneInfo zoneInfo) {
+        if (zoneInfo == null) return;
+        List<ZoneInfo.Zone> zones = zoneInfo.getSortedZones();
+        for (int i = 0; i < zones.size(); i++) {
+            Location loc1 = zones.get(i).innerPoint(0.5, 0.5, MapManager.internalWidth, MapManager.internalHeight);
+            Location loc2 = zones.get((i + 1) % zones.size()).innerPoint(0.5, 0.5,MapManager.internalWidth, MapManager.internalHeight);
+            drawLine(g2, loc1.x, loc1.y, loc2.x, loc2.y);
         }
     }
 

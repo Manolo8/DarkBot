@@ -49,7 +49,7 @@ public class MapModule implements Module, MapChange {
     @Override
     public void tick() {
         if (hero.map != target || current == null || current.removed)
-            current = star.next(hero.map, hero.locationInfo, target);
+            current = star.next(hero, target);
 
         if (current == null) {
             if (System.currentTimeMillis() - lastMapChange > 3000) {
@@ -58,12 +58,13 @@ public class MapModule implements Module, MapChange {
             return;
         }
 
-        main.guiManager.pet.setEnabled(false);
+        if (current.locationInfo.distance(hero) > 1500) // Portal very close, no need to disable pet
+            main.guiManager.pet.setEnabled(false);
         double distance = current.locationInfo.distance(hero);
         hero.runMode();
 
-        if (distance < 100) hero.jumpPortal(current);
-        else if (current.locationInfo.isLoaded()) drive.move(current);
+        if (distance < 200) hero.jumpPortal(current);
+        else if (current.locationInfo.isLoaded() && !drive.movingTo().equals(current.locationInfo.now)) drive.move(current);
     }
 
     @Override
@@ -73,7 +74,7 @@ public class MapModule implements Module, MapChange {
             goBack();
             current = null;
         } else {
-            current = star.next(hero.map, hero.locationInfo, target);
+            current = star.next(hero, target);
         }
     }
 

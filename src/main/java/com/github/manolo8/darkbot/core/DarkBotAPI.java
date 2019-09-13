@@ -15,7 +15,6 @@ import java.util.Arrays;
 public class DarkBotAPI implements IDarkBotAPI {
 
     private static final User32 USER_32 = User32.INSTANCE;
-    private static final int NO_MOVE = 0x0002, NO_RESIZE = 0x0001, SHOWN = 0x0040, HIDDEN = 0x0080;
     private volatile WinDef.HWND window;
     private final Config config;
 
@@ -34,7 +33,6 @@ public class DarkBotAPI implements IDarkBotAPI {
         }, "BotBrowser").start();
         new Thread(() -> {
             while ((window = USER_32.FindWindow("DarkBrowser", "DarkBrowser")) == null || !USER_32.IsWindow(window)) Time.sleep(100);
-            USER_32.SetWindowPos(window, new WinDef.HWND(new Pointer(config.MISCELLANEOUS.DISPLAY.ALWAYS_ON_TOP ? -1 : 0)), 0, 0, 0, 0, NO_MOVE | NO_RESIZE);
         }).start();
     }
 
@@ -71,7 +69,7 @@ public class DarkBotAPI implements IDarkBotAPI {
         int size = readMemoryInt(address + 32) << width;
         int type = (flags & 0x00000006) >> 1;
 
-        if (size > 256 || size < 0) return "ERROR";
+        if (size > 1024 || size < 0) return "ERROR";
 
         byte[] bytes;
 
@@ -129,10 +127,11 @@ public class DarkBotAPI implements IDarkBotAPI {
                 .mapToInt(g -> g.getDefaultConfiguration().getBounds().x).min().orElse(0);
 
         USER_32.MoveWindow(window, visible ? x : minX - w, y, w, h, true);
+        if (visible) USER_32.SetForegroundWindow(window);
     }
 
     public void handleRefresh() {
-        if (config.MISCELLANEOUS.FOCUS_ON_RELOAD) USER_32.SetForegroundWindow(window);
+        USER_32.SetForegroundWindow(window);
         refresh();
     }
 

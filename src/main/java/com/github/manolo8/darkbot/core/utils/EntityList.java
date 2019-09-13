@@ -143,7 +143,7 @@ public class EntityList extends Updatable {
             }
         }
 
-        if (main.config.MISCELLANEOUS.DEV_STUFF) {
+        /*if (main.config.MISCELLANEOUS.DEV_STUFF) {
             long[] addr = Arrays.copyOf(entitiesAddress.elements, entitiesAddress.size);
             Arrays.sort(addr);
 
@@ -162,8 +162,7 @@ public class EntityList extends Updatable {
                 }
                 System.out.println(str);
             }
-
-        }
+        }*/
 
     }
 
@@ -193,7 +192,8 @@ public class EntityList extends Updatable {
             for (int i = 0; i < entities.size(); i++) {
                 Entity entity = entities.get(i);
 
-                if (entity.isInvalid(address)) {
+                if (entity.isInvalid(address) ||
+                        entity.address == main.hero.address || entity.address == main.hero.pet.address) {
                     entities.remove(i);
                     ids.remove(entity.id);
                     whenRemove(entity);

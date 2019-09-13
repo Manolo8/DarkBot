@@ -10,14 +10,16 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class HangarManager {
 
     private static final Gson GSON = new Gson();
-    private static final Type HANGAR_LIST = new TypeToken<ArrayList<Hangar>>(){}.getType();
-    private static final Type DRONE_LIST = new TypeToken<ArrayList<Drone>>(){}.getType();
+    private static final JsonParser JSON_PARSER = new JsonParser();
+    private static final Type DRONE_LIST = new TypeToken<List<Drone>>(){}.getType();
 
     private final Main main;
     private final BackpageManager backpageManager;
@@ -36,7 +38,7 @@ public class HangarManager {
         if (this.lastChangeHangar <= System.currentTimeMillis() - 40000 && backpageManager.sidStatus().contains("OK")) {
             String url = "indexInternal.es?action=internalDock&subAction=changeHangar&hangarId=" + hangarID;
             try {
-                backpageManager.getConnection(url).getResponseCode();
+                backpageManager.getConnection(url, 2000).getResponseCode();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -46,44 +48,33 @@ public class HangarManager {
         return false;
     }
 
-    public boolean checkDrones() {
+    public Boolean checkDrones() {
         updateHangars();
         updateDrones();
-        boolean repaired = true;
+        boolean repaired = !drones.isEmpty();
         for (Drone drone : drones) {
             if (drone.getDamage() / 100d >= main.config.MISCELLANEOUS.REPAIR_DRONE_PERCENTAGE) {
                 repaired &= repairDrone(drone);
-                Time.sleep(2000);
             }
         }
         return repaired;
     }
 
     public void updateDrones() {
-        try {
-            String hangarID = getActiveHangar();
-            if (hangarID == null) return;
+        String hangarID = getActiveHangar();
+        if (hangarID == null) return;
 
-            String encodeParams = Base64Utils.base64Encode("{\"params\":{\"hi\":" + hangarID + "}}");
-            String url = "flashAPI/inventory.php?action=getHangar&params="+encodeParams;
-            String json = this.backpageManager.getDataInventory(url);
+        String encodeParams = Base64Utils.base64Encode("{\"params\":{\"hi\":" + hangarID + "}}");
+        String url = "flashAPI/inventory.php?action=getHangar&params="+encodeParams;
+        String json = this.backpageManager.getDataInventory(url);
 
-            JsonElement element = new JsonParser().parse(json).getAsJsonObject().get("data")
-                    .getAsJsonObject().get("ret").getAsJsonObject().get("hangars");
-
-            for (JsonElement hangar : (element.isJsonArray() ? element.getAsJsonArray() : Collections.singleton(element))) {
-                if (!hangar.getAsJsonObject().get("hangar_is_active").getAsBoolean()) continue;
-
-                JsonArray dronesArray = hangar.getAsJsonObject().get("general").getAsJsonObject().get("drones").getAsJsonArray();
-                this.drones = GSON.fromJson(dronesArray, DRONE_LIST);
-            }
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        forEachHangar(json, h -> {
+            if (!h.get("hangar_is_active").getAsBoolean()) return;
+            this.drones = GSON.fromJson(h.get("general").getAsJsonObject().get("drones"), DRONE_LIST);
+        });
     }
 
-    private boolean repairDrone(Drone drone){
+    private boolean repairDrone(Drone drone) {
         try {
             String encodeParams = Base64Utils.base64Encode( "{\"action\":\"repairDrone\",\"lootId\":\""
                     + drone.getLoot() + "\",\"repairPrice\":" + drone.getRepairPrice() +
@@ -93,7 +84,7 @@ public class HangarManager {
             String url = "flashAPI/inventory.php?action=repairDrone&params="+encodeParams;
             String json = this.backpageManager.getDataInventory(url);
             return json.contains("'isError':0");
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -105,9 +96,23 @@ public class HangarManager {
 
         if (hangarData == null) return;
 
-        JsonArray hangarsArray =  new JsonParser().parse(hangarData).getAsJsonObject().get("data").getAsJsonObject()
-                .get("ret").getAsJsonObject().get("hangars").getAsJsonArray();
-        this.hangars = GSON.fromJson(hangarsArray, HANGAR_LIST);
+        hangars.clear();
+        forEachHangar(hangarData, h -> hangars.add(GSON.fromJson(h, Hangar.class)));
+    }
+
+    private void forEachHangar(String json, Consumer<JsonObject> hangarConsumer) {
+        try {
+            JsonElement hangars = JSON_PARSER.parse(json).getAsJsonObject().get("data").getAsJsonObject()
+                    .get("ret").getAsJsonObject().get("hangars");
+            if (hangars instanceof JsonArray) {
+                hangars.getAsJsonArray().forEach(h -> hangarConsumer.accept(h.getAsJsonObject()));
+            } else {
+                hangars.getAsJsonObject().entrySet().forEach(h -> hangarConsumer.accept(h.getValue().getAsJsonObject()));
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to iterate hangars: " + json);
+            throw e;
+        }
     }
 
     public String getActiveHangar() {

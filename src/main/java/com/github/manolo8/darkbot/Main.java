@@ -1,12 +1,15 @@
 package com.github.manolo8.darkbot;
 
-import com.bulenkov.darcula.DarculaLaf;
 import com.github.manolo8.darkbot.backpage.BackpageManager;
 import com.github.manolo8.darkbot.config.Config;
 import com.github.manolo8.darkbot.config.ConfigEntity;
+import com.github.manolo8.darkbot.config.utils.ByteArrayToBase64TypeAdapter;
+import com.github.manolo8.darkbot.config.utils.SpecialTypeAdapter;
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.DarkBotAPI;
 import com.github.manolo8.darkbot.core.IDarkBotAPI;
+import com.github.manolo8.darkbot.core.itf.Behaviour;
+import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.GuiManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
@@ -15,18 +18,20 @@ import com.github.manolo8.darkbot.core.manager.PingManager;
 import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.utils.Lazy;
+import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
+import com.github.manolo8.darkbot.extensions.features.FeatureRegistry;
+import com.github.manolo8.darkbot.extensions.plugins.IssueHandler;
+import com.github.manolo8.darkbot.extensions.plugins.PluginHandler;
+import com.github.manolo8.darkbot.extensions.plugins.PluginListener;
+import com.github.manolo8.darkbot.extensions.util.Version;
 import com.github.manolo8.darkbot.gui.MainGui;
-import com.github.manolo8.darkbot.utils.SystemUtils;
-import com.github.manolo8.darkbot.modules.CollectorModule;
-import com.github.manolo8.darkbot.modules.EventModule;
-import com.github.manolo8.darkbot.modules.LootModule;
-import com.github.manolo8.darkbot.modules.LootNCollectorModule;
+import com.github.manolo8.darkbot.gui.utils.Popups;
+import com.github.manolo8.darkbot.modules.DummyModule;
 import com.github.manolo8.darkbot.modules.MapModule;
-import com.github.manolo8.darkbot.utils.ByteArrayToBase64TypeAdapter;
-import com.github.manolo8.darkbot.utils.ReflectionUtils;
+import com.github.manolo8.darkbot.utils.Time;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.io.File;
@@ -35,18 +40,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
-import java.util.prefs.Preferences;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-public class Main extends Thread {
+public class Main extends Thread implements PluginListener {
 
-    public static final String VERSION = "1.13.11 alpha 7";
+    public static final String VERSION_STRING = "1.13.13";
+    public static final Version VERSION = new Version(VERSION_STRING);
 
-    private static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .setLenient()
-            .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter()).create();
+            .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+            .registerTypeAdapterFactory(new SpecialTypeAdapter())
+            .create();
 
     public static final Object UPDATE_LOCKER = new Object();
 
@@ -64,7 +74,11 @@ public class Main extends Thread {
 
     public Config config;
     private boolean failedConfig;
-    private int moduleId;
+
+    public final PluginHandler pluginHandler;
+    public final FeatureRegistry featureRegistry;
+    private List<Behaviour> behaviours = new ArrayList<>();
+    private String moduleId;
     public Module module;
 
     public long lastRefresh;
@@ -83,20 +97,10 @@ public class Main extends Thread {
         loadConfig();
 
         API = new DarkBotAPI(config);
-        if (config.MISCELLANEOUS.FULL_DEBUG)
+        /*if (config.MISCELLANEOUS.FULL_DEBUG)
             API = (IDarkBotAPI) Proxy.newProxyInstance(Main.class.getClassLoader(), new Class[]{IDarkBotAPI.class}, IDarkBotAPI.getLoggingHandler((DarkBotAPI) API));
+        */
 
-        if (config.MISCELLANEOUS.DISPLAY.USE_DARCULA_THEME) {
-            try {
-                UIManager.setLookAndFeel(new DarculaLaf());
-            } catch (UnsupportedLookAndFeelException e) {
-                e.printStackTrace();
-            }
-        }
-        showDiscordWarning();
-
-        if (failedConfig) popupMessage("Failed to load config",
-                "Default config will be used, config won't be save.", JOptionPane.ERROR_MESSAGE);
         new ConfigEntity(config);
 
         botInstaller = new BotInstaller();
@@ -122,44 +126,22 @@ public class Main extends Thread {
         });
 
         status.add(this::onRunningToggle);
-        checkModule();
+
+        backpage = new BackpageManager(this);
+
+        pluginHandler = new PluginHandler();
+        featureRegistry = new FeatureRegistry(this, pluginHandler);
+
+        pluginHandler.updatePluginsSync();
+        pluginHandler.addListener(this);
 
         form = new MainGui(this);
-        backpage = new BackpageManager(this);
+
+        if (failedConfig) Popups.showMessageAsync("Error",
+                "Failed to load config. Default config will be used, config won't be save.", JOptionPane.ERROR_MESSAGE);
 
         start();
         API.createWindow();
-    }
-
-    private void showDiscordWarning() {
-        Preferences prefs = Preferences.userNodeForPackage(getClass());
-        long firstInit = prefs.getLong(VERSION, System.currentTimeMillis());
-        prefs.putLong(VERSION, firstInit);
-
-        long TIME_BEFORE_MESSAGE = 48 * 60 * 60 * 1000;
-        if (System.currentTimeMillis() - firstInit < TIME_BEFORE_MESSAGE) return;
-
-        JPanel panel = new JPanel(new MigLayout("ins 0, wrap 1"));
-        panel.add(new JLabel("This bot is free, if you paid for it or watched ads, you were scammed!"));
-        panel.add(new JLabel("Make sure you are in the official discord server to getIcon latest updates for free."));
-        JCheckBox dontShow = new JCheckBox("Don't show this message again");
-        panel.add(dontShow);
-
-        JButton join = new JButton("Join discord");
-        join.addActionListener(e -> {
-            SystemUtils.openUrl("https://discord.gg/KFd8vZT");
-            if (dontShow.isSelected()) prefs.putLong(VERSION, Long.MAX_VALUE);
-            JOptionPane.getRootFrame().dispose();
-        });
-        JButton ignore = new JButton("Ignore");
-        ignore.addActionListener(e -> {
-            if (dontShow.isSelected()) prefs.putLong(VERSION, Long.MAX_VALUE);
-            JOptionPane.getRootFrame().dispose();
-        });
-
-        JOptionPane.showOptionDialog(null, panel, "Join the official discord!",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
-                new Object[]{join, ignore}, join);
     }
 
     @Override
@@ -169,16 +151,24 @@ public class Main extends Thread {
         while (true) {
             time = System.currentTimeMillis();
 
-            tick();
+            try {
+                tick();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Time.sleep(1000);
+            }
 
             double tickTime = System.currentTimeMillis() - time;
-            avgTick = ((avgTick * 4) + tickTime) / 5;
-            sleepMax(time, botInstaller.invalid.value ? 1000 : 100);
+            avgTick = ((avgTick * 9) + tickTime) / 10;
+
+            sleepMax(time, botInstaller.invalid.value ? 1000 :
+                    Math.max(config.MISCELLANEOUS.MIN_TICK, Math.min((int) (avgTick * 1.25), 100)));
         }
     }
 
     private void tick() {
         status.tick();
+        checkModule();
 
         if (isInvalid())
             invalidTick();
@@ -188,7 +178,6 @@ public class Main extends Thread {
         form.tick();
 
         checkConfig();
-        checkModule();
     }
 
     private boolean isInvalid() {
@@ -208,6 +197,11 @@ public class Main extends Thread {
 
         tickingModule = running && guiManager.canTickModule();
         if (tickingModule) tickRunning();
+        else if (!running && (!hero.hasTarget() || !mapManager.isTarget(hero.target))) {
+            hero.setTarget(Stream.concat(mapManager.entities.ships.stream(), mapManager.entities.npcs.stream())
+                    .filter(mapManager::isTarget)
+                    .findFirst().orElse(null));
+        }
 
         pingManager.tick();
         //if (config.MISCELLANEOUS.DEV_STUFF && mapManager.width > 0)
@@ -216,9 +210,25 @@ public class Main extends Thread {
 
     private void tickRunning() {
         guiManager.pet.tick();
-        module.tick();
-        checkPetBug();
         checkRefresh();
+        synchronized (pluginHandler) {
+            try {
+                module.tick();
+            } catch (Exception e) {
+                FeatureDefinition<Module> modDef = featureRegistry.getFeatureDefinition(module);
+                if (modDef != null) modDef.getIssues().addWarning("Failed to tick", IssueHandler.createDescription(e));
+            }
+            for (Behaviour behaviour : behaviours) {
+                try {
+                    behaviour.tick();
+                } catch (Exception e) {
+                    featureRegistry.getFeatureDefinition(behaviour)
+                            .getIssues()
+                            .addFailure("Failed to tick", IssueHandler.createDescription(e));
+                }
+            }
+        }
+        checkPetBug();
     }
 
     private void checkConfig() {
@@ -237,14 +247,37 @@ public class Main extends Thread {
                 System.currentTimeMillis() - lastRefresh < config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000) return;
 
         if (!module.canRefresh()) return;
+        System.out.println("Triggering refresh: time arrived & module allows refresh");
         API.handleRefresh();
         lastRefresh = System.currentTimeMillis();
     }
 
     public <A extends Module> A setModule(A module) {
+        return setModule(module, false);
+    }
+
+    private <A extends Module> A setModule(A module, boolean setConfig) {
         module.install(this);
+        if (setConfig) {
+            if (module instanceof Configurable) {
+                String name = module.getClass().getAnnotation(Feature.class).name();
+                form.setCustomConfig(name, config.CUSTOM_CONFIGS.get(module.getClass().getCanonicalName()));
+            } else {
+                form.setCustomConfig(null, null);
+            }
+        }
         this.module = module;
         return module;
+    }
+
+    @Override
+    public void beforeLoad() {
+        if (module != null) setModule(new DummyModule(), true);
+    }
+
+    @Override
+    public void afterLoadComplete() {
+        moduleId = "(none)";
     }
 
     public void setRunning(boolean running) {
@@ -256,8 +289,7 @@ public class Main extends Thread {
     private void onRunningToggle(boolean running) {
         lastRefresh = System.currentTimeMillis();
         if (running && module instanceof MapModule) {
-            moduleId = -1;
-            checkModule();
+            moduleId = "(none)";
         }
     }
 
@@ -290,50 +322,20 @@ public class Main extends Thread {
         return running;
     }
 
+    public void setBehaviours(List<Behaviour> behaviours) {
+        this.behaviours = behaviours;
+    }
+
     private void checkModule() {
-        if (module == null || moduleId != config.GENERAL.CURRENT_MODULE)
-            setModule(getModule(moduleId = config.GENERAL.CURRENT_MODULE));
-    }
-
-    private Module getModule(int id) {
-        switch (id) {
-            case 0: return new CollectorModule();
-            case 1: return new LootModule();
-            case 2: return new LootNCollectorModule();
-            case 3: return new EventModule();
-            case 4: {
-                try {
-                    Module m = getCustomModule();
-                    if (m != null) {
-                        popupMessage("Success", "Successfully loaded custom module",  JOptionPane.INFORMATION_MESSAGE);
-                        return m;
-                    }
-                    popupMessage("Warning", "Couldn't load custom module, did you configure it correctly?", JOptionPane.WARNING_MESSAGE);
-                } catch (Exception e) {
-                    popupMessage("Error compiling module", e.getMessage(), JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
-                }
-            }
-            default: return new CollectorModule();
+        if (module == null || !Objects.equals(moduleId, config.GENERAL.CURRENT_MODULE)) {
+            Module module = featureRegistry.getFeature(moduleId = config.GENERAL.CURRENT_MODULE, Module.class)
+                .orElseGet(() -> {
+                    String name = moduleId.substring(moduleId.lastIndexOf(".") + 1);
+                    Popups.showMessageAsync("Error", "Failed to load module " + name + ", using default", JOptionPane.ERROR_MESSAGE);
+                    return new DummyModule();
+                });
+            setModule(module, true);
         }
-    }
-
-    private void popupMessage(String title, String content, int type) {
-        SwingUtilities.invokeLater(() -> {
-            JOptionPane pane = new JOptionPane(content, type);
-            JDialog dialog = pane.createDialog(title);
-            dialog.setAlwaysOnTop(true);
-            dialog.setVisible(true);
-        });
-    }
-
-    private Module getCustomModule() throws Exception {
-        String customModule = config.GENERAL.CUSTOM_MODULE;
-        if (customModule == null || customModule.isEmpty()) return null;
-        File file = new File(customModule);
-        if (!file.exists()) return null;
-        Class<?> newModule = ReflectionUtils.compileModule(file);
-        return (Module) ReflectionUtils.createInstance(newModule);
     }
 
     private void sleepMax(long time, int total) {

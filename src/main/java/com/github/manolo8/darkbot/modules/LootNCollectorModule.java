@@ -7,21 +7,18 @@ import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.PetManager;
 import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.extensions.features.Feature;
 
+@Feature(name = "Kill & Collect", description = "Kills npcs and collects resources at the same time.")
 public class LootNCollectorModule implements Module {
 
-    private final LootModule lootModule;
-    private final CollectorModule collectorModule;
+    protected LootModule lootModule = new LootModule();
+    protected CollectorModule collectorModule = new CollectorModule();
 
-    private PetManager pet;
-    private HeroManager hero;
-    private Drive drive;
-    private Config config;
-
-    public LootNCollectorModule() {
-        this.lootModule = new LootModule();
-        this.collectorModule = new CollectorModule();
-    }
+    protected PetManager pet;
+    protected HeroManager hero;
+    protected Drive drive;
+    protected Config config;
 
     @Override
     public void install(Main main) {
@@ -60,10 +57,11 @@ public class LootNCollectorModule implements Module {
 
                 Box box = collectorModule.current;
 
-                if (box == null || box.locationInfo.distance(hero) > config.LOOT_COLLECT.RADIUS
+                if (box == null || box.locationInfo.distance(hero) > config.COLLECT.RADIUS
                         || lootModule.attack.target.health.hpPercent() < 0.25) {
                     lootModule.moveToAnSafePosition();
                 } else {
+                    lootModule.setConfig(collectorModule.current.locationInfo.now);
                     collectorModule.tryCollectNearestBox();
                 }
 

@@ -64,11 +64,11 @@ public class StarManager {
                 // Pirates
         mapBuild.addMap(91, "5-1").addPortal(5200, 6800, "5-2").addPortal(2900, 13500, "5-2").addPortal(5200, 20600, "5-2")
                 .addMap(92, "5-2").addPortal(2800, 3600, "5-3").addPortal(1300, 6750, "5-3").addPortal(2800, 10900, "5-3")
-                .addMap(93, "5-3").addPortal(2000, 9500, "4-4").addPortal(2000, 13500, "4-4").addPortal(2000, 17500, "4-4");
+                .addMap(93, "5-3").addPortal(2000, 9500, "4-4", 1).addPortal(2000, 13500, "4-4", 2).addPortal(2000, 17500, "4-4", 3);
                 // BL
-        mapBuild.addMap(306, "1BL").addPortal(150000202, "1-8").addPortal(150000203, "2BL").addPortal(150000204, "3BL")
-                .addMap(307, "2BL").addPortal(150000207, "1BL").addPortal(150000206, "2-8").addPortal(150000208, "3BL")
-                .addMap(308, "3BL").addPortal(150000211, "1BL").addPortal(150000212, "2BL").addPortal(150000210, "3-8");
+        mapBuild.addMap(306, "1BL").addPortal( 786, 11458, "1-8").addPortal( 7589,  1456, "2BL").addPortal(20072, 11732, "3BL")
+                .addMap(307, "2BL").addPortal(9893,   862, "1BL").addPortal(  593,  5884, "2-8").addPortal(20377,  7996, "3BL")
+                .addMap(308, "3BL").addPortal(1545, 12210, "1BL").addPortal(19400, 11854, "2BL").addPortal(14027,  3181, "3-8");
                 // EX
         mapBuild.addMap(401, "Experiment Zone 1").addPortal(1200, 1100, "Home Map")
                 .addMap(402, "Experiment Zone 2-1").addPortal(1200, 1100, "1-5")
@@ -119,7 +119,7 @@ public class StarManager {
                 .addGG(413, "GoP 4").accessOnlyBy(24, "GoP 3")
                 .addGG(414, "GoP 5").accessOnlyBy(24, "GoP 4")
                 .addGG(415, "GoP Final").accessBy(24, "GoP 5");
-                // Special (No access)
+                // Special (No direct access)
         mapBuild.addMap(42, "???")
                 .addMap(61, "MMO Invasion").addMap(62, "EIC Invasion").addMap(63, "VRU Invasion")
                 .addMap(64, "MMO Invasion").addMap(65, "EIC Invasion").addMap(66, "VRU Invasion")
@@ -136,25 +136,26 @@ public class StarManager {
                 .addMap(152, "R-Zone 3").addMap(153, "R-Zone 4")
                 .addMap(154, "R-Zone 5").addMap(155, "R-Zone 6")
                 .addMap(156, "R-Zone 7").addMap(157, "R-Zone 8")
-                .addMap(158, "R-Zone 9").addMap(159, "R-Zone 10");
+                .addMap(158, "R-Zone 9").addMap(159, "R-Zone 10")
+                .addMap(420, "WarGame 1").addMap(421, "WarGame 2").addMap(422, "WarGame 3")
+                .addMap(423, "WarGame 4").addMap(423, "WarGame 5").addMap(423, "WarGame 6");
 
         starSystem = mapBuild.build();
     }
 
     public Portal getOrCreate(int id, int type, int x, int y) {
         return starSystem.outgoingEdgesOf(HeroManager.instance.map).stream()
-                .filter(p -> (p.id != -1 && p.id == id)     // By id
-                        || (p.searchType != -1 && p.searchType == type) // By Type
-                        || (p.x != -1 && p.y != -1 && p.inLoc(x, y)))  // By loc
+                .filter(p -> p.matches(x, y, type))
                 .peek(p -> p.id = id)
-                .findAny().orElse(new Portal(id, type, x, y, null));
+                .findAny().orElse(new Portal(id, type, x, y));
     }
 
-    public Portal next(Map current, LocationInfo locationInfo, Map target) {
+    public Portal next(HeroManager hero, Map target) {
         DijkstraShortestPath<Map, Portal> path = new DijkstraShortestPath<>(starSystem);
-        return starSystem.outgoingEdgesOf(current).stream().filter(p -> !p.removed).min(
+        return starSystem.outgoingEdgesOf(hero.map).stream().filter(p -> !p.removed).min(
                 Comparator.<Portal>comparingDouble(p -> path.getPaths(p.target).getWeight(target))
-                        .thenComparing(p -> locationInfo.distance(p.locationInfo))).orElse(null);
+                        .thenComparing(p -> p.factionId == -1 ? 0 : p.factionId == hero.playerInfo.factionId ? -1 : 1)
+                        .thenComparing(p -> hero.locationInfo.distance(p.locationInfo))).orElse(null);
     }
 
     public Map byName(String name) {
@@ -194,13 +195,6 @@ public class StarManager {
 
     public static Collection<Map> getAllMaps() {
         return INSTANCE.starSystem.vertexSet();
-    }
-
-    public static class MapSupplier implements Supplier<OptionList> {
-        @Override
-        public OptionList<Integer> get() {
-            return new MapList();
-        }
     }
 
     public static class MapList extends OptionList<Integer> {

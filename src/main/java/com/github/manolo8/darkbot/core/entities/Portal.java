@@ -6,22 +6,28 @@ import com.github.manolo8.darkbot.core.objects.Map;
 
 public class Portal extends Entity {
 
-    public Map target;
-    public int type;
-    public int searchType;
-    public int x, y;
+    private final PortalMatcher matcher;
 
-    public Portal(int id, int searchType, int x, int y, Map target) {
-        super(id);
+    public final Map target;
+    public final int factionId;
+    public int type;
+
+    public Portal(int searchType, int searchX, int searchY, Map target, int factionId) {
+        super(-1);
+        this.matcher = new PortalMatcher(searchType, searchX, searchY);
+
         super.removed = true;
-        this.searchType = searchType;
-        this.x = x;
-        this.y = y;
         this.target = target;
+        this.factionId = factionId;
     }
 
-    public boolean inLoc(int x, int y) {
-        return this.x == x && this.y == y;
+    public Portal(int id, int type, int x, int y) {
+        this(type, x, y, null, -1);
+        this.id = id;
+    }
+
+    public boolean matches(int x, int y, int type) {
+        return matcher.matches(x, y, type);
     }
 
     @Override
@@ -40,6 +46,24 @@ public class Portal extends Entity {
 
     @Override
     public String toString() {
-        return id + "," + type;
+        return "(" + locationInfo.now + ")" + type;
     }
+
+    // Holds the search criteria portals in the star manager
+    private class PortalMatcher {
+        private int searchType, searchX, searchY;
+
+        PortalMatcher(int searchType, int searchX, int searchY) {
+            this.searchType = searchType;
+            this.searchX = searchX;
+            this.searchY = searchY;
+        }
+
+        boolean matches(int x, int y, int type) {
+            return (searchType != 1 && searchType == type) || // By type
+                    (searchX != -1 && searchY != -1 && searchX == x && searchY == y); // By pos
+        }
+
+    }
+
 }

@@ -9,6 +9,7 @@ import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import java.util.Comparator;
 import java.util.List;
@@ -17,6 +18,7 @@ import static com.github.manolo8.darkbot.Main.API;
 import static java.lang.Math.cos;
 import static java.lang.StrictMath.sin;
 
+@Feature(name = "Collector", description = "Resource-only collector module. Can cloack.")
 public class CollectorModule implements Module {
 
     private Main main;
@@ -30,7 +32,7 @@ public class CollectorModule implements Module {
 
     private long invisibleTime;
 
-    Box current;
+    public Box current;
 
     private long waiting;
 
@@ -97,11 +99,11 @@ public class CollectorModule implements Module {
         return true;
     }
 
-    boolean isNotWaiting() {
-        return System.currentTimeMillis() > waiting;
+    public boolean isNotWaiting() {
+        return System.currentTimeMillis() > waiting || current == null || current.removed;
     }
 
-    boolean tryCollectNearestBox() {
+    public boolean tryCollectNearestBox() {
 
         if (current != null) {
             collectBox();
@@ -120,7 +122,7 @@ public class CollectorModule implements Module {
             drive.clickCenter(true, current.locationInfo.now);
             current.clickable.setRadius(0);
 
-            current.setCollected(true);
+            current.setCollected();
 
             waiting = System.currentTimeMillis() + current.boxInfo.waitTime + hero.timeTo(distance) + 30;
 
@@ -138,7 +140,7 @@ public class CollectorModule implements Module {
         }
     }
 
-    private void checkInvisibility() {
+    public void checkInvisibility() {
         if (config.COLLECT.AUTO_CLOACK
                 && !hero.invisible
                 && System.currentTimeMillis() - invisibleTime > 60000
@@ -174,19 +176,22 @@ public class CollectorModule implements Module {
         drive.move(target);
     }
 
-    void findBox() {
-        LocationInfo locationInfo = hero.locationInfo;
+    public void findBox() {
+        LocationInfo heroLoc = hero.locationInfo;
 
-        Box best = boxes.stream()
+        Box best = boxes
+                .stream()
                 .filter(this::canCollect)
-                .min(Comparator.comparingDouble(locationInfo::distance)).orElse(null);
+                .min(Comparator.<Box>comparingInt(b -> b.boxInfo.priority)
+                        .thenComparingDouble(heroLoc::distance)).orElse(null);
         this.current = current == null || best == null || current.isCollected() || isBetter(best) ? best : current;
     }
 
     private boolean canCollect(Box box) {
         return box.boxInfo.collect
                 && !box.isCollected()
-                && (drive.canMove(box.locationInfo.now));
+                && drive.canMove(box.locationInfo.now)
+                && (!box.type.equals("FROM_SHIP") || main.statsManager.deposit < main.statsManager.depositTotal);
     }
 
     private Location findClosestEnemyAndAddToDangerousList() {
@@ -198,7 +203,7 @@ public class CollectorModule implements Module {
                 if (ship.isInTimer()) {
                     return ship.locationInfo.now;
                 } else if (ship.isAttacking(hero)) {
-                    ship.setTimerTo(400_000);
+                    ship.setTimerTo(config.GENERAL.RUNNING.REMEMBER_ENEMIES_FOR * 1000);
                     return ship.locationInfo.now;
                 }
 
