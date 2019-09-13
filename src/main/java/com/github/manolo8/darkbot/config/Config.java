@@ -52,6 +52,9 @@ public class Config {
         public ShipConfig ROAM = new ShipConfig(1, '9');
         @Option(value = "Run config", description = "Used to run to safety or switch around maps")
         public ShipConfig RUN = new ShipConfig(2, '9');
+        @Option(value = "Check formation", description = "Checking formation every X seconds, set less than 5 to disable")
+        @Num(max = 2147000000)
+        public int FORMATION_CHECK = 300;
 
         public @Option("Safety") Safety SAFETY = new Safety();
         public static class Safety {
