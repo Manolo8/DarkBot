@@ -19,6 +19,9 @@ public class HangarManager {
     private static final Gson GSON = new Gson();
     private static final JsonParser JSON_PARSER = new JsonParser();
     private static final Type DRONE_LIST = new TypeToken<List<Drone>>(){}.getType();
+    private static final Type ITEMINFO_LIST = new TypeToken<List<ItemInfo>>(){}.getType();
+    private static final Type ITEM_LIST = new TypeToken<List<Item>>(){}.getType();
+    private static final Type SHIPINFO_LIST = new TypeToken<List<ShipInfo>>(){}.getType();
 
     private final Main main;
     private final BackpageManager backpageManager;
@@ -129,18 +132,15 @@ public class HangarManager {
     }
 
     private void updateItemInfos(String json) {
-        this.itemInfos.clear();
-        forEachRet(json, i -> this.itemInfos.add(GSON.fromJson(i, ItemInfo.class)), "itemInfo");
+        forEachRet(json, h -> this.itemInfos = GSON.fromJson(h, ITEMINFO_LIST),"itemInfo");
     }
 
     private void updateItems(String json) {
-        this.items.clear();
-        forEachRet(json, i -> this.items.add(GSON.fromJson(i, Item.class)), "items");
+        forEachRet(json, h -> this.items = GSON.fromJson(h, ITEM_LIST),"items");
     }
 
     private void updateShipsInfo(String json) {
-        this.shipInfos.clear();
-        forEachRet(json, i -> this.shipInfos.add(GSON.fromJson(i, ShipInfo.class)), "shipInfo");
+        forEachRet(json, h -> this.shipInfos = GSON.fromJson(h, SHIPINFO_LIST),"shipInfo");
     }
 
     private void forEachRet(String json, Consumer<JsonObject> Consumer, String key) {
