@@ -135,10 +135,9 @@ public class HeroManager extends Ship implements Manager {
             Main.API.keyboardClick('c');
             this.configTime = System.currentTimeMillis();
         }
-        boolean checkFormationOnTime = formationCheck > 0 &&
-                (formationCheck * 1000 < System.currentTimeMillis() - formationTime - (formationCheck < 5 ? 4000 - formationCheck * 1000 : 0));
+        boolean checkFormation = formationCheck > 0 && (System.currentTimeMillis() - formationTime) > formationCheck * 1000;
 
-        if (this.formation != config.FORMATION && System.currentTimeMillis() - formationTime > 3500L || checkFormationOnTime) {
+        if ((this.formation != config.FORMATION || checkFormation) && System.currentTimeMillis() - formationTime > 3500L) {
             Main.API.keyboardClick(this.formation = config.FORMATION);
             if (formation != null) this.formationTime = System.currentTimeMillis();
         }
