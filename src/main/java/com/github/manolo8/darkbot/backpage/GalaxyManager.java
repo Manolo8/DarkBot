@@ -90,7 +90,6 @@ public class GalaxyManager {
         jumpgate.setGalaxyGateDay(Integer.parseInt(root.element("galaxyGateDay").getText()));
         jumpgate.setSpinOnSale(Integer.parseInt(root.element("spinOnSale").getText()));
         jumpgate.setSpinSalePercentage(Integer.parseInt(root.element("spinSalePercentage").getText()));
-        System.out.println(jumpgate.toString());
     }
 
     private Element getRootElement(String params, int minWait) {
