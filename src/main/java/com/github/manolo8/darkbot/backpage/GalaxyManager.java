@@ -6,7 +6,6 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,14 +84,20 @@ public class GalaxyManager {
         jumpgate.setGates(gates);
         jumpgate.setEnergyCosts(energyCosts);
         jumpgate.setMultipliers(multipliers);
+        jumpgate.setBonusRewardsDay(Integer.parseInt(root.element("bonusRewardsDay").getText()));
+        jumpgate.setMoney(Integer.parseInt(root.element("money").getText()));
+        jumpgate.setSamples(Integer.parseInt(root.element("samples").getText()));
+        jumpgate.setGalaxyGateDay(Integer.parseInt(root.element("galaxyGateDay").getText()));
+        jumpgate.setSpinOnSale(Integer.parseInt(root.element("spinOnSale").getText()));
+        jumpgate.setSpinSalePercentage(Integer.parseInt(root.element("spinSalePercentage").getText()));
+        System.out.println(jumpgate.toString());
     }
 
     private Element getRootElement(String params, int minWait) {
         Element element = null;
         try {
-            HttpURLConnection conn = main.backpage.getGalaxyConnection(params, minWait);
             SAXReader reader = new SAXReader();
-            Document document = reader.read(conn.getInputStream());
+            Document document = reader.read(main.backpage.getGalaxyConnection(params, minWait).getInputStream());
             element = document.getRootElement();
         } catch (Exception e) {
             e.printStackTrace();
