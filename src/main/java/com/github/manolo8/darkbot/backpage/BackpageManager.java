@@ -59,7 +59,6 @@ public class BackpageManager extends Thread {
                 sidLastUpdate = System.currentTimeMillis();
                 sidNextUpdate = sidLastUpdate + (int) (waitTime + waitTime * Math.random());
             }
-            galaxyManager.updateJumpgateInfo();
 
             if (System.currentTimeMillis() > checkDrones) {
                 try {

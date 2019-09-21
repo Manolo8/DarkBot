@@ -13,7 +13,7 @@ public class Bot {
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
-        //VerifierChecker.getAuthApi().setupAuth();
+        VerifierChecker.getAuthApi().setupAuth();
         new Main();
     }
 }
