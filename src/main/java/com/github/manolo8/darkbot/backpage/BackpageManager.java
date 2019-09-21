@@ -13,11 +13,13 @@ import java.util.List;
 public class BackpageManager extends Thread {
     private final Main main;
     public final HangarManager hangarManager;
+    public final GalaxyManager galaxyManager;
     private static final int SECOND = 1000, MINUTE = 60 * SECOND;
 
     private static final String[] ACTIONS = new String[] {
             "internalStart", "internalDock", "internalAuction", "internalGalaxyGates", "internalPilotSheet"
     };
+
     private static String getRandomAction() {
         return ACTIONS[(int) (Math.random() * ACTIONS.length)];
     }
@@ -25,6 +27,7 @@ public class BackpageManager extends Thread {
     private String sid;
     private String instance;
     private long lastRequest;
+    private long lastGalaxyRequest;
 
     private long sidLastUpdate = System.currentTimeMillis();
     private long sidNextUpdate = sidLastUpdate;
@@ -37,6 +40,7 @@ public class BackpageManager extends Thread {
         super("BackpageManager");
         this.main = main;
         this.hangarManager = new HangarManager(main, this);
+        this.galaxyManager = new GalaxyManager(main, this);
         start();
     }
 
@@ -121,6 +125,23 @@ public class BackpageManager extends Thread {
         conn.setInstanceFollowRedirects(false);
         conn.setRequestProperty("Cookie", "dosid=" + this.sid);
         lastRequest = System.currentTimeMillis();
+        return conn;
+    }
+
+    public HttpURLConnection getGalaxyConnection(String params, int minWait) throws Exception {
+        Time.sleep(lastGalaxyRequest + minWait - System.currentTimeMillis());
+        return getGalaxyConnection(params);
+    }
+
+    public HttpURLConnection getGalaxyConnection(String params) throws Exception {
+        if (isInvalid()) throw new UnsupportedOperationException("Can't connect when sid is invalid");
+        HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params).openConnection();
+
+        conn.setInstanceFollowRedirects(false);
+        conn.setRequestProperty("Cookie", "dosid=" + this.sid);
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+        conn.setRequestProperty("Accept", "application/xml");
+        lastGalaxyRequest = System.currentTimeMillis();
         return conn;
     }
 
