@@ -59,6 +59,12 @@ public class BackpageManager extends Thread {
                 sidLastUpdate = System.currentTimeMillis();
                 sidNextUpdate = sidLastUpdate + (int) (waitTime + waitTime * Math.random());
             }
+            galaxyManager.updateJumpgateInfo(100);
+            galaxyManager.performGateSpin("alpha", false, 1, 0, 100);
+            galaxyManager.jumpgate.getGates().forEach(gate -> System.out.println(gate.toString()));
+            galaxyManager.jumpgate.getMultipliers().forEach(multiplier -> System.out.println(multiplier.toString()));
+            galaxyManager.jumpgate.getEnergyCosts().forEach(energyCost -> System.out.println(energyCost.toString()));
+            galaxyManager.jumpgate.getItems().forEach(item -> System.out.println(item.toString()));
 
             if (System.currentTimeMillis() > checkDrones) {
                 try {
