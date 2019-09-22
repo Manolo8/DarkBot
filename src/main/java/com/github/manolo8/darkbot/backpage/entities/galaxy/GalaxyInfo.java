@@ -5,7 +5,7 @@ import org.dom4j.Element;
 
 import java.util.List;
 
-public class Jumpgate {
+public class GalaxyInfo {
     private Integer money;
     private Integer samples;
     private Integer spinOnSale;
@@ -18,71 +18,41 @@ public class Jumpgate {
     private List<Gate> gates;
     private List<Item> items;
 
-    public Jumpgate() {
+    public GalaxyInfo() {
 
     }
 
-    public Jumpgate(Integer money, Integer samples, Integer spinOnSale, Integer spinSalePercentage, Integer galaxyGateDay, Integer bonusRewardsDay) {
-        this.money = money;
-        this.samples = samples;
-        this.spinOnSale = spinOnSale;
-        this.spinSalePercentage = spinSalePercentage;
-        this.galaxyGateDay = galaxyGateDay;
-        this.bonusRewardsDay = bonusRewardsDay;
-    }
-
-    public Jumpgate(Element e) {
-        this(XmlHelper.getValueInt(e, "money"), XmlHelper.getValueInt(e, "samples"),
-                XmlHelper.getValueInt(e, "spinOnSale"), XmlHelper.getValueInt(e, "spinSalePrecentage"),
-                XmlHelper.getValueInt(e, "galaxyGateDay"), XmlHelper.getValueInt(e, "bonusRewardsDay"));
+    public void updateGalaxyInfo(Element e) {
+        this.money = XmlHelper.getValueInt(e, "money");
+        this.samples = XmlHelper.getValueInt(e, "samples");
+        this.spinOnSale = XmlHelper.getValueInt(e, "spinOnSale");
+        this.spinSalePercentage = XmlHelper.getValueInt(e, "spinSalePrecentage");
+        this.galaxyGateDay = XmlHelper.getValueInt(e, "galaxyGateDay");
+        this.bonusRewardsDay = XmlHelper.getValueInt(e, "bonusRewardsDay");
     }
 
     public Integer getMoney() {
         return money;
     }
 
-    public void setMoney(Integer money) {
-        this.money = money;
-    }
-
     public Integer getSamples() {
         return samples;
-    }
-
-    public void setSamples(Integer samples) {
-        this.samples = samples;
     }
 
     public Integer getSpinOnSale() {
         return spinOnSale;
     }
 
-    public void setSpinOnSale(Integer spinOnSale) {
-        this.spinOnSale = spinOnSale;
-    }
-
     public Integer getSpinSalePercentage() {
         return spinSalePercentage;
-    }
-
-    public void setSpinSalePercentage(Integer spinSalePercentage) {
-        this.spinSalePercentage = spinSalePercentage;
     }
 
     public Integer getGalaxyGateDay() {
         return galaxyGateDay;
     }
 
-    public void setGalaxyGateDay(Integer galaxyGateDay) {
-        this.galaxyGateDay = galaxyGateDay;
-    }
-
     public Integer getBonusRewardsDay() {
         return bonusRewardsDay;
-    }
-
-    public void setBonusRewardsDay(Integer bonusRewardsDay) {
-        this.bonusRewardsDay = bonusRewardsDay;
     }
 
     public List<EnergyCost> getEnergyCosts() {
@@ -119,7 +89,7 @@ public class Jumpgate {
 
     @Override
     public String toString() {
-        return "Jumpgate{" +
+        return "GalaxyInfo{" +
                 "money=" + money +
                 ", samples=" + samples +
                 ", spinOnSale=" + spinOnSale +

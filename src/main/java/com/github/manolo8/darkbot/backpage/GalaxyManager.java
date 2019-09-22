@@ -12,14 +12,14 @@ import java.util.List;
 
 public class GalaxyManager {
 
-    public Jumpgate jumpgate;
+    public GalaxyInfo galaxyInfo;
     private BackpageManager backpageManager;
     private Main main;
 
     public GalaxyManager(Main main, BackpageManager backpageManager) {
         this.main = main;
         this.backpageManager = backpageManager;
-        this.jumpgate = new Jumpgate();
+        this.galaxyInfo = new GalaxyInfo();
     }
 
     public void performGateSpin(String gateName, boolean sample, int gateId, int multiplier, int minWait) {
@@ -49,7 +49,7 @@ public class GalaxyManager {
                 Gate gate = new Gate(e);
                 gates.add(gate);
             }
-            jumpgate.setGates(gates);
+            galaxyInfo.setGates(gates);
         }
 
         if (root.elementIterator("items").hasNext()) {
@@ -59,7 +59,7 @@ public class GalaxyManager {
                 Item item = new Item(e);
                 items.add(item);
             }
-            jumpgate.setItems(items);
+            galaxyInfo.setItems(items);
         }
 
         if (root.elementIterator("multipliers").hasNext()) {
@@ -69,17 +69,12 @@ public class GalaxyManager {
                 Multiplier multiplier = new Multiplier(e);
                 multipliers.add(multiplier);
             }
-            jumpgate.setMultipliers(multipliers);
+            galaxyInfo.setMultipliers(multipliers);
         }
 
         energyCosts.add(new EnergyCost(root.element("energy_cost")));
-        jumpgate.setEnergyCosts(energyCosts);
-        jumpgate.setMoney(XmlHelper.getValueInt(root, "money"));
-        jumpgate.setSamples(XmlHelper.getValueInt(root, "samples"));
-        jumpgate.setSpinOnSale(XmlHelper.getValueInt(root, "spinOnSale"));
-        jumpgate.setSpinSalePercentage(XmlHelper.getValueInt(root, "spinSalePercentage"));
-        jumpgate.setGalaxyGateDay(XmlHelper.getValueInt(root, "galaxyGateDay"));
-        jumpgate.setBonusRewardsDay(XmlHelper.getValueInt(root, "bonusRewardsDay"));
+        galaxyInfo.setEnergyCosts(energyCosts);
+        galaxyInfo.updateGalaxyInfo(root);
     }
 
     private Element getRootElement(String params, int minWait) {
