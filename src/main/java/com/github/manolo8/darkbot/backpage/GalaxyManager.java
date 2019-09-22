@@ -2,12 +2,12 @@ package com.github.manolo8.darkbot.backpage;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.*;
-import com.github.manolo8.darkbot.utils.XmlHelper;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class GalaxyManager {
@@ -22,28 +22,41 @@ public class GalaxyManager {
         this.galaxyInfo = new GalaxyInfo();
     }
 
-    public void performGateSpin(String gateName, boolean sample, int gateId, int multiplier, int minWait) {
+    /**
+     * @param gateName is a string of a gate {alpha, beta, gamma, delta, epsilon, zeta, kappa, lambda, hades, streuner}
+     * @param sample should be used when on account extra energy amount is > 0
+     * @param gateId is a int of a gate {1, 2, 3, 4, 5, 6, 7, 8, 13, 19}
+     * @param multiplier boolean to use a multiplier
+     * @param spinAmount amount of energy to spin {5, 10, 100}, set 0 to spin one energy
+     * @param minWait is a minimum delay between requests
+     */
+    public void performGateSpin(String gateName, boolean sample, int gateId, boolean multiplier, int spinAmount, int minWait) {
         String params = "flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=multiEnergy&sid=" + main.statsManager.sid + "&gateID=" + gateId + "&" + gateName + "=1";
         if (sample) params = params + "&sample=1";
-        if (multiplier > 0) params = params + "&multiplier=" + multiplier;
+        if (multiplier) params = params + "&multiplier=1";
+        if (spinAmount > 0) params = params + "&spinamount=" + spinAmount;
 
-        parseJumpgate(params, minWait);
+        parseGalaxyInfo(params, minWait);
     }
 
-    public void updateJumpgateInfo(int minWait) {
-        parseJumpgate("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
+    public void updateGalaxyInfo(int minWait) {
+        parseGalaxyInfo("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
     }
 
-    private void parseJumpgate(String params, int minWait) {
+    private void parseGalaxyInfo(String params, int minWait) {
         Element root = getRootElement(params, minWait);
 
-        List<Gate> gates = new ArrayList<>();
-        List<EnergyCost> energyCosts = new ArrayList<>();
-        List<Multiplier> multipliers = new ArrayList<>();
-        List<Item> items = new ArrayList<>();
+        parseGates(root.elementIterator("gates"));
+        parseItems(root.elementIterator("items"));
+        parseMultipliers(root.elementIterator("multipliers"));
+        parseEnergyCost(root.element("energy_cost"));
+        galaxyInfo.updateGalaxyInfo(root);
+    }
 
-        if (root.elementIterator("gates").hasNext()) {
-            List<Element> gateEle = root.elementIterator("gates").next().elements();
+    private void parseGates(Iterator<Element> iterator) {
+        if (iterator.hasNext()) {
+            List<Gate> gates = new ArrayList<>();
+            List<Element> gateEle = iterator.next().elements();
 
             for (Element e : gateEle) {
                 Gate gate = new Gate(e);
@@ -51,9 +64,12 @@ public class GalaxyManager {
             }
             galaxyInfo.setGates(gates);
         }
+    }
 
-        if (root.elementIterator("items").hasNext()) {
-            List<Element> itemsEle = root.elementIterator("items").next().elements();
+    private void parseItems(Iterator<Element> iterator) {
+        if (iterator.hasNext()) {
+            List<Item> items = new ArrayList<>();
+            List<Element> itemsEle = iterator.next().elements();
 
             for (Element e : itemsEle) {
                 Item item = new Item(e);
@@ -61,9 +77,12 @@ public class GalaxyManager {
             }
             galaxyInfo.setItems(items);
         }
+    }
 
-        if (root.elementIterator("multipliers").hasNext()) {
-            List<Element> multipliersEle = root.elementIterator("multipliers").next().elements();
+    private void parseMultipliers(Iterator<Element> iterator) {
+        if (iterator.hasNext()) {
+            List<Multiplier> multipliers = new ArrayList<>();
+            List<Element> multipliersEle = iterator.next().elements();
 
             for (Element e : multipliersEle) {
                 Multiplier multiplier = new Multiplier(e);
@@ -71,10 +90,14 @@ public class GalaxyManager {
             }
             galaxyInfo.setMultipliers(multipliers);
         }
+    }
 
-        energyCosts.add(new EnergyCost(root.element("energy_cost")));
-        galaxyInfo.setEnergyCosts(energyCosts);
-        galaxyInfo.updateGalaxyInfo(root);
+    private void parseEnergyCost(Element element) {
+        if (element.getText() == null) return;
+        List<EnergyCost> energyCost = new ArrayList<>();
+
+        energyCost.add(new EnergyCost(element));
+        galaxyInfo.setEnergyCosts(energyCost);
     }
 
     private Element getRootElement(String params, int minWait) {
