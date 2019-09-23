@@ -6,6 +6,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -23,34 +24,51 @@ public class GalaxyManager {
     }
 
     /**
-     * @param gateName is a string of a gate {alpha, beta, gamma, delta, epsilon, zeta, kappa, lambda, hades, streuner}
-     * @param sample should be used when on account extra energy amount is > 0
-     * @param gateId is a int of a gate {1, 2, 3, 4, 5, 6, 7, 8, 13, 19}
+     * @param gate       choose gate from GatesList to spin
      * @param multiplier boolean to use a multiplier
      * @param spinAmount amount of energy to spin {5, 10, 100}, set 0 to spin one energy
-     * @param minWait is a minimum delay between requests
+     * @param minWait    minimum delay between requests
+     * @return response code from connection
      */
-    public void performGateSpin(String gateName, boolean sample, int gateId, boolean multiplier, int spinAmount, int minWait) {
-        String params = "flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=multiEnergy&sid=" + main.statsManager.sid + "&gateID=" + gateId + "&" + gateName + "=1";
-        if (sample) params = params + "&sample=1";
+
+    public int performGateSpin(GatesList gate, boolean multiplier, int spinAmount, int minWait) {
+        String params = "flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=multiEnergy&sid=" + main.statsManager.sid + gate.getParam();
+
+        if (galaxyInfo.getSamples() != null && galaxyInfo.getSamples() > 0) params = params + "&sample=1";
         if (multiplier) params = params + "&multiplier=1";
-        if (spinAmount > 0) params = params + "&spinamount=" + spinAmount;
+        if (spinAmount > 4) params = params + "&spinamount=" + spinAmount;
 
-        parseGalaxyInfo(params, minWait);
+        return parseGalaxyInfo(params, minWait);
     }
 
-    public void updateGalaxyInfo(int minWait) {
-        parseGalaxyInfo("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
+    public int updateGalaxyInfo(int minWait) {
+        return parseGalaxyInfo("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
     }
 
-    private void parseGalaxyInfo(String params, int minWait) {
-        Element root = getRootElement(params, minWait);
+    private int parseGalaxyInfo(String params, int minWait) {
+        Element rootElement = null;
+        int responseCode = -1;
 
-        parseGates(root.elementIterator("gates"));
-        parseItems(root.elementIterator("items"));
-        parseMultipliers(root.elementIterator("multipliers"));
-        parseEnergyCost(root.element("energy_cost"));
-        galaxyInfo.updateGalaxyInfo(root);
+        try {
+            SAXReader reader = new SAXReader();
+
+            HttpURLConnection conn = backpageManager.getGalaxyConnection(params, minWait);
+            responseCode = conn.getResponseCode();
+            Document document = reader.read(conn.getInputStream());
+            rootElement = document.getRootElement();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (rootElement == null) return -2;
+
+        parseGates(rootElement.elementIterator("gates"));
+        parseItems(rootElement.elementIterator("items"));
+        parseMultipliers(rootElement.elementIterator("multipliers"));
+        parseEnergyCost(rootElement.element("energy_cost"));
+        galaxyInfo.updateGalaxyInfo(rootElement);
+
+        return responseCode;
     }
 
     private void parseGates(Iterator<Element> iterator) {
@@ -99,17 +117,4 @@ public class GalaxyManager {
         energyCost.add(new EnergyCost(element));
         galaxyInfo.setEnergyCosts(energyCost);
     }
-
-    private Element getRootElement(String params, int minWait) {
-        Element element = null;
-        try {
-            SAXReader reader = new SAXReader();
-            Document document = reader.read(backpageManager.getGalaxyConnection(params, minWait).getInputStream());
-            element = document.getRootElement();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return element;
-    }
-
 }
