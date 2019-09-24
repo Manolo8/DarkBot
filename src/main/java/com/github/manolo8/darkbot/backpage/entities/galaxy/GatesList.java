@@ -1,9 +1,7 @@
 package com.github.manolo8.darkbot.backpage.entities.galaxy;
 
 public enum GatesList {
-    ALPHA("alpha", 1),
-    BETA("beta", 2),
-    GAMMA("gamma", 3),
+    ABG("alpha", 1),
     DELTA("delta", 4),
     EPSILON("epsilon", 5),
     ZETA("zeta", 6),
