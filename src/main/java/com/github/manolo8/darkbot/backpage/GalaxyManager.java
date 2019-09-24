@@ -9,7 +9,6 @@ import org.dom4j.io.SAXReader;
 import java.net.HttpURLConnection;
 import java.util.Iterator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GalaxyManager {
 
@@ -33,13 +32,9 @@ public class GalaxyManager {
     }
 
     /**
-     * @param gate       choose gate from GatesList to spin
-     * @param multiplier boolean to use a multiplier
-     * @param spinAmount amount of energy to spin {5, 10, 100}, set 0 to spin one energy
-     * @param minWait    minimum delay between requests
-     * @return response code from connection
+     * @param spinAmount amount of energy to spin {1, 5, 10, 100}
+     * @return returns response code of connection
      */
-
     public int performGateSpin(GatesList gate, boolean multiplier, int spinAmount, int minWait) {
         String params = "flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=multiEnergy&sid=" + main.statsManager.sid + gate.getParam();
 
@@ -63,10 +58,12 @@ public class GalaxyManager {
         try {
             SAXReader reader = new SAXReader();
 
-            HttpURLConnection conn = backpageManager.getGalaxyConnection(params, minWait);
-            responseCode = conn.getResponseCode();
+            HttpURLConnection conn = backpageManager.getConnection(params, minWait);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
             Document document = reader.read(conn.getInputStream());
             rootElement = document.getRootElement();
+            responseCode = conn.getResponseCode();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -76,7 +73,6 @@ public class GalaxyManager {
         parseGates(rootElement.elementIterator("gates"));
         parseItems(rootElement.elementIterator("items"));
         parseMultipliers(rootElement.elementIterator("multipliers"));
-        parseEnergyCost(rootElement.element("energy_cost"));
         galaxyInfo.updateGalaxyInfo(rootElement);
 
         return responseCode;
@@ -95,10 +91,5 @@ public class GalaxyManager {
     private void parseMultipliers(Iterator<Element> iterator) {
         if (!iterator.hasNext()) return;
         galaxyInfo.setMultipliers(iterator.next().elements().stream().map(Multiplier::new).collect(Collectors.toList()));
-    }
-
-    private void parseEnergyCost(Element element) {
-        if (element.getText() == null) return;
-        galaxyInfo.setEnergyCosts(Stream.of(element).map(EnergyCost::new).collect(Collectors.toList()));
     }
 }

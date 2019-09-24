@@ -12,8 +12,8 @@ public class GalaxyInfo {
     private Integer spinSalePercentage;
     private Integer galaxyGateDay;
     private Integer bonusRewardsDay;
+    private EnergyCost energyCosts;
 
-    private List<EnergyCost> energyCosts;
     private List<Multiplier> multipliers;
     private List<Gate> gates;
     private List<Item> items;
@@ -29,6 +29,7 @@ public class GalaxyInfo {
         this.spinSalePercentage = XmlHelper.getValueInt(e, "spinSalePrecentage");
         this.galaxyGateDay = XmlHelper.getValueInt(e, "galaxyGateDay");
         this.bonusRewardsDay = XmlHelper.getValueInt(e, "bonusRewardsDay");
+        this.energyCosts = new EnergyCost(e.element("energy_cost"));
     }
 
     public Integer getMoney() {
@@ -55,12 +56,8 @@ public class GalaxyInfo {
         return bonusRewardsDay;
     }
 
-    public List<EnergyCost> getEnergyCosts() {
+    public EnergyCost getEnergyCosts() {
         return energyCosts;
-    }
-
-    public void setEnergyCosts(List<EnergyCost> energyCosts) {
-        this.energyCosts = energyCosts;
     }
 
     public List<Multiplier> getMultipliers() {

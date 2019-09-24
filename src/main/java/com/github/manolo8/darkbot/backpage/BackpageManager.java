@@ -27,7 +27,6 @@ public class BackpageManager extends Thread {
     private String sid;
     private String instance;
     private long lastRequest;
-    private long lastGalaxyRequest;
 
     private long sidLastUpdate = System.currentTimeMillis();
     private long sidNextUpdate = sidLastUpdate;
@@ -128,23 +127,6 @@ public class BackpageManager extends Thread {
         return conn;
     }
 
-    public HttpURLConnection getGalaxyConnection(String params, int minWait) throws Exception {
-        Time.sleep(lastGalaxyRequest + minWait - System.currentTimeMillis());
-        return getGalaxyConnection(params);
-    }
-
-    public HttpURLConnection getGalaxyConnection(String params) throws Exception {
-        if (isInvalid()) throw new UnsupportedOperationException("Can't connect when sid is invalid");
-        HttpURLConnection conn = (HttpURLConnection) new URL(this.instance + params).openConnection();
-
-        conn.setInstanceFollowRedirects(false);
-        conn.setRequestProperty("Cookie", "dosid=" + this.sid);
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-        conn.setRequestProperty("Accept", "application/xml");
-        lastGalaxyRequest = System.currentTimeMillis();
-        return conn;
-    }
-
     public String getDataInventory(String params) {
         String data = null;
         try {
@@ -167,7 +149,7 @@ public class BackpageManager extends Thread {
                         Time.toString(sidNextUpdate - sidLastUpdate) : "");
     }
 
-    private String sidStat() {
+    public String sidStat() {
         switch (sidStatus) {
             case -1: return "--";
             case -2: return "ERR";
