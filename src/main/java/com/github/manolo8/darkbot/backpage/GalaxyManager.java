@@ -16,6 +16,7 @@ public class GalaxyManager {
     private GalaxyInfo galaxyInfo;
     private BackpageManager backpageManager;
     private Main main;
+    private long lastGatesUpdate;
 
     public GalaxyManager(Main main, BackpageManager backpageManager) {
         this.main = main;
@@ -25,6 +26,10 @@ public class GalaxyManager {
 
     public GalaxyInfo getGalaxyInfo() {
         return galaxyInfo;
+    }
+
+    public long lastGatesUpdate() {
+        return System.currentTimeMillis() - lastGatesUpdate;
     }
 
     /**
@@ -46,7 +51,9 @@ public class GalaxyManager {
     }
 
     public int updateGalaxyInfo(int minWait) {
-        return parseGalaxyInfo("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
+        int responseCode = parseGalaxyInfo("flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=init&sid=" + main.statsManager.sid, minWait);
+        lastGatesUpdate = System.currentTimeMillis();
+        return responseCode;
     }
 
     private int parseGalaxyInfo(String params, int minWait) {
