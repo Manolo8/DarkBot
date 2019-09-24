@@ -7,13 +7,13 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GalaxyManager {
 
-    public GalaxyInfo galaxyInfo;
+    private GalaxyInfo galaxyInfo;
     private BackpageManager backpageManager;
     private Main main;
 
@@ -21,6 +21,10 @@ public class GalaxyManager {
         this.main = main;
         this.backpageManager = backpageManager;
         this.galaxyInfo = new GalaxyInfo();
+    }
+
+    public GalaxyInfo getGalaxyInfo() {
+        return galaxyInfo;
     }
 
     /**
@@ -72,49 +76,22 @@ public class GalaxyManager {
     }
 
     private void parseGates(Iterator<Element> iterator) {
-        if (iterator.hasNext()) {
-            List<Gate> gates = new ArrayList<>();
-            List<Element> gateEle = iterator.next().elements();
-
-            for (Element e : gateEle) {
-                Gate gate = new Gate(e);
-                gates.add(gate);
-            }
-            galaxyInfo.setGates(gates);
-        }
+        if (!iterator.hasNext()) return;
+        galaxyInfo.setGates(iterator.next().elements().stream().map(Gate::new).collect(Collectors.toList()));
     }
 
     private void parseItems(Iterator<Element> iterator) {
-        if (iterator.hasNext()) {
-            List<Item> items = new ArrayList<>();
-            List<Element> itemsEle = iterator.next().elements();
-
-            for (Element e : itemsEle) {
-                Item item = new Item(e);
-                items.add(item);
-            }
-            galaxyInfo.setItems(items);
-        }
+        if (!iterator.hasNext()) return;
+        galaxyInfo.setItems(iterator.next().elements().stream().map(Item::new).collect(Collectors.toList()));
     }
 
     private void parseMultipliers(Iterator<Element> iterator) {
-        if (iterator.hasNext()) {
-            List<Multiplier> multipliers = new ArrayList<>();
-            List<Element> multipliersEle = iterator.next().elements();
-
-            for (Element e : multipliersEle) {
-                Multiplier multiplier = new Multiplier(e);
-                multipliers.add(multiplier);
-            }
-            galaxyInfo.setMultipliers(multipliers);
-        }
+        if (!iterator.hasNext()) return;
+        galaxyInfo.setMultipliers(iterator.next().elements().stream().map(Multiplier::new).collect(Collectors.toList()));
     }
 
     private void parseEnergyCost(Element element) {
         if (element.getText() == null) return;
-        List<EnergyCost> energyCost = new ArrayList<>();
-
-        energyCost.add(new EnergyCost(element));
-        galaxyInfo.setEnergyCosts(energyCost);
+        galaxyInfo.setEnergyCosts(Stream.of(element).map(EnergyCost::new).collect(Collectors.toList()));
     }
 }
