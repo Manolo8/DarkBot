@@ -1,14 +1,13 @@
 package com.github.manolo8.darkbot.backpage;
 
 import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.backpage.entities.galaxy.*;
+import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyInfo;
+import com.github.manolo8.darkbot.backpage.entities.galaxy.GatesList;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.net.HttpURLConnection;
-import java.util.Iterator;
-import java.util.stream.Collectors;
 
 public class GalaxyManager {
 
@@ -62,34 +61,13 @@ public class GalaxyManager {
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 
             Document document = reader.read(conn.getInputStream());
-            rootElement = document.getRootElement();
             responseCode = conn.getResponseCode();
+            if ((rootElement = document.getRootElement()) == null) return responseCode;
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        if (rootElement == null) return -2;
-
-        parseGates(rootElement.elementIterator("gates"));
-        parseItems(rootElement.elementIterator("items"));
-        parseMultipliers(rootElement.elementIterator("multipliers"));
         galaxyInfo.updateGalaxyInfo(rootElement);
 
         return responseCode;
-    }
-
-    private void parseGates(Iterator<Element> iterator) {
-        if (!iterator.hasNext()) return;
-        galaxyInfo.setGates(iterator.next().elements().stream().map(Gate::new).collect(Collectors.toList()));
-    }
-
-    private void parseItems(Iterator<Element> iterator) {
-        if (!iterator.hasNext()) return;
-        galaxyInfo.setItems(iterator.next().elements().stream().map(Item::new).collect(Collectors.toList()));
-    }
-
-    private void parseMultipliers(Iterator<Element> iterator) {
-        if (!iterator.hasNext()) return;
-        galaxyInfo.setMultipliers(iterator.next().elements().stream().map(Multiplier::new).collect(Collectors.toList()));
     }
 }

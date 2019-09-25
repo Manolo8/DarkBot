@@ -4,6 +4,7 @@ import com.github.manolo8.darkbot.utils.XmlHelper;
 import org.dom4j.Element;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GalaxyInfo {
     private Integer money;
@@ -30,6 +31,13 @@ public class GalaxyInfo {
         this.galaxyGateDay = XmlHelper.getValueInt(e, "galaxyGateDay");
         this.bonusRewardsDay = XmlHelper.getValueInt(e, "bonusRewardsDay");
         this.energyCosts = new EnergyCost(e.element("energy_cost"));
+
+        if (XmlHelper.hasNext(e, "multipliers"))
+            this.multipliers = XmlHelper.elements(e, "multipliers").map(Multiplier::new).collect(Collectors.toList());
+        if (XmlHelper.hasNext(e, "gates"))
+            this.gates = XmlHelper.elements(e, "gates").map(Gate::new).collect(Collectors.toList());
+        if (XmlHelper.hasNext(e, "items"))
+            this.items = XmlHelper.elements(e, "items").map(Item::new).collect(Collectors.toList());
     }
 
     public Integer getMoney() {
@@ -64,24 +72,12 @@ public class GalaxyInfo {
         return multipliers;
     }
 
-    public void setMultipliers(List<Multiplier> multipliers) {
-        this.multipliers = multipliers;
-    }
-
     public List<Gate> getGates() {
         return gates;
     }
 
-    public void setGates(List<Gate> gates) {
-        this.gates = gates;
-    }
-
     public List<Item> getItems() {
         return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
     }
 
     @Override
