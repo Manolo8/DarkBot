@@ -18,8 +18,8 @@ public class XmlHelper {
         else return Integer.parseInt(value);
     }
 
-    public static boolean hasChild(Element e, String attr) {
-        return e.elementIterator(attr).hasNext();
+    public static boolean hasChild(Element e, String child) {
+        return e.elementIterator(child).hasNext();
     }
 
     public static Stream<Element> childrenOf(Element e, String child) {

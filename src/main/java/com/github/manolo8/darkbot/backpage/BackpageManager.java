@@ -149,7 +149,7 @@ public class BackpageManager extends Thread {
                         Time.toString(sidNextUpdate - sidLastUpdate) : "");
     }
 
-    public String sidStat() {
+    private String sidStat() {
         switch (sidStatus) {
             case -1: return "--";
             case -2: return "ERR";
