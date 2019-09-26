@@ -12,17 +12,17 @@ public class XmlHelper {
         return Integer.parseInt(value);
     }
 
-    public static Integer getValueInt(Element e, String attr) {
-        String value = e.elementText(attr);
+    public static Integer getValueInt(Element e, String child) {
+        String value = e.elementText(child);
         if (value == null || value.isEmpty()) return null;
         else return Integer.parseInt(value);
     }
 
-    public static boolean hasNext(Element e, String attr) {
+    public static boolean hasChild(Element e, String attr) {
         return e.elementIterator(attr).hasNext();
     }
 
-    public static Stream<Element> elements(Element e, String attr) {
-        return e.elementIterator(attr).next().elements().stream();
+    public static Stream<Element> childrenOf(Element e, String child) {
+        return e.elementIterator(child).next().elements().stream();
     }
 }
