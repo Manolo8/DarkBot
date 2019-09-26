@@ -10,17 +10,9 @@ public class ItemInfo {
     @SerializedName("name")
     private String name;
 
-    @SerializedName("T")
-    private int typeId;
-
-    @SerializedName("C")
-    private String category;
-
-    public ItemInfo(int lootId, String name, int typeId, String category) {
+    public ItemInfo(int lootId, String name) {
         this.lootId = lootId;
         this.name = name;
-        this.typeId = typeId;
-        this.category = category;
     }
 
     public int getLoot() {
@@ -31,38 +23,4 @@ public class ItemInfo {
         return this.name;
     }
 
-    public int getTypeId() {
-        return typeId;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public String getMoveCategory() {
-        if (typeId == 0) return "lasers";
-        if (typeId == 1) return "heavy_guns";
-        if (typeId == 3 || typeId == 4) return "generators";
-        if (typeId == 7 || typeId == 9 || typeId == 10) return "extras";
-        if (typeId == 12) return "ship_upgrades";
-
-        return "";
-    }
-
-    public String getDroneMoveCategory() {
-        if (typeId == 17) return "design";
-        if (typeId == 18) return "visual";
-
-        return "default";
-    }
-
-    public String getPetMoveCategory() {
-        if (typeId == 0) return "lasers";
-        if (typeId == 4) return "generators";
-        if (typeId == 21) return "gears";
-        if (typeId == 22) return "protocols";
-        if (typeId == 24) return "visual";
-
-        return "";
-    }
 }

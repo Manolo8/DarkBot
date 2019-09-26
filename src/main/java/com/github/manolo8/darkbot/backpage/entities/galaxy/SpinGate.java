@@ -1,6 +1,6 @@
 package com.github.manolo8.darkbot.backpage.entities.galaxy;
 
-public enum GatesList {
+public enum SpinGate {
     ABG("alpha", 1),
     DELTA("delta", 4),
     EPSILON("epsilon", 5),
@@ -13,7 +13,7 @@ public enum GatesList {
     private String name;
     private int id;
 
-    GatesList(String name, int id) {
+    SpinGate(String name, int id) {
         this.name = name;
         this.id = id;
     }

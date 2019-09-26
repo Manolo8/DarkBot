@@ -2,7 +2,7 @@ package com.github.manolo8.darkbot.backpage;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyInfo;
-import com.github.manolo8.darkbot.backpage.entities.galaxy.GatesList;
+import com.github.manolo8.darkbot.backpage.entities.galaxy.SpinGate;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -34,7 +34,7 @@ public class GalaxyManager {
      * @param spinAmount amount of energy to spin {1, 5, 10, 100}
      * @return returns response code of connection
      */
-    public int performGateSpin(GatesList gate, boolean multiplier, int spinAmount, int minWait) {
+    public int performGateSpin(SpinGate gate, boolean multiplier, int spinAmount, int minWait) {
         String params = "flashinput/galaxyGates.php?userID=" + main.hero.id + "&action=multiEnergy&sid=" + main.statsManager.sid + gate.getParam();
 
         if (galaxyInfo.getSamples() != null && galaxyInfo.getSamples() > 0) params = params + "&sample=1";
