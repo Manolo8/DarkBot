@@ -6,6 +6,9 @@ import com.github.manolo8.darkbot.extensions.plugins.IssueHandler;
 import com.github.manolo8.darkbot.utils.Base64Utils;
 import com.github.manolo8.darkbot.utils.Time;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -137,6 +140,34 @@ public class BackpageManager extends Thread {
             e.printStackTrace();
         }
         return data;
+    }
+
+    public String getReloadToken(InputStream input) {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(input));
+            String currentLine;
+            while ((currentLine = in.readLine()) != null) {
+                if (currentLine.contains("&reloadToken=")) {
+                    String token;
+                    int start;
+                    int end;
+                    start = currentLine.indexOf("reloadToken=")+12;
+                    end = currentLine.indexOf('"',start);
+                    if (start != 0 && end !=0) {
+                        token = currentLine.substring(start,end);
+                        in.close();
+                        input.close();
+                        return token;
+                    }
+                }
+            }
+            in.close();
+            input.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     public void setTasks(List<Task> tasks) {
