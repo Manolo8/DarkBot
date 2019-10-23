@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BackpageManager extends Thread {
     private final Main main;
@@ -143,31 +145,19 @@ public class BackpageManager extends Thread {
     }
 
     public String getReloadToken(InputStream input) {
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(input));
+        Pattern p = Pattern.compile("reloadToken=([^\"]+)");
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(input))) {
             String currentLine;
             while ((currentLine = in.readLine()) != null) {
-                if (currentLine.contains("&reloadToken=")) {
-                    String token;
-                    int start;
-                    int end;
-                    start = currentLine.indexOf("reloadToken=")+12;
-                    end = currentLine.indexOf('"',start);
-                    if (start != 0 && end !=0) {
-                        token = currentLine.substring(start,end);
-                        in.close();
-                        input.close();
-                        return token;
-                    }
+                Matcher m = p.matcher(currentLine);
+                if (m.find()) {
+                    return m.group(1);
                 }
             }
-            in.close();
-            input.close();
         } catch (Exception e){
             e.printStackTrace();
         }
-
-        return "";
+        return null;
     }
 
     public void setTasks(List<Task> tasks) {
