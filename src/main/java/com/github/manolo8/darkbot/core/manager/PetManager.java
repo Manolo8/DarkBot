@@ -8,6 +8,9 @@ import com.github.manolo8.darkbot.core.objects.Gui;
 
 import java.util.List;
 
+import static java.lang.Math.max;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 public class PetManager extends Gui {
 
     private static final int MAIN_BUTTON_X = 30, MODULES_X_MAX = 260, MODULE_Y = 120;
@@ -28,7 +31,7 @@ public class PetManager extends Gui {
     }
 
     public void tick() {
-        if (!main.isRunning() || !main.config.PET.ENABLED) return;
+        if (!main.isRunning() || !main.config.PET.ENABLED || kamikazeTimer == -1 || repairModuleIsInUse()) return;
         if (active() != enabled) {
             if (show(true)) clickToggleStatus();
             return;
@@ -86,4 +89,45 @@ public class PetManager extends Gui {
         }
     }
 
+    private long kamikazeTimer;
+    public long throwKamikaze(int module, int coolDown) {
+        if (System.currentTimeMillis() < kamikazeTimer) return kamikazeTimer;
+        kamikazeTimer = -1;
+
+        if (!active()) {
+            if (show(true)) clickToggleStatus();
+            return kamikazeTimer;
+        }
+        if (moduleStatus != module && show(true)) selectModule(module);
+        else if (moduleSelected()) show(false);
+        if (active() && pet.removed) kamikazeTimer = System.currentTimeMillis() + coolDown * 1000;
+
+        return kamikazeTimer;
+    }
+
+    public long kamikazeCoolDown() {
+        long coolDown = max(0, kamikazeTimer - System.currentTimeMillis());
+        return MILLISECONDS.toSeconds(coolDown);
+    }
+
+    private long useRepairModuleUntil;
+    public void useRepairModule(int module) {
+        if (System.currentTimeMillis() < useRepairModuleUntil) return;
+        useRepairModuleUntil = -1;
+
+        if (!active()) {
+            if (show(true)) clickToggleStatus();
+            return;
+        }
+
+        if (moduleStatus != module && show(true)) selectModule(module);
+        else if (moduleSelected()) {
+            useRepairModuleUntil = System.currentTimeMillis() + 16_000;
+            show(false);
+        }
+    }
+
+    private boolean repairModuleIsInUse() {
+        return useRepairModuleUntil == -1 || System.currentTimeMillis() < useRepairModuleUntil - 10_000;
+    }
 }
