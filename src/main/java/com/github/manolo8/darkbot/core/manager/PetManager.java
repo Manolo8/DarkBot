@@ -92,7 +92,7 @@ public class PetManager extends Gui {
     private long kamikazeTimer;
     public long throwKamikaze(int module, int coolDown) {
         if (System.currentTimeMillis() < kamikazeTimer) return kamikazeTimer;
-        kamikazeTimer = -1;
+        kamikazeTimer = active() && pet.removed ? System.currentTimeMillis() + coolDown * 1000 : -1;
 
         if (!active()) {
             if (show(true)) clickToggleStatus();
@@ -100,7 +100,6 @@ public class PetManager extends Gui {
         }
         if (moduleStatus != module && show(true)) selectModule(module);
         else if (moduleSelected()) show(false);
-        if (active() && pet.removed) kamikazeTimer = System.currentTimeMillis() + coolDown * 1000;
 
         return kamikazeTimer;
     }
@@ -119,7 +118,6 @@ public class PetManager extends Gui {
             if (show(true)) clickToggleStatus();
             return;
         }
-
         if (moduleStatus != module && show(true)) selectModule(module);
         else if (moduleSelected()) {
             useRepairModuleUntil = System.currentTimeMillis() + 16_000;
