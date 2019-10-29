@@ -4,16 +4,15 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyInfo;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.SpinGate;
 import org.dom4j.Document;
-import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.net.HttpURLConnection;
+import java.io.InputStream;
 
 public class GalaxyManager {
 
+    private Main main;
     private GalaxyInfo galaxyInfo;
     private BackpageManager backpageManager;
-    private Main main;
     private long lastGatesUpdate;
 
     GalaxyManager(Main main, BackpageManager backpageManager) {
@@ -41,20 +40,13 @@ public class GalaxyManager {
     }
 
     private void handleRequest(String params, int expiryTime, int minWait) {
-        if (System.currentTimeMillis() > lastGatesUpdate + expiryTime) {
-            try {
-                SAXReader reader = new SAXReader();
-
-                HttpURLConnection conn = backpageManager.getConnection(params, minWait);
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                Document document = reader.read(conn.getInputStream());
-                if (document.getRootElement() == null) return;
-                galaxyInfo.updateGalaxyInfo(document.getRootElement());
-                lastGatesUpdate = System.currentTimeMillis();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (System.currentTimeMillis() < lastGatesUpdate + expiryTime) return;
+        try (InputStream in = backpageManager.getConnection(params, minWait).getInputStream()) {
+            Document document = new SAXReader().read(in);
+            if (document.getRootElement() != null) galaxyInfo.updateGalaxyInfo(document.getRootElement());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        lastGatesUpdate = System.currentTimeMillis();
     }
 }

@@ -1,7 +1,8 @@
 package com.github.manolo8.darkbot.backpage.entities.galaxy;
 
-import com.github.manolo8.darkbot.utils.XmlHelper;
 import org.dom4j.Element;
+
+import static com.github.manolo8.darkbot.utils.XmlHelper.getAttrInt;
 
 public class Gate {
     private String state;
@@ -15,7 +16,7 @@ public class Gate {
     private Integer livesLeft;
     private Integer lifePrice;
 
-    public Gate(String state, Integer total, Integer current, Integer id, Integer prepared, Integer totalWave, Integer currentWave, Integer livesLeft, Integer lifePrice) {
+    private Gate(String state, Integer total, Integer current, Integer id, Integer prepared, Integer totalWave, Integer currentWave, Integer livesLeft, Integer lifePrice) {
         this.state = state;
         this.total = total;
         this.current = current;
@@ -27,11 +28,10 @@ public class Gate {
         this.lifePrice = lifePrice;
     }
 
-    public Gate(Element e) {
-        this(e.attributeValue("state"), XmlHelper.getAttrInt(e, "total"), XmlHelper.getAttrInt(e, "current"),
-                XmlHelper.getAttrInt(e, "id"), XmlHelper.getAttrInt(e, "prepared"),
-                XmlHelper.getAttrInt(e, "totalWave"), XmlHelper.getAttrInt(e, "currentWave"),
-                XmlHelper.getAttrInt(e, "livesLeft"), XmlHelper.getAttrInt(e, "lifePrice"));
+    Gate(Element e) {
+        this(e.attributeValue("state"), getAttrInt(e, "total"), getAttrInt(e, "current"),
+                getAttrInt(e, "id"), getAttrInt(e, "prepared"), getAttrInt(e, "totalWave"),
+                getAttrInt(e, "currentWave"), getAttrInt(e, "livesLeft"), getAttrInt(e, "lifePrice"));
     }
 
     public String getState() {
