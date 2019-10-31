@@ -1,8 +1,7 @@
 package com.github.manolo8.darkbot.backpage.entities.galaxy;
 
+import com.github.manolo8.darkbot.utils.XmlHelper;
 import org.dom4j.Element;
-
-import static com.github.manolo8.darkbot.utils.XmlHelper.getAttrInt;
 
 public class Item {
     private String date;
@@ -18,7 +17,7 @@ public class Item {
     private Integer total;
     private Integer multiplierUsed;
 
-    private Item(String date, String state, String type, Integer gateId, Integer duplicate, Integer partId, Integer itemId, Integer amount, Integer current, Integer total, Integer multiplierUsed) {
+    public Item(String date, String state, String type, Integer gateId, Integer duplicate, Integer partId, Integer itemId, Integer amount, Integer current, Integer total, Integer multiplierUsed) {
         this.date = date;
         this.state = state;
         this.type = type;
@@ -32,11 +31,12 @@ public class Item {
         this.multiplierUsed = multiplierUsed;
     }
 
-    Item(Element e) {
+    public Item(Element e) {
         this(e.attributeValue("date"), e.attributeValue("state"), e.attributeValue("type"),
-                getAttrInt(e, "gate_id"), getAttrInt(e, "duplicate"), getAttrInt(e, "part_id"),
-                getAttrInt(e, "item_id"), getAttrInt(e, "amount"), getAttrInt(e, "current"),
-                getAttrInt(e, "total"), getAttrInt(e, "multiplier_used"));
+                XmlHelper.getAttrInt(e, "gate_id"), XmlHelper.getAttrInt(e, "duplicate"),
+                XmlHelper.getAttrInt(e, "part_id"), XmlHelper.getAttrInt(e, "item_id"),
+                XmlHelper.getAttrInt(e, "amount"), XmlHelper.getAttrInt(e, "current"),
+                XmlHelper.getAttrInt(e, "total"), XmlHelper.getAttrInt(e, "multiplier_used"));
     }
 
     public String getDate() {

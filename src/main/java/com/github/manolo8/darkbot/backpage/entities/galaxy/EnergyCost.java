@@ -6,12 +6,12 @@ public class EnergyCost {
     private String mode;
     private Integer value;
 
-    private EnergyCost(String mode, Integer value) {
+    public EnergyCost(String mode, Integer value) {
         this.mode = mode;
         this.value = value;
     }
 
-    EnergyCost(Element e) {
+    public EnergyCost(Element e) {
         this(e.attributeValue("mode"), Integer.parseInt(e.getText()));
     }
 

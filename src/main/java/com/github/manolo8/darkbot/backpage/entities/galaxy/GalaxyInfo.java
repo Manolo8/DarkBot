@@ -1,11 +1,10 @@
 package com.github.manolo8.darkbot.backpage.entities.galaxy;
 
+import com.github.manolo8.darkbot.utils.XmlHelper;
 import org.dom4j.Element;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.github.manolo8.darkbot.utils.XmlHelper.*;
 
 public class GalaxyInfo {
     private Integer money;
@@ -21,20 +20,24 @@ public class GalaxyInfo {
     private List<Item> items;
 
     public GalaxyInfo() {
+
     }
 
     public void updateGalaxyInfo(Element e) {
-        this.money = getValueInt(e, "money");
-        this.samples = getValueInt(e, "samples");
-        this.spinOnSale = getValueInt(e, "spinOnSale");
-        this.spinSalePercentage = getValueInt(e, "spinSalePercentage");
-        this.galaxyGateDay = getValueInt(e, "galaxyGateDay");
-        this.bonusRewardsDay = getValueInt(e, "bonusRewardsDay");
+        this.money = XmlHelper.getValueInt(e, "money");
+        this.samples = XmlHelper.getValueInt(e, "samples");
+        this.spinOnSale = XmlHelper.getValueInt(e, "spinOnSale");
+        this.spinSalePercentage = XmlHelper.getValueInt(e, "spinSalePercentage");
+        this.galaxyGateDay = XmlHelper.getValueInt(e, "galaxyGateDay");
+        this.bonusRewardsDay = XmlHelper.getValueInt(e, "bonusRewardsDay");
         this.energyCosts = new EnergyCost(e.element("energy_cost"));
 
-        if (hasChild(e, "multipliers")) this.multipliers = childrenOf(e, "multipliers").map(Multiplier::new).collect(Collectors.toList());
-        if (hasChild(e, "gates")) this.gates = childrenOf(e, "gates").map(Gate::new).collect(Collectors.toList());
-        if (hasChild(e, "items")) this.items = childrenOf(e, "items").map(Item::new).collect(Collectors.toList());
+        if (XmlHelper.hasChild(e, "multipliers"))
+            this.multipliers = XmlHelper.childrenOf(e, "multipliers").map(Multiplier::new).collect(Collectors.toList());
+        if (XmlHelper.hasChild(e, "gates"))
+            this.gates = XmlHelper.childrenOf(e, "gates").map(Gate::new).collect(Collectors.toList());
+        if (XmlHelper.hasChild(e, "items"))
+            this.items = XmlHelper.childrenOf(e, "items").map(Item::new).collect(Collectors.toList());
     }
 
     public Integer getMoney() {
@@ -86,10 +89,6 @@ public class GalaxyInfo {
                 ", spinSalePercentage=" + spinSalePercentage +
                 ", galaxyGateDay=" + galaxyGateDay +
                 ", bonusRewardsDay=" + bonusRewardsDay +
-                ", energyCosts=" + energyCosts +
-                ", multipliers=" + multipliers +
-                ", gates=" + gates +
-                ", items=" + items +
                 '}';
     }
 }
