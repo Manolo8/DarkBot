@@ -2,13 +2,14 @@ package com.github.manolo8.darkbot.config;
 
 import com.github.manolo8.darkbot.core.itf.NpcExtraProvider;
 import com.github.manolo8.darkbot.extensions.features.Feature;
+import com.github.manolo8.darkbot.utils.I18n;
 
 public enum NpcExtra implements NpcExtraFlag {
-    NO_CIRCLE("NC", "No circle", "Don't circle the npc, just stay inside the radius"),
-    IGNORE_OWNERSHIP("IO", "Ignore ownership", "Continue killing the npc even if it has a white lock"),
-    IGNORE_ATTACKED("IA", "Ignore attacked", "Select the npc even if other players are already shooting it"),
-    PASSIVE("P", "Passive", "Be passive towards this npc, only shoot if npc is shooting you"),
-    ATTACK_SECOND("AS", "Attack second", "<html>Only shoot if others are attacking already.<br><strong>Must</strong> also select ignore attacked & ignore ownership</html>");
+    NO_CIRCLE("NC", I18n.get("config.npc_extra.no_circle"), I18n.get("config.npc_extra.no_circle.desc")),
+    IGNORE_OWNERSHIP("IO", I18n.get("config.npc_extra.ignore_ownership"), I18n.get("config.npc_extra.ignore_ownership.desc")),
+    IGNORE_ATTACKED("IA", I18n.get("config.npc_extra.ignore_attacked"), I18n.get("config.npc_extra.ignore_attacked.desc")),
+    PASSIVE("P", I18n.get("config.npc_extra.passive"), I18n.get("config.npc_extra.passive.desc")),
+    ATTACK_SECOND("AS", I18n.get("config.npc_extra.attack_second"), I18n.get("config.npc_extra.attack_second.desc"));
 
     private final String shortName, name, description;
     NpcExtra(String shortName, String name, String description) {

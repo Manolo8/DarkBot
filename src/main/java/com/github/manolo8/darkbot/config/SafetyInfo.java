@@ -5,13 +5,16 @@ import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.entities.BattleStation;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.entities.Portal;
+import com.github.manolo8.darkbot.utils.I18n;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 public class SafetyInfo implements Serializable, Ignorable {
     public enum Type {
-        PORTAL("Port"), CBS("CBS"), BASE("Base");
+        PORTAL(I18n.get("gui.safety_places.type.portal")),
+        CBS(I18n.get("gui.safety_places.type.cbs")),
+        BASE(I18n.get("gui.safety_places.type.base"));
         public static Type of(Entity entity) {
             if (entity instanceof Portal) return PORTAL;
             if (entity instanceof BattleStation) return CBS;
@@ -60,11 +63,11 @@ public class SafetyInfo implements Serializable, Ignorable {
 
     // Running reasons this safety can be selected
     public enum RunMode {
-        ALWAYS("Always"),
-        ENEMY_FLEE_ONLY("Fleeing (Enemy on sight)"),
-        REPAIR_ONLY("Repairing (No enemies)"),
-        REFRESH("Refresh"),
-        NEVER("Never");
+        ALWAYS(I18n.get("gui.safety_places.run_mode.always")),
+        ENEMY_FLEE_ONLY(I18n.get("gui.safety_places.run_mode.enemy_only")),
+        REPAIR_ONLY(I18n.get("gui.safety_places.run_mode.repair_only")),
+        REFRESH(I18n.get("gui.safety_places.run_mode.refresh")),
+        NEVER(I18n.get("gui.safety_places.run_mode.never"));
         String text;
         RunMode(String text) {this.text = text;}
         public String toString() {return text;}
@@ -74,12 +77,12 @@ public class SafetyInfo implements Serializable, Ignorable {
     // PORTAL
     // Condition to jump
     public enum JumpMode {
-        NEVER("Never"),
-        ESCAPING("Escaping (Enemy shooting)"),
-        FLEEING("Fleeing (Enemy on sight)"),
-        REPAIRING("Repairing"),
-        ALWAYS("Always"),
-        ALWAYS_OTHER_SIDE("Always (repair on other side)");
+        NEVER(I18n.get("gui.safety_places.jump_mode.never")),
+        ESCAPING(I18n.get("gui.safety_places.jump_mode.escaping")),
+        FLEEING(I18n.get("gui.safety_places.jump_mode.fleeing")),
+        REPAIRING(I18n.get("gui.safety_places.jump_mode.repairing")),
+        ALWAYS(I18n.get("gui.safety_places.jump_mode.always")),
+        ALWAYS_OTHER_SIDE(I18n.get("gui.safety_places.jump_mode.always_oth_side"));
         String text;
         JumpMode(String text) {this.text = text;}
         public String toString() {return text;}
@@ -89,7 +92,8 @@ public class SafetyInfo implements Serializable, Ignorable {
     // CBS
     // Condition to run to CBS
     public enum CbsMode {
-        ALLY("Ally CBS"), ALLY_NEUTRAL("Ally or empty");
+        ALLY(I18n.get("gui.safety_places.cbs_mode.ally")),
+        ALLY_NEUTRAL(I18n.get("gui.safety_places.cbs_mode.ally_neutral"));
         String text;
         CbsMode(String text) {this.text = text;}
         public String toString() {return text;}
