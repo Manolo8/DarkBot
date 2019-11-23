@@ -63,7 +63,7 @@ public class I18n {
     }
 
     public static String get(String key, Object... arguments) {
-        return MessageFormat.format(key, arguments);
+        return MessageFormat.format(get(key), arguments);
     }
 
 }
