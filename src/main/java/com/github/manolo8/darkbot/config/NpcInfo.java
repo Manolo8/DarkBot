@@ -89,6 +89,14 @@ public class NpcInfo {
 
     public Set<Integer> mapList = new HashSet<>();
 
+    public void set(Double radius, Integer priority, Boolean kill, Character attackKey, ExtraNpcInfo extra) {
+        if (radius != null) this.radius = radius;
+        if (priority != null) this.priority = priority;
+        if (kill != null) this.kill = kill;
+        if (attackKey != null) this.attackKey = attackKey;
+        if (extra != null) this.extra = extra;
+    }
+
     public void set(Double radius, Integer priority, Boolean kill, Character attackKey, Character attackFormation, ExtraNpcInfo extra) {
         if (radius != null) this.radius = radius;
         if (priority != null) this.priority = priority;
