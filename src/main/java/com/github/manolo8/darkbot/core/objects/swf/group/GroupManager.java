@@ -4,7 +4,9 @@ import com.github.manolo8.darkbot.core.itf.Updatable;
 import com.github.manolo8.darkbot.core.objects.swf.Dictionary;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -12,27 +14,24 @@ public class GroupManager extends Updatable {
     public Group group = new Group();
     public List<Invite> invites = new ArrayList<>();
 
-    Dictionary dictionary = new Dictionary(0);
+    private Dictionary dictionary = new Dictionary(0);
 
     @Override
-    public void update() {
+    public void update() {// API.readMemoryLong(API.readMemoryLong(MapManager.eventAddress) + 0x48) == this.address
         group.update(API.readMemoryLong(address + 0x30));
         group.update();
 
         long dictionaryAddress = API.readMemoryLong(address + 0x48);
-        if (dictionary.address != dictionaryAddress) dictionary.address = dictionaryAddress;
+        if (dictionary.address != dictionaryAddress) dictionary.update(dictionaryAddress);
         dictionary.update();
 
-        List<Invite> invites = new ArrayList<>(); // replace somehow?
-        for (Dictionary.Entry entry : dictionary.elements) {
-            if (entry != null) {
-                Invite invite = new Invite();
-                invite.update(entry.value);
-                invites.add(invite);
-            }
-        }
-        this.invites = invites;
-        this.invites.forEach(Invite::update);
+        invites.clear();
+        Arrays.stream(dictionary.elements).filter(Objects::nonNull).forEach(entry -> {
+            Invite invite = new Invite();
+            invite.update(entry.value);
+            invite.update();
+            invites.add(invite);
+        });
     }
 
 

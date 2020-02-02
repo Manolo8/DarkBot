@@ -14,10 +14,10 @@ public class GroupMember extends Updatable {
     public int factionId;
     public int level;
     public int mapId;
-    public boolean isBoss;     // is group boss
-    public boolean isAttacked; // is attacked by something
-    public boolean isSelected; // is selected by hero
-    public String userName;
+    public boolean isLeader;
+    public boolean isAttacked;
+    public boolean isLocked; // is selected by hero
+    public String username;
 
     @Override
     public void update() {
@@ -31,9 +31,9 @@ public class GroupMember extends Updatable {
         factionId  = API.readMemoryInt(address + 0x24);
         level      = API.readMemoryInt(address + 0x28);
         mapId      = API.readMemoryInt(address + 0x34);
-        isBoss     = API.readMemoryBoolean(address + 0x50);
+        isLeader   = API.readMemoryBoolean(address + 0x50);
         isAttacked = API.readMemoryBoolean(address + 0x44);
-        isSelected = API.readMemoryBoolean(address + 0x60);
-        userName   = API.readMemoryString(API.readMemoryLong(address + 0x68));
+        isLocked   = API.readMemoryBoolean(address + 0x60);
+        username   = API.readMemoryString(API.readMemoryLong(address + 0x68));
     }
 }

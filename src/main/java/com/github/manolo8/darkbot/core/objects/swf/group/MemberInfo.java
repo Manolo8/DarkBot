@@ -12,7 +12,7 @@ public class MemberInfo extends Updatable {
     public int maxHull;
     public int shield;
     public int maxShield;
-    public String userName;
+    public String username;
 
     @Override
     public void update() {
@@ -23,6 +23,6 @@ public class MemberInfo extends Updatable {
         maxHull   = API.readMemoryInt(address + 0x30);
         shield    = API.readMemoryInt(address + 0x34);
         maxShield = API.readMemoryInt(address + 0x38);
-        userName  = API.readMemoryString(API.readMemoryLong(address + 0x40));
+        username  = API.readMemoryString(API.readMemoryLong(address + 0x40));
     }
 }
