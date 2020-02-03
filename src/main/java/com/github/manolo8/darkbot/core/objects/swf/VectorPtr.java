@@ -5,23 +5,42 @@ import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
 import static com.github.manolo8.darkbot.Main.API;
 
-public class Array extends Updatable {
+public class VectorPtr extends Updatable {
     public long[] elements;
     public int size;
-    private int tableOffset;
 
-    public Array() {
+    private int sizeOffset, tableOffset, bytesOffset;
+
+    public VectorPtr() {
         this(0);
     }
 
-    public Array(long address) {
-        this(address, 48);
+    public VectorPtr(long address) {
+        this(address, 56, 48, 16);
     }
 
-    public Array(long address, int tableOffset) {//32 for pet modules
+    private VectorPtr(int sizeOffset, int tableOffset, int bytesOffset) {
+        this(0, sizeOffset, tableOffset, bytesOffset);
+    }
+
+    public VectorPtr(long address, int sizeOffset, int tableOffset, int bytesOffset) {
         this.address = address;
-        this.elements = new long[0];
+        this.sizeOffset = sizeOffset;
         this.tableOffset = tableOffset;
+        this.bytesOffset = bytesOffset;
+        this.elements = new long[0];
+    }
+
+    public static VectorPtr ofEntity() {
+        return new VectorPtr();
+    }
+
+    public static VectorPtr ofPet() {
+        return new VectorPtr(24, 8, 8);
+    }
+
+    public static VectorPtr ofPetCheck() {
+        return new VectorPtr(56, 32, 16);
     }
 
     public long get(int idx) {
@@ -30,12 +49,12 @@ public class Array extends Updatable {
 
     @Override
     public void update() {
-        size = API.readMemoryInt(address + 56);
+        size = API.readMemoryInt(address + sizeOffset);
 
         if (size < 0 || size > 8192 || address == 0) return;
         if (elements.length < size) elements = new long[Math.min((int) (size * 1.25), 8192)];
 
-        long table = API.readMemoryLong(address + tableOffset) + 16;
+        long table = API.readMemoryLong(address + tableOffset) + bytesOffset;
         int length = size * 8;
         byte[] bytes = API.readMemory(table, length);
 
