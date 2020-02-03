@@ -5,23 +5,17 @@ import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
 import static com.github.manolo8.darkbot.Main.API;
 
-public class Array extends Updatable {
-    public long[] elements;
+public class Array2 extends Updatable {//for pet modules also
     public int size;
-    private int tableOffset;
+    public long[] elements;
 
-    public Array() {
+    public Array2() {
         this(0);
     }
 
-    public Array(long address) {
-        this(address, 48);
-    }
-
-    public Array(long address, int tableOffset) {//32 for pet modules
+    public Array2(long address) {
         this.address = address;
         this.elements = new long[0];
-        this.tableOffset = tableOffset;
     }
 
     public long getElement(int element) {
@@ -29,19 +23,24 @@ public class Array extends Updatable {
     }
 
     @Override
-    public void update() {
-        size = API.readMemoryInt(address + 56);
+    public void update(long address) {
+        super.update(API.readMemoryLong(API.readMemoryLong(address + 72) + 64));
+    }
 
-        if (size < 0 || size > 8192 || address == 0) return;
+    @Override
+    public void update() {
+        size = API.readMemoryInt(address + 24);
+
+        if (size < 0 || 2048 < size || address == 0) return;
         if (elements.length - 1 != size) elements = new long[size];
 
-        long table = API.readMemoryLong(address + tableOffset) + 16;
+        long table = API.readMemoryLong(address + 8) + 8;
         int length = size * 8;
         byte[] bytes = API.readMemory(table, length);
 
         for (int current = 0, i = 0; i < length; i += 8) {
-            long value = ByteUtils.getLong(bytes, i) - 1;
-            if (value != -1 && current < elements.length) elements[current++] = value;
+            long address = ByteUtils.getLong(bytes, i) - 1;
+            if (address != -1 && current < elements.length) elements[current++] = API.readMemoryLong(address + 217);
         }
     }
 }
