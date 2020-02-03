@@ -25,7 +25,7 @@ public class Array extends Updatable {
     }
 
     public long get(int idx) {
-        return ((idx > size) || (idx > 8192)) ? 0 : elements[idx];
+        return idx >= 0 && idx < size ? elements[idx] : 0;
     }
 
     @Override
@@ -39,9 +39,9 @@ public class Array extends Updatable {
         int length = size * 8;
         byte[] bytes = API.readMemory(table, length);
 
-        for (int current = 0, i = 0; i < length; i += 8) {
-            long value = ByteUtils.getLong(bytes, i) - 1;
-            if (value != -1 && current < elements.length) elements[current++] = value;
+        for (int current = 0, i = 0; current < size && i < length; i += 8) {
+            long value = ByteUtils.getLong(bytes, i);
+            if (value != 0) elements[current++] = value - 1;
         }
     }
 }

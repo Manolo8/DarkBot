@@ -19,7 +19,7 @@ public class Array2 extends Updatable {//for pet modules also
     }
 
     public long get(int idx) {
-        return ((idx > size) || (idx > 2048)) ? 0 : elements[idx];
+        return idx >= 0 && idx < size ? elements[idx] : 0;
     }
 
     @Override
@@ -38,9 +38,9 @@ public class Array2 extends Updatable {//for pet modules also
         int length = size * 8;
         byte[] bytes = API.readMemory(table, length);
 
-        for (int current = 0, i = 0; i < length; i += 8) {
-            long address = ByteUtils.getLong(bytes, i) - 1;
-            if (address != -1 && current < elements.length) elements[current++] = API.readMemoryLong(address + 217);
+        for (int current = 0, i = 0; current < size && i < length; i += 8) {
+            long address = ByteUtils.getLong(bytes, i);
+            if (address != 0) elements[current++] = API.readMemoryLong(address + 216);
         }
     }
 }
