@@ -18,8 +18,8 @@ public class Array2 extends Updatable {//for pet modules also
         this.elements = new long[0];
     }
 
-    public long getElement(int element) {
-        return (element > size) ? 0 : ((element >= elements.length) ? 0 : elements[element]);
+    public long get(int idx) {
+        return ((idx > size) || (idx > 2048)) ? 0 : elements[idx];
     }
 
     @Override
@@ -32,7 +32,7 @@ public class Array2 extends Updatable {//for pet modules also
         size = API.readMemoryInt(address + 24);
 
         if (size < 0 || 2048 < size || address == 0) return;
-        if (elements.length - 1 != size) elements = new long[size];
+        if (elements.length < size) elements = new long[Math.min((int) (size * 1.25), 2048)];
 
         long table = API.readMemoryLong(address + 8) + 8;
         int length = size * 8;

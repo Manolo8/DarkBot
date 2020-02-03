@@ -24,8 +24,8 @@ public class Array extends Updatable {
         this.tableOffset = tableOffset;
     }
 
-    public long getElement(int element) {
-        return (element > size) ? 0 : ((element >= elements.length) ? 0 : elements[element]);
+    public long get(int idx) {
+        return ((idx > size) || (idx > 8192)) ? 0 : elements[idx];
     }
 
     @Override
@@ -33,7 +33,7 @@ public class Array extends Updatable {
         size = API.readMemoryInt(address + 56);
 
         if (size < 0 || size > 8192 || address == 0) return;
-        if (elements.length - 1 != size) elements = new long[size];
+        if (elements.length < size) elements = new long[Math.min((int) (size * 1.25), 8192)];
 
         long table = API.readMemoryLong(address + tableOffset) + 16;
         int length = size * 8;
