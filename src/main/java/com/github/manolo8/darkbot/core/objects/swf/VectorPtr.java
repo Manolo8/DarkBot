@@ -9,7 +9,7 @@ public class VectorPtr extends Updatable {
     public long[] elements;
     public int size;
 
-    private int sizeOffset, tableOffset, bytesOffset;
+    private final int sizeOffset, tableOffset, bytesOffset;
 
     public VectorPtr() {
         this(0);
@@ -60,7 +60,7 @@ public class VectorPtr extends Updatable {
 
         for (int current = 0, i = 0; current < size && i < length; i += 8) {
             long value = ByteUtils.getLong(bytes, i);
-            if (value != 0) elements[current++] = value - 1;
+            if (value != 0) elements[current++] = value & 0xfffffffffff8L;
         }
     }
 }
