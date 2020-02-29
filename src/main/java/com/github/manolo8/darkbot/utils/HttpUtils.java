@@ -13,7 +13,7 @@ public class HttpUtils {
     private String url, userAgent = "Mozilla/5.0";
     private boolean followRedirects = true;
 
-    private LinkedHashMap<String, String> headers = new LinkedHashMap<>(), params = new LinkedHashMap<>();
+    private Map<String, String> headers = new LinkedHashMap<>(), params = new LinkedHashMap<>();
 
     private HttpUtils(String url) {
         this.url = url;
@@ -128,4 +128,3 @@ public class HttpUtils {
                 .getBytes(StandardCharsets.UTF_8);
     }
 }
-
