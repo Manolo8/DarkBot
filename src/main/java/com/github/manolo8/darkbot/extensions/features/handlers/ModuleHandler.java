@@ -4,6 +4,7 @@ import com.github.manolo8.darkbot.config.types.suppliers.ModuleSupplier;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
 import com.github.manolo8.darkbot.modules.CollectorModule;
+import com.github.manolo8.darkbot.modules.EasyCash;
 import com.github.manolo8.darkbot.modules.LootModule;
 import com.github.manolo8.darkbot.modules.LootNCollectorModule;
 
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 
 public class ModuleHandler extends FeatureHandler<Module> {
 
-    private static final Class[] NATIVE = new Class[]{CollectorModule.class, LootModule.class, LootNCollectorModule.class};
+    private static final Class[] NATIVE = new Class[]{CollectorModule.class, LootModule.class, LootNCollectorModule.class, EasyCash.class};
 
     @Override
     public Class[] getNativeFeatures() {

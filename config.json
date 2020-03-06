@@ -1,0 +1,1286 @@
+{
+  "AVOIDED": {
+    "92": {
+      "resolution": 30,
+      "data": "//////////////////////////////////+f///nxz/8+QcAfv8dAN9/B8D33wPw/TcAAJ8FAB8GDMCX3wP4/fcAfv99gN9/D+D33/P//ff+f/+B/98f///n5///+f///////////////////////w8\u003d"
+    },
+    "3": {
+      "resolution": 30,
+      "data": "//////////////8HADDAAQAAcAAAABwAAPAHAAD8AQAAfwAAwB8AAPAHAAD8AQAAfwAAwB8AAPAHAAD8AQAAcAAAABwAAAAHAODHAQD4cQAAfhwAgB8HAODHAQD4cfj/fxz+/x+H/////////////w8\u003d"
+    },
+    "19": {
+      "resolution": 30,
+      "data": "////fwAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAAYAAAABgAAAAGAACAAQAA4P///w8\u003d"
+    }
+  },
+  "PREFERRED": {
+    "92": {
+      "resolution": 30,
+      "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMADAAD+AQCA/wAA8D8AAPwPAAD/AwDA/wAA8D8AAPwHAAD/AQCAfwAA4B8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u003d"
+    },
+    "3": {
+      "resolution": 30,
+      "data": "AAAAAAAAAAAAAAAAAgAAAAAAAAAABACAAAAAAAAAAAAAAAAAAAAACAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u003d"
+    },
+    "19": {
+      "resolution": 30,
+      "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw/wMA/P8AAP8/AMD/DwDw/wMA/P8AAP8/AMD/DwDw/wMA/P8AAP8/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u003d"
+    }
+  },
+  "SAFETY": {
+    "-1": [],
+    "92": [
+      {
+        "type": "PORTAL",
+        "x": 18200,
+        "y": 3600,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 20000,
+        "y": 6750,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 18200,
+        "y": 10900,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "BASE",
+        "x": 9990,
+        "y": 6622,
+        "diameter": 1500,
+        "runMode": "ALWAYS"
+      }
+    ],
+    "20": [],
+    "93": [
+      {
+        "type": "PORTAL",
+        "x": 38200,
+        "y": 6600,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 33900,
+        "y": 2500,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 39400,
+        "y": 12400,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      }
+    ],
+    "16": [],
+    "17": [
+      {
+        "type": "BASE",
+        "x": 17500,
+        "y": 6000,
+        "diameter": 1500,
+        "runMode": "ALWAYS"
+      },
+      {
+        "type": "CBS",
+        "x": 17235,
+        "y": 2550,
+        "diameter": 500,
+        "runMode": "ALWAYS",
+        "cbsMode": "ALLY"
+      }
+    ],
+    "29": [],
+    "91": [
+      {
+        "type": "PORTAL",
+        "x": 36800,
+        "y": 20600,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 39100,
+        "y": 13700,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      },
+      {
+        "type": "PORTAL",
+        "x": 36800,
+        "y": 6800,
+        "diameter": 500,
+        "runMode": "NEVER",
+        "jumpMode": "ESCAPING"
+      }
+    ],
+    "3": [],
+    "1": [],
+    "2": [],
+    "7": [],
+    "19": [
+      {
+        "type": "CBS",
+        "x": 10035,
+        "y": 7260,
+        "diameter": 500,
+        "runMode": "ALWAYS",
+        "cbsMode": "ALLY"
+      },
+      {
+        "type": "PORTAL",
+        "x": 18500,
+        "y": 2000,
+        "diameter": 500,
+        "runMode": "ALWAYS",
+        "jumpMode": "ALWAYS"
+      },
+      {
+        "type": "PORTAL",
+        "x": 2000,
+        "y": 2000,
+        "diameter": 500,
+        "runMode": "ALWAYS",
+        "jumpMode": "ALWAYS"
+      }
+    ],
+    "18": [],
+    "13": [],
+    "4": []
+  },
+  "PLAYER_INFOS": {},
+  "PLAYER_TAGS": {},
+  "UNRESOLVED": [],
+  "CUSTOM_CONFIGS": {},
+  "PLUGIN_INFOS": {},
+  "GENERAL": {
+    "CURRENT_MODULE": "com.github.manolo8.darkbot.modules.LootNCollectorModule",
+    "WORKING_MAP": 4,
+    "OFFENSIVE": {
+      "CONFIG": 2,
+      "FORMATION": "9"
+    },
+    "ROAM": {
+      "CONFIG": 1,
+      "FORMATION": "9"
+    },
+    "RUN": {
+      "CONFIG": 1,
+      "FORMATION": "9"
+    },
+    "FORMATION_CHECK": 180,
+    "SAFETY": {
+      "REPAIR_HP_RANGE": {
+        "min": 0.4,
+        "max": 0.95
+      },
+      "REPAIR_HP_NO_NPC": 0.5,
+      "REPAIR_TO_SHIELD": 1.0,
+      "REPAIR": {
+        "CONFIG": 1,
+        "FORMATION": "9"
+      },
+      "MAX_DEATHS": 9999,
+      "REVIVE_LOCATION": 1,
+      "WAIT_BEFORE_REVIVE": 2,
+      "WAIT_AFTER_REVIVE": 90
+    },
+    "RUNNING": {
+      "RUN_FROM_ENEMIES": true,
+      "REMEMBER_ENEMIES_FOR": 300,
+      "RUN_FROM_ENEMIES_SIGHT": true,
+      "STOP_RUNNING_NO_SIGHT": true,
+      "MAX_SIGHT_DISTANCE": 4000,
+      "SHIP_ABILITY_MIN": 1500,
+      "RUN_FURTHEST_PORT": 1500
+    },
+    "ROAMING": {
+      "KEEP": false,
+      "SEQUENTIAL": true,
+      "ONLY_KILL_PREFERRED": false
+    }
+  },
+  "COLLECT": {
+    "STAY_AWAY_FROM_ENEMIES": false,
+    "AUTO_CLOACK": false,
+    "AUTO_CLOACK_KEY": "8",
+    "RADIUS": 700,
+    "BOX_INFOS": {
+      "BLACK_BOOTY_BOX": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "FROM_SHIP": {
+        "collect": false,
+        "waitTime": 700,
+        "priority": 0
+      },
+      "FROM_SHIP_BLOCKED": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      },
+      "AURUS_BOX": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "PIRATE_BOOTY": {
+        "collect": false,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "BONUS_BOX": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "MASQUE_BOOTY_BOX": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "firework": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "ore_1": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      },
+      "ore_0": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      },
+      "ore_2": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      },
+      "MUCOSUM": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "SCRAPIUM": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "HYBRID_ALLOY_BOX": {
+        "collect": true,
+        "waitTime": 750,
+        "priority": 0
+      },
+      "PRISMATIUM": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      },
+      "BOLTRUM": {
+        "collect": false,
+        "waitTime": 0,
+        "priority": 0
+      }
+    }
+  },
+  "LOOT": {
+    "SAB": {
+      "ENABLED": false,
+      "KEY": "5",
+      "PERCENT": 0.8,
+      "NPC_AMOUNT": 12000
+    },
+    "RSB": {
+      "ENABLED": false,
+      "KEY": "3",
+      "AMMO_REFRESH": 3500
+    },
+    "AMMO_KEY": "1",
+    "SHIP_ABILITY_MIN": 150000,
+    "MAX_CIRCLE_ITERATIONS": 5,
+    "RUN_CONFIG_IN_CIRCLE": true,
+    "GROUP_NPCS": false,
+    "NPC_INFOS": {
+      "-\u003d[ Saboteur ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          93,
+          91
+        ]
+      },
+      "-\u003d[ Interceptor ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          93,
+          91
+        ]
+      },
+      "-\u003d[ Annihilator ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          93,
+          91
+        ]
+      },
+      "( Uber Barracuda )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          91
+        ]
+      },
+      "-\u003d[ Barracuda ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          93,
+          91
+        ]
+      },
+      "( Uber Saboteur )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1,
+          29
+        ]
+      },
+      "( Uber Interceptor )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92
+        ]
+      },
+      "( Uber Annihilator )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92,
+          -1
+        ]
+      },
+      "-\u003d[ StreuneR ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          20
+        ]
+      },
+      "..::{ Boss StreuneR }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          20
+        ]
+      },
+      "-\u003d{ Demaner Corsair }\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          20
+        ]
+      },
+      "\\\\ Purpose XXI //": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          20
+        ]
+      },
+      "\\\\ Regard CXI //": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92
+        ]
+      },
+      "\\\\ Urge IV //": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          92
+        ]
+      },
+      "-\u003d[ Battleray ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          93
+        ]
+      },
+      "-\u003d[ Lordakia ]\u003d-": {
+        "radius": 250.0,
+        "priority": 1,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17,
+          3,
+          2,
+          -1,
+          19,
+          4
+        ]
+      },
+      "-\u003d[ Sibelonit ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17
+        ]
+      },
+      "( Uber Battleray )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          29
+        ]
+      },
+      "..::{ Boss Lordakia }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          29,
+          2
+        ]
+      },
+      "-\u003d[ Lordakium ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          16,
+          17,
+          -1,
+          19
+        ]
+      },
+      "..::{ Boss Devolarium }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          29,
+          3
+        ]
+      },
+      "-\u003d[ Saimon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 1,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3,
+          4
+        ]
+      },
+      "-\u003d[ Mordon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 1,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3,
+          4
+        ]
+      },
+      "..::{ Boss Saimon }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3,
+          4
+        ]
+      },
+      "..::{ Boss Mordon }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3
+        ]
+      },
+      "-\u003d[ Devolarium ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3
+        ]
+      },
+      "-\u003d[ Streuner ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          1,
+          2
+        ]
+      },
+      "-\u003d[ Recruit Streuner ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          1,
+          2
+        ]
+      },
+      "-\u003d[ Aider Streuner ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          1,
+          2
+        ]
+      },
+      "-\u003d{ demaNeR Freighter }\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3
+        ]
+      },
+      "-\u003d{ demaNeR Escort }\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3,
+          7
+        ]
+      },
+      "\u003c\u003d\u003c Blighted Gygerthrall \u003e\u003d\u003e": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17,
+          19,
+          20
+        ]
+      },
+      "-\u003d[ Kristallon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          -1,
+          17,
+          18,
+          19
+        ]
+      },
+      "-\u003d[ Kristallin ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          -1,
+          17,
+          18,
+          19,
+          20
+        ]
+      },
+      "-\u003d[ Blighted Kristallon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17,
+          19,
+          20
+        ]
+      },
+      "..::{ Boss Kristallin }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          18,
+          19
+        ]
+      },
+      "-\u003d[ Plagued Kristallin ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          -1,
+          18
+        ]
+      },
+      "..::{ Boss Sibelonit }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          -1,
+          17,
+          29
+        ]
+      },
+      "* Lordakium Spore *": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17,
+          19
+        ]
+      },
+      "..::{ Boss Lordakium }::...": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          17
+        ]
+      },
+      "..::{ Boss Kristallon }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          19,
+          20
+        ]
+      },
+      "-\u003d[ Protegit ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          18
+        ]
+      },
+      "( UberMordon )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          29
+        ]
+      },
+      "-\u003d[ Deadly Battleray ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          16,
+          17,
+          29,
+          13
+        ]
+      },
+      "-\u003d[ Cubikon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          18
+        ]
+      },
+      "( UberKristallin )": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          29
+        ]
+      },
+      "..::{ Boss Sibelon }::..": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": true,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          3,
+          4
+        ]
+      },
+      "-\u003d[ Sibelon ]\u003d-": {
+        "radius": 500.0,
+        "priority": 0,
+        "kill": false,
+        "extra": {
+          "noCircle": false,
+          "ignoreOwnership": false,
+          "ignoreAttacked": false,
+          "attackSecond": false,
+          "passive": false,
+          "useRsb": false,
+          "updated": true,
+          "flags": []
+        },
+        "mapList": [
+          4
+        ]
+      }
+    },
+    "NPC_DISTANCE_IGNORE": 3000
+  },
+  "PET": {
+    "ENABLED": true,
+    "MODULE": 1
+  },
+  "GROUP": {
+    "ACCEPT_INVITES": false,
+    "WHITELIST_INVITES": false
+  },
+  "MISCELLANEOUS": {
+    "REFRESH_TIME": 60,
+    "PAUSE_FOR": 5,
+    "DRONE_REPAIR_PERCENTAGE": 0.9
+  },
+  "BOT_SETTINGS": {
+    "LOCALE": "pt",
+    "ZONE_RESOLUTION": 30,
+    "MAP_START_STOP": false,
+    "CONFIRM_EXIT": true,
+    "MIN_TICK": 15,
+    "DEV_STUFF": false,
+    "API": 0,
+    "DISPLAY": {
+      "SHOW_NAMES": false,
+      "HIDE_NAME": false,
+      "HIDE_GROUP_NAMES": false,
+      "TRAIL_LENGTH": 15,
+      "SHOW_ZONES": true,
+      "BUTTON_SIZE": 4,
+      "HIDE_EDITORS": false,
+      "ALWAYS_ON_TOP": false
+    }
+  },
+  "EXTRA": {
+    "ACTION_INFOS": {}
+  }
+}
