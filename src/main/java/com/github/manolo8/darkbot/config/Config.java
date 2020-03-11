@@ -90,6 +90,7 @@ public class Config {
             public @Option boolean KEEP = true;
             public @Option boolean SEQUENTIAL = false;
             public @Option boolean ONLY_KILL_PREFERRED = false;
+            public @Option boolean ONLY_COLLECT_PREFERRED = false;
         }
     }
 

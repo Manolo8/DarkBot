@@ -185,7 +185,8 @@ public class CollectorModule implements Module {
 
         Box best = boxes
                 .stream()
-                .filter(this::canCollect)
+                .filter(n -> (!config.GENERAL.ROAMING.ONLY_COLLECT_PREFERRED || main.mapManager.preferred.contains(n.locationInfo.now))
+                        && canCollect(n))
                 .min(Comparator.<Box>comparingInt(b -> b.boxInfo.priority)
                         .thenComparingDouble(heroLoc::distance)).orElse(null);
         this.current = current == null || best == null || current.isCollected() || isBetter(best) ? best : current;
