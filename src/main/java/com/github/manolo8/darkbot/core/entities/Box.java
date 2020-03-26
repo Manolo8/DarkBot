@@ -33,7 +33,7 @@ public class Box extends Entity {
             boxInfo = new BoxInfo();
             return;
         }
-        long data = traits.elements[0];
+        long data = traits.get(0);
 
         data = API.readMemoryLong(data + 64);
         data = API.readMemoryLong(data + 32);

@@ -19,7 +19,7 @@ public class Group extends UpdatableAuto {
     public boolean isOpen; // if the group is open to allowing anyone to invite
     public boolean isLeader;
 
-    private VectorPtr membersPtr = new VectorPtr(0);
+    private VectorPtr membersPtr = new VectorPtr();
 
     public Group(HeroManager hero) {
         this.hero = hero;
@@ -53,7 +53,7 @@ public class Group extends UpdatableAuto {
         selectedMember = null;
         for (int i = 0, arrIdx = 0; arrIdx < membersPtr.size; i++, arrIdx++) {
             GroupMember member = i < members.length ? members[i] : overflowMember;
-            member.update(membersPtr.elements[arrIdx]);
+            member.update(membersPtr.get(arrIdx));
             if (member.id == hero.id) {
                 this.isLeader = member.isLeader;
                 i--;

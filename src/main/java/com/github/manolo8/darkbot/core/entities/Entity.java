@@ -21,7 +21,7 @@ public class Entity extends Updatable {
     public Entity() {
         this.locationInfo = new LocationInfo(0);
         this.clickable = new Clickable();
-        this.traits = new VectorPtr(0);
+        this.traits = new VectorPtr();
     }
 
     public Entity(int id) {
@@ -64,7 +64,7 @@ public class Entity extends Updatable {
         traits.update();
 
         for (int c = 0; c < traits.size; c++) {
-            long adr = traits.elements[c];
+            long adr = traits.get(c);
 
             int radius = API.readMemoryInt(adr + 40);
             int priority = API.readMemoryInt(adr + 44);

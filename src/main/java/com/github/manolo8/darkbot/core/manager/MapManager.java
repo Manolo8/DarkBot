@@ -50,7 +50,7 @@ public class MapManager implements Manager {
     public double width;
     public double height;
 
-    private VectorPtr minimapLayers = new VectorPtr(0);
+    private VectorPtr minimapLayers = new VectorPtr();
 
     public MapManager(Main main) {
         this.main = main;

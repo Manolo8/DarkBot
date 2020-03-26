@@ -46,7 +46,7 @@ public class EntityList extends Updatable {
     public EntityList(Main main) {
         this.main = main;
 
-        this.entitiesAddress = new VectorPtr(0);
+        this.entitiesAddress = new VectorPtr();
         this.allEntities = new ArrayList<>();
 
         this.ids = new HashSet<>();
@@ -100,7 +100,7 @@ public class EntityList extends Updatable {
 
         entitiesAddress.update();
         for (int i = 0; i < entitiesAddress.size; i++) {
-            long found = entitiesAddress.elements[i];
+            long found = entitiesAddress.get(i);
 
             int id = API.readMemoryInt(found + 56);
             if (!ids.add(id)) continue;

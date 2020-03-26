@@ -56,7 +56,7 @@ public class PingManager implements Manager {
 
         this.currSize = lastPings.size;
 
-        int ping = lastPings.elements[lastPings.size - 1];
+        int ping = lastPings.get(lastPings.size - 1);
         if (ping < -10 || ping > 50_000) return false;
 
         this.ping = ping;
