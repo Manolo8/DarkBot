@@ -145,7 +145,7 @@ public class MapManager implements Manager {
 
         Location loc = null;
         for (int i = 0; i < minimapLayers.size; i++) {
-            long layer = minimapLayers.elements[i]; // Seems to be offset by 1 for some reason.
+            long layer = minimapLayers.get(i); // Seems to be offset by 1 for some reason.
             long layerIdx = API.readMemoryInt(layer + 0xA8);
 
             if (layerIdx != Integer.MAX_VALUE) continue;

@@ -29,7 +29,7 @@ public class Box extends Entity {
     public void update(long address) {
         super.update(address);
 
-        if (traits.elements.length == 0) {
+        if (traits.size == 0) {
             boxInfo = new BoxInfo();
             return;
         }

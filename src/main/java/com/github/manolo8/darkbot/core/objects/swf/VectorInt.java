@@ -31,8 +31,8 @@ public class VectorInt extends Updatable {
 
         byte[] data = API.readMemory(API.readMemoryLong(address + 48) + 4, size * 4);
 
-        for (int i = 0, count = 0; i < data.length; i += 4) {
-            elements[count++] = ByteUtils.getInt(data, i);
+        for (int i = 0, count = 0; i < data.length; i += 4, count++) {
+            elements[count] = ByteUtils.getInt(data, i);
         }
     }
 }
