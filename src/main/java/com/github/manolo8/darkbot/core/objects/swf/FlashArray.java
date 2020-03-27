@@ -103,9 +103,7 @@ public class FlashArray extends Updatable {
 
     @Override
     public void update(long address) {
-        if (isSprite) super.update(API.readMemoryLong(address, 0x48, 0x40));
-        else super.update(address);
-
+        super.update(isSprite ? API.readMemoryLong(address, 0x48, 0x40) : address);
         if (autoUpdatable) update();
     }
 }

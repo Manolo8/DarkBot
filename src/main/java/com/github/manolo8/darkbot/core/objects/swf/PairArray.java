@@ -82,7 +82,7 @@ public class PairArray extends Updatable {
             if (isInvalid(value)) continue;
 
             if (pairs[i] == null) pairs[i] = new Pair();
-            pairs[i++].set(API.readMemoryString(index), value & FIX, isDictionary);
+            pairs[i++].set(API.readMemoryString(index), value & FIX);
             index = 0;
         }
 
@@ -111,12 +111,12 @@ public class PairArray extends Updatable {
         public String key;
         public long value;
 
-        private void set(String index, long value, boolean onUpdate) {
+        private void set(String index, long value) {
             this.key   = index;
             this.value = value;
 
             Lazy<Long> l = lazy.get(index);
-            if (l != null && (!onUpdate || (l.value != null && l.value != value))) l.send(value);
+            if (l != null) l.send(value);
         }
 
         @Override
