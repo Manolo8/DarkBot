@@ -1,6 +1,7 @@
 package com.github.manolo8.darkbot.core.objects.swf;
 
 import com.github.manolo8.darkbot.core.itf.Updatable;
+import com.github.manolo8.darkbot.core.utils.ByteUtils;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 
 import java.util.HashMap;
@@ -9,17 +10,17 @@ import java.util.function.Consumer;
 
 import static com.github.manolo8.darkbot.Main.API;
 
+/**
+ * Reads array of entries with keys as String
+ * {@code Array Entries}
+ */
 public class EntryArray extends Updatable {
     public static final long FIX = 0xfffffffffff8L;
 
     private Map<String, Lazy<Long>> lazy = new HashMap<>();
 
-    public Entry[] entries;
+    public Entry[] entries = new Entry[0];
     public int size;
-
-    public EntryArray() {
-        this.entries = new Entry[0];
-    }
 
     public void addLazy(String key, Consumer<Long> consumer) {
         this.lazy.computeIfAbsent(key, k -> new Lazy<>()).add(consumer);
@@ -34,12 +35,14 @@ public class EntryArray extends Updatable {
 
         long index = 0;
         long table = (API.readMemoryLong(address + 0x48) & FIX) + 0x8;
-        for (int offset = 0, i = 0; offset < 8192 && i < size; offset += 8) {
+        byte[] data = API.readMemory(table, size * 8);
+
+        for (int i = 0, offset = 0; offset < 8192 && i < size; offset += 8) {
             if (index == 0) {
-                index = API.readMemoryLong(table + offset) & FIX;
+                index = ByteUtils.getLong(data, offset) & FIX;
                 offset += 8;
             }
-            long value = API.readMemoryLong(table + offset);
+            long value = ByteUtils.getLong(data, offset);
             if (index == 0 || value == 0) continue;
 
             if (entries[i] == null) entries[i] = new Entry();

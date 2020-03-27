@@ -2,12 +2,11 @@ package com.github.manolo8.darkbot.core.manager;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.config.PlayerInfo;
 import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.core.objects.swf.Dictionary;
-import com.github.manolo8.darkbot.core.objects.swf.group.Group;
-import com.github.manolo8.darkbot.core.objects.swf.group.GroupMember;
-import com.github.manolo8.darkbot.core.objects.swf.group.Invite;
+import com.github.manolo8.darkbot.core.objects.group.Group;
+import com.github.manolo8.darkbot.core.objects.group.GroupMember;
+import com.github.manolo8.darkbot.core.objects.group.Invite;
 
 import java.util.ArrayList;
 import java.util.List;

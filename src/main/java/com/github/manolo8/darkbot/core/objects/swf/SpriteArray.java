@@ -2,6 +2,9 @@ package com.github.manolo8.darkbot.core.objects.swf;
 
 import static com.github.manolo8.darkbot.Main.API;
 
+/**
+ * Reads children array of a {@code Sprite}
+ */
 public class SpriteArray extends VectorPtr {
 
     public SpriteArray() {

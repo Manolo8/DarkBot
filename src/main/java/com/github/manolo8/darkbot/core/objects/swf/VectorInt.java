@@ -5,8 +5,10 @@ import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
 import static com.github.manolo8.darkbot.Main.API;
 
+/**
+ * Reads Vector of ints. {@code Vector.<int>}
+ */
 public class VectorInt extends Updatable {
-
     public int[] elements = new int[0];
     public int size;
 
@@ -24,15 +26,16 @@ public class VectorInt extends Updatable {
 
     @Override
     public void update() {
-        size = API.readMemoryInt(address + 64);
+        size = API.readMemoryInt(address + 0x40);
 
-        if (size < 1 || size > 512) return;
-        if (elements.length < size) elements = new int[size];
+        if (size < 0 || size > 1024) return;
+        if (elements.length < size) elements = new int[(int) Math.max(size * 1.25, 1024)];
 
-        byte[] data = API.readMemory(API.readMemoryLong(address + 48) + 4, size * 4);
+        long table  = API.readMemoryLong(address + 0x30) + 4;
+        byte[] data = API.readMemory(table, size * 4);
 
-        for (int i = 0, count = 0; i < data.length; i += 4, count++) {
-            elements[count] = ByteUtils.getInt(data, i);
+        for (int i = 0, offset = 0; i < size; i++, offset += 4) {
+            elements[i] = ByteUtils.getInt(data, offset);
         }
     }
 }

@@ -21,11 +21,9 @@ public class ByteUtils {
     }
 
     public static byte[] getBytes(long... values) {
-
         byte[] b = new byte[values.length * 8];
 
         int i = 0;
-
         for (long value : values) {
             b[i++] = (byte) value;
             b[i++] = (byte) (value >> 8);

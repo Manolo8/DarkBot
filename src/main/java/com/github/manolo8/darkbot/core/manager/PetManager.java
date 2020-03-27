@@ -5,6 +5,7 @@ import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.entities.Pet;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.objects.Gui;
+import com.github.manolo8.darkbot.core.objects.swf.ArrayObj;
 import com.github.manolo8.darkbot.core.objects.swf.SpriteArray;
 import com.github.manolo8.darkbot.core.objects.swf.VectorPtr;
 
@@ -93,7 +94,7 @@ public class PetManager extends Gui {
         }
     }
 
-    private VectorPtr gearsArr = VectorPtr.ofArray();
+    private ArrayObj gearsArr = ArrayObj.ofObject();
     private void petModules() {
         gearsArr.update(API.readMemoryLong(API.readMemoryLong(getGearsSprite() + 176) + 224));
         gearsArr.update();
@@ -105,7 +106,7 @@ public class PetManager extends Gui {
     }
 
     private SpriteArray currSprite = new SpriteArray();
-    private VectorPtr currentArr = VectorPtr.ofArray();
+    private ArrayObj currentArr = ArrayObj.ofObject();
     private long currentModule() {
         long temp = API.readMemoryLong(address + 400);
         currentArr.update(temp);
@@ -139,7 +140,7 @@ public class PetManager extends Gui {
         return API.readMemoryLong(API.readMemoryLong(currSprite.get(1) + 216) + 152);
     }
 
-    private VectorPtr locatorArr = VectorPtr.ofArray();
+    private ArrayObj locatorArr = ArrayObj.ofObject();;
     private void findLocatorNpc() {
         locatorArr.update(API.readMemoryLong(getGearsSprite() + 168));
         locatorArr.update();
