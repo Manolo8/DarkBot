@@ -35,18 +35,17 @@ public class EntryArray extends Updatable {
 
         long index = 0;
         long table = (API.readMemoryLong(address + 0x48) & FIX) + 0x8;
-        byte[] data = API.readMemory(table, size * 8);
 
-        for (int i = 0, offset = 0; offset < 8192 && i < size; offset += 8) {
+        for (int offset = 0, i = 0; offset < 8192 && i < size; offset += 8) {
             if (index == 0) {
-                index = ByteUtils.getLong(data, offset) & FIX;
+                index = API.readMemoryLong(table + offset) & FIX;
                 offset += 8;
             }
-            long value = ByteUtils.getLong(data, offset);
+            long value = API.readMemoryLong(table + offset) & FIX;
             if (index == 0 || value == 0) continue;
 
             if (entries[i] == null) entries[i] = new Entry();
-            entries[i++].set(API.readMemoryString(index), value & FIX);
+            entries[i++].set(API.readMemoryString(index), value);
             index = 0;
         }
     }
