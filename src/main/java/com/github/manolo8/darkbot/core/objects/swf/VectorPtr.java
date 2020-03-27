@@ -46,7 +46,7 @@ public class VectorPtr extends Updatable {
 
         for (int i = 0, offset = 0; offset < bytes.length && i < size; offset += 8) {
             long value = ByteUtils.getLong(bytes, offset);
-            if (value != 0) elements[i++] = value & EntryArray.FIX;
+            if (value != 0) elements[i++] = value & ByteUtils.FIX;
         }
     }
 }

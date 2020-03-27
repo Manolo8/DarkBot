@@ -1,6 +1,7 @@
 package com.github.manolo8.darkbot.core.objects.swf;
 
 import com.github.manolo8.darkbot.core.itf.Updatable;
+import com.github.manolo8.darkbot.core.utils.ByteUtils;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 
 import java.util.HashMap;
@@ -14,14 +15,12 @@ import static com.github.manolo8.darkbot.Main.API;
  * Instead of EntryArray & Dictionary
  */
 public class PairArray extends Updatable {
-    public static final long FIX = 0xfffffffffff8L;
-
     private final int sizeOffset, tableOffset, bytesOffset;
     private final boolean isDictionary, autoUpdatable;
 
     public int size;
-    public Pair[] pairs = new Pair[0];
 
+    private Pair[] pairs = new Pair[0];
     private Map<String, Lazy<Long>> lazy = new HashMap<>();
 
     protected PairArray(int sizeOffset, int tableOffset, int bytesOffset, boolean isDictionary, boolean autoUpdatable) {
@@ -58,6 +57,10 @@ public class PairArray extends Updatable {
         this.lazy.computeIfAbsent(key, k -> new Lazy<>()).add(consumer);
     }
 
+    public Pair get(int idx) {
+        return idx >= 0 && idx < size && idx < pairs.length ? pairs[idx] : null;
+    }
+
     public boolean hasKey(String key) {
         for (int i = 0; i < size && i < pairs.length; i++)
             if (pairs[i].key != null && pairs[i].key.equals(key)) return true;
@@ -72,17 +75,17 @@ public class PairArray extends Updatable {
         if (pairs.length < size) pairs = new Pair[Math.min((int) (size * 1.25), 2048)];
 
         long index = 0;
-        long table = (API.readMemoryLong(address + tableOffset) & FIX) + bytesOffset;
+        long table = (API.readMemoryLong(address + tableOffset) & ByteUtils.FIX) + bytesOffset;
 
         for (int offset = 8, i = 0; offset < 8192 && i < size; offset += 8) {
-            if (isInvalid(index)) index = API.readMemoryLong(table + offset) & FIX;
+            if (isInvalid(index)) index = API.readMemoryLong(table + offset) & ByteUtils.FIX;
             if (isInvalid(index)) continue;
 
             long value = API.readMemoryLong(table + (offset += 8));
             if (isInvalid(value)) continue;
 
             if (pairs[i] == null) pairs[i] = new Pair();
-            pairs[i++].set(API.readMemoryString(index), value & FIX);
+            pairs[i++].set(API.readMemoryString(index), value & ByteUtils.FIX);
             index = 0;
         }
 
@@ -107,7 +110,7 @@ public class PairArray extends Updatable {
         return isDictionary ? address < 10 : address == 0;
     }
 
-    private class Pair {
+    public class Pair {
         public String key;
         public long value;
 

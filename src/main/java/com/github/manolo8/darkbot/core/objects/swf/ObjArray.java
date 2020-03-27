@@ -9,14 +9,14 @@ import static com.github.manolo8.darkbot.Main.API;
  * Reads arrays in flash.
  * Instead of ArrayObj, VectorPtr & SpriteArray
  */
-public class FlashArray extends Updatable {
+public class ObjArray extends Updatable {
     private final int sizeOffset, tableOffset, bytesOffset;
     private final boolean isSprite, autoUpdatable;
 
     public int size;
     public long[] elements = new long[0];
 
-    protected FlashArray(int sizeOffset, int tableOffset, int bytesOffset, boolean isSprite, boolean autoUpdatable) {
+    protected ObjArray(int sizeOffset, int tableOffset, int bytesOffset, boolean isSprite, boolean autoUpdatable) {
         this.sizeOffset    = sizeOffset;
         this.tableOffset   = tableOffset;
         this.bytesOffset   = bytesOffset;
@@ -27,45 +27,45 @@ public class FlashArray extends Updatable {
     /**
      * Probably for {@code Array<String>}
      */
-    public static FlashArray ofArrStr() {
+    public static ObjArray ofArrStr() {
         return ofArrStr(false);
     }
 
-    public static FlashArray ofArrStr(boolean autoUpdatable) {
-        return new FlashArray(0x28, 0x20, 0x10, false, autoUpdatable);
+    public static ObjArray ofArrStr(boolean autoUpdatable) {
+        return new ObjArray(0x28, 0x20, 0x10, false, autoUpdatable);
     }
 
     /**
      * Probably for {@code Array<Object>}
      */
-    public static FlashArray ofArrObj() {
+    public static ObjArray ofArrObj() {
         return ofArrObj(false);
     }
 
-    public static FlashArray ofArrObj(boolean autoUpdatable) {
-        return new FlashArray(0x38, 0x20, 0x10, false, autoUpdatable);
+    public static ObjArray ofArrObj(boolean autoUpdatable) {
+        return new ObjArray(0x38, 0x20, 0x10, false, autoUpdatable);
     }
 
     /**
      * Reads children array of Sprite {@code Sprite}
      */
-    public static FlashArray ofSprite() {
+    public static ObjArray ofSprite() {
         return ofSprite(false);
     }
 
-    public static FlashArray ofSprite(boolean autoUpdatable) {
-        return new FlashArray(0x18, 0x8, 0x8, true, autoUpdatable);
+    public static ObjArray ofSprite(boolean autoUpdatable) {
+        return new ObjArray(0x18, 0x8, 0x8, true, autoUpdatable);
     }
 
     /**
      * Reads {@code Vector<Object>}
      */
-    public static FlashArray ofVector() {
+    public static ObjArray ofVector() {
         return ofVector(false);
     }
 
-    public static FlashArray ofVector(boolean autoUpdatable) {
-        return new FlashArray(0x38, 0x30, 0x10, false, autoUpdatable);
+    public static ObjArray ofVector(boolean autoUpdatable) {
+        return new ObjArray(0x38, 0x30, 0x10, false, autoUpdatable);
     }
 
     public long getLast() {
@@ -97,7 +97,7 @@ public class FlashArray extends Updatable {
 
         for (int i = 0, offset = 0; offset < bytes.length && i < size; offset += 8) {
             long value = ByteUtils.getLong(bytes, offset);
-            if (value != 0) elements[i++] = value & EntryArray.FIX;
+            if (value != 0) elements[i++] = value & ByteUtils.FIX;
         }
     }
 

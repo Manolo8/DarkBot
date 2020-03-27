@@ -15,8 +15,6 @@ import static com.github.manolo8.darkbot.Main.API;
  * {@code Array Entries}
  */
 public class EntryArray extends Updatable {
-    public static final long FIX = 0xfffffffffff8L;
-
     private Map<String, Lazy<Long>> lazy = new HashMap<>();
 
     public Entry[] entries = new Entry[0];
@@ -34,18 +32,18 @@ public class EntryArray extends Updatable {
         if (entries.length < size) entries = new Entry[Math.min((int) (size * 1.25), 2048)];
 
         long index = 0;
-        long table = (API.readMemoryLong(address + 0x48) & FIX) + 0x8;
+        long table = (API.readMemoryLong(address + 0x48) & ByteUtils.FIX) + 0x8;
 
         for (int offset = 0, i = 0; offset < 8192 && i < size; offset += 8) {
             if (index == 0) {
-                index = API.readMemoryLong(table + offset) & FIX;
+                index = API.readMemoryLong(table + offset) & ByteUtils.FIX;
                 offset += 8;
             }
             long value = API.readMemoryLong(table + offset);
             if (index == 0 || value == 0) continue;
 
             if (entries[i] == null) entries[i] = new Entry();
-            entries[i++].set(API.readMemoryString(index), value & FIX);
+            entries[i++].set(API.readMemoryString(index), value & ByteUtils.FIX);
             index = 0;
         }
     }
