@@ -78,11 +78,11 @@ public class PairArray extends Updatable {
             if (isInvalid(index)) index = API.readMemoryLong(table + offset) & FIX;
             if (isInvalid(index)) continue;
 
-            long value = API.readMemoryLong(table + (offset += 8)) & FIX;
+            long value = API.readMemoryLong(table + (offset += 8));
             if (isInvalid(value)) continue;
 
             if (pairs[i] == null) pairs[i] = new Pair();
-            pairs[i++].set(API.readMemoryString(index), value, isDictionary);
+            pairs[i++].set(API.readMemoryString(index), value & FIX, isDictionary);
             index = 0;
         }
 
