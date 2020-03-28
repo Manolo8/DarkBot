@@ -4,6 +4,7 @@ import com.github.manolo8.darkbot.core.itf.Updatable;
 import com.github.manolo8.darkbot.core.utils.ByteUtils;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -15,7 +16,7 @@ import static com.github.manolo8.darkbot.Main.API;
  * Instead of EntryArray & Dictionary
  */
 public class PairArray extends Updatable {
-    private final int sizeOffset, tableOffset, bytesOffset;
+    private final int sizeOffset, tableOffset;
     private final boolean isDictionary, autoUpdatable;
 
     public int size;
@@ -23,10 +24,9 @@ public class PairArray extends Updatable {
     private Pair[] pairs = new Pair[0];
     private Map<String, Lazy<Long>> lazy = new HashMap<>();
 
-    protected PairArray(int sizeOffset, int tableOffset, int bytesOffset, boolean isDictionary, boolean autoUpdatable) {
+    protected PairArray(int sizeOffset, int tableOffset, boolean isDictionary, boolean autoUpdatable) {
         this.sizeOffset    = sizeOffset;
         this.tableOffset   = tableOffset;
-        this.bytesOffset   = bytesOffset;
         this.isDictionary  = isDictionary;
         this.autoUpdatable = autoUpdatable;
     }
@@ -39,7 +39,7 @@ public class PairArray extends Updatable {
     }
 
     public static PairArray ofArray(boolean autoUpdatable) {
-        return new PairArray(0x50, 0x48, 0x8, false, autoUpdatable);
+        return new PairArray(0x50, 0x48, false, autoUpdatable);
     }
 
     /**
@@ -50,7 +50,7 @@ public class PairArray extends Updatable {
     }
 
     public static PairArray ofDictionary(boolean autoUpdatable) {
-        return new PairArray(0x10, 0x8, 0, true, autoUpdatable);
+        return new PairArray(0x10, 0x8, true, autoUpdatable);
     }
 
     public void addLazy(String key, Consumer<Long> consumer) {
@@ -71,11 +71,11 @@ public class PairArray extends Updatable {
     public void update() {
         size = API.readMemoryInt(address + sizeOffset);
 
-        if (size < 0 || size > 2048) return;
-        if (pairs.length < size) pairs = new Pair[Math.min((int) (size * 1.25), 2048)];
+        if (size < 0 || size > 1024) return;
+        if (pairs.length != size) pairs = Arrays.copyOf(pairs, size);
 
         long index = 0;
-        long table = (API.readMemoryLong(address + tableOffset) & ByteUtils.FIX) + bytesOffset;
+        long table = API.readMemoryLong(address + tableOffset) & ByteUtils.FIX;
 
         for (int offset = 8, i = 0; offset < 8192 && i < size; offset += 8) {
             if (isInvalid(index)) index = API.readMemoryLong(table + offset) & ByteUtils.FIX;

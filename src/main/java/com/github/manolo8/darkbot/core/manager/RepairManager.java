@@ -2,7 +2,7 @@ package com.github.manolo8.darkbot.core.manager;
 
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.itf.Manager;
-import com.github.manolo8.darkbot.core.objects.swf.ArrayInt;
+import com.github.manolo8.darkbot.core.objects.swf.IntArray;
 import com.github.manolo8.darkbot.core.utils.ByteUtils;
 
 import static com.github.manolo8.darkbot.Main.API;
@@ -12,8 +12,7 @@ public class RepairManager implements Manager {
     private long guiAddress, mainAddress, userDataAddress, repairAddress;
 
     private String killerName;
-    private ArrayInt repairOptions = new ArrayInt();
-
+    private IntArray repairOptions = IntArray.ofArray(true);
 
     @Override
     public void install(BotInstaller botInstaller) {
@@ -34,7 +33,7 @@ public class RepairManager implements Manager {
         if (repairAddress == 0) updateRepairAddr();
 
         killerName = API.readMemoryString(API.readMemoryLong(repairAddress + 0x68));
-        repairOptions.update(repairAddress + 0x58);
+        repairOptions.update(API.readMemoryLong(repairAddress + 0x58));
     }
 
     private void updateRepairAddr() {

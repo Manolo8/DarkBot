@@ -8,7 +8,7 @@ import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.core.objects.swf.VectorPtr;
+import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 import com.github.manolo8.darkbot.core.utils.EntityList;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.core.utils.Location;
@@ -51,7 +51,7 @@ public class MapManager implements Manager {
     public double width;
     public double height;
 
-    private VectorPtr minimapLayers = new VectorPtr();
+    private ObjArray minimapLayers = ObjArray.ofVector(true);
 
     public MapManager(Main main) {
         this.main = main;
@@ -141,7 +141,6 @@ public class MapManager implements Manager {
         temp = API.readMemoryLong(temp + 0xF8); // LayeredSprite
         temp = API.readMemoryLong(temp + 0xA8); // Vector<Layer>
         minimapLayers.update(temp);
-        minimapLayers.update();
 
         Location loc = null;
         for (int i = 0; i < minimapLayers.size; i++) {

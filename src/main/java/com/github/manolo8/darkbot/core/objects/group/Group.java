@@ -2,7 +2,7 @@ package com.github.manolo8.darkbot.core.objects.group;
 
 import com.github.manolo8.darkbot.core.itf.UpdatableAuto;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.objects.swf.VectorPtr;
+import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -19,7 +19,7 @@ public class Group extends UpdatableAuto {
     public boolean isOpen; // if the group is open to allowing anyone to invite
     public boolean isLeader;
 
-    private VectorPtr membersPtr = new VectorPtr();
+    private ObjArray membersPtr = ObjArray.ofVector(true);
 
     public Group(HeroManager hero) {
         this.hero = hero;
@@ -41,7 +41,6 @@ public class Group extends UpdatableAuto {
         long selectedAddr = API.readMemoryLong(address + 0x3F);
 
         membersPtr.update(API.readMemoryLong(address + 0x37));
-        membersPtr.update();
 
         // The amount of other people on the group, always minus 1 (yourself)
         int grpSize = Math.max(0, membersPtr.size - 1);

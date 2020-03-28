@@ -3,7 +3,7 @@ package com.github.manolo8.darkbot.core.manager;
 import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.itf.Manager;
-import com.github.manolo8.darkbot.core.objects.swf.VectorPtr;
+import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public class EffectManager implements Manager {
     private long mapAddressStatic;
 
-    private VectorPtr effectsPtr = new VectorPtr();
+    private ObjArray effectsPtr = ObjArray.ofVector(true);
     private Map<Long, List<Integer>> effects = new HashMap<>();
 
     @Override
@@ -27,7 +27,6 @@ public class EffectManager implements Manager {
         long addr = API.readMemoryLong(API.readMemoryLong(mapAddressStatic), 128, 48);
 
         effectsPtr.update(addr);
-        effectsPtr.update();
         effects.clear();
 
         for (int i = 0; i < effectsPtr.size; i++) {

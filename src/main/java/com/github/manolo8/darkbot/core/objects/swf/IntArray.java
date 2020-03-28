@@ -42,8 +42,25 @@ public class IntArray extends Updatable {
         return ofVector(false);
     }
 
+    public static IntArray ofVector(long address) {
+        return ofVector(false).setAddress(address);
+    }
+
     public static IntArray ofVector(boolean autoUpdatable) {
         return new IntArray(0x40, 0x30, 0x4, false, autoUpdatable);
+    }
+
+    public int getLast() {
+        return get(size - 1);
+    }
+
+    public int get(int idx) {
+        return idx >= 0 && idx < size && idx < elements.length ? elements[idx] : 0;
+    }
+
+    private IntArray setAddress(long address) {
+        update(address);
+        return this;
     }
 
     @Override
@@ -51,7 +68,7 @@ public class IntArray extends Updatable {
         size = API.readMemoryInt(address + sizeOffset);
 
         if (size < 0 || size > 1024) return;
-        if (elements.length < size) elements = new int[(int) Math.max(size * 1.25, 1024)];
+        if (elements.length < size) elements = new int[(int) Math.min(size * 1.25, 1024)];
 
         long table = API.readMemoryLong(address + tableOffset) + bytesOffset;
         byte[] data = API.readMemory(table, size * getOffset());
