@@ -154,7 +154,7 @@ public class MapManager implements Manager {
 
             double scale = (internalWidth / minimapX) / 20;
 
-            loc = new Location(scale * x, scale * y);
+            return new Location(scale * x, scale * y);
         }
 
         return loc;
