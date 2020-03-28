@@ -142,7 +142,6 @@ public class MapManager implements Manager {
         temp = API.readMemoryLong(temp + 0xA8); // Vector<Layer>
         minimapLayers.update(temp);
 
-        Location loc = null;
         for (int i = 0; i < minimapLayers.size; i++) {
             long layer = minimapLayers.get(i); // Seems to be offset by 1 for some reason.
             long layerIdx = API.readMemoryInt(layer + 0xA8);
