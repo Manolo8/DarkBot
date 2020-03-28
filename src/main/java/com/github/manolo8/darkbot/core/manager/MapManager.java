@@ -157,7 +157,7 @@ public class MapManager implements Manager {
             return new Location(scale * x, scale * y);
         }
 
-        return loc;
+        return null;
     }
 
     public boolean isTarget(Entity entity) {
