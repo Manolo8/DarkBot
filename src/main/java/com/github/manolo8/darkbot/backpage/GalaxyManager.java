@@ -8,8 +8,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 public class GalaxyManager {
 
-    private GalaxyInfo galaxyInfo;
     private Main main;
+    private GalaxyInfo galaxyInfo;
     private long lastGatesUpdate;
 
     GalaxyManager(Main main) {
@@ -25,12 +25,17 @@ public class GalaxyManager {
         handleRequest(getLink("setupGate", true) + gate.getIdParam(), -1, minWait);
     }
 
+    public void performGateSpin(GalaxyGate gate, int useMultiAt, int spinAmount, int minWait) {
+        boolean useMultiplier = galaxyInfo.getGate(gate).getMultiplier() >= useMultiAt;
+        performGateSpin(gate, useMultiplier, spinAmount, minWait);
+    }
+
     public void performGateSpin(GalaxyGate gate, boolean multiplier, int spinAmount, int minWait) {
         String params = getLink("multiEnergy", false) + gate.getParam();
 
-        if (galaxyInfo.getSamples() != null && galaxyInfo.getSamples() > 0) params = params + "&sample=1";
-        if (multiplier) params = params + "&multiplier=1";
-        if (spinAmount > 4) params = params + "&spinamount=" + spinAmount;
+        if (galaxyInfo.getSamples() != null && galaxyInfo.getSamples() > 0) params += "&sample=1";
+        if (multiplier)     params += "&multiplier=1";
+        if (spinAmount > 4) params += "&spinamount=" + spinAmount;
 
         handleRequest(params, -1, minWait);
     }

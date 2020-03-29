@@ -17,20 +17,24 @@ public class Gate {
     private Integer multiplier = -1;
 
     void update(Element e) {
-        setState(      e.getAttribute("state"));
-        setTotal(      XmlHelper.attrToInt(e, "total"));
-        setCurrent(    XmlHelper.attrToInt(e, "current"));
-        setId(         XmlHelper.attrToInt(e, "id"));
-        setId(         XmlHelper.attrToInt(e, "gate_id"));
-        setPrepared(   XmlHelper.attrToInt(e, "prepared"));
-        setTotalWave(  XmlHelper.attrToInt(e, "totalWave"));
+        setState      (e.getAttribute("state"));
+        setTotal      (XmlHelper.attrToInt(e, "total"));
+        setCurrent    (XmlHelper.attrToInt(e, "current"));
+        setId         (XmlHelper.attrToInt(e, "id"));
+        setId         (XmlHelper.attrToInt(e, "gate_id"));
+        setPrepared   (XmlHelper.attrToInt(e, "prepared"));
+        setTotalWave  (XmlHelper.attrToInt(e, "totalWave"));
         setCurrentWave(XmlHelper.attrToInt(e, "currentWave"));
-        setLivesLeft(  XmlHelper.attrToInt(e, "livesLeft"));
-        setLifePrice(  XmlHelper.attrToInt(e, "lifePrice"));
+        setLivesLeft  (XmlHelper.attrToInt(e, "livesLeft"));
+        setLifePrice  (XmlHelper.attrToInt(e, "lifePrice"));
+    }
+
+    public boolean shouldStopSpinning() {
+        return getLivesLeft() > 0 && isFinished();
     }
 
     public boolean isFinished() {
-        return state.equals("finished");
+        return getCurrent().equals(getTotal());
     }
 
     public String getState() {
@@ -76,8 +80,10 @@ public class Gate {
         return multiplier;
     }
 
-    void setOnProgress() {
-        this.state = "on_progress";
+    void onGatePrepare() {
+        this.state    = "on_progress";
+        this.current  = 0;
+        this.prepared = 1;
     }
 
     void setMultiplier(Element multiplier) {

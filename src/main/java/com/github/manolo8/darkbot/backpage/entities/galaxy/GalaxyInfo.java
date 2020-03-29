@@ -38,7 +38,7 @@ public class GalaxyInfo {
 
         if (XmlHelper.hasAnyElement(e, "setup")) {
             Integer id = XmlHelper.attrToInt(XmlHelper.getElement(e, "setup"), "gate_id");
-            Optional.ofNullable(getGate(id)).ifPresent(Gate::setOnProgress);
+            Optional.ofNullable(getGate(id)).ifPresent(Gate::onGatePrepare);
         }
     }
 
