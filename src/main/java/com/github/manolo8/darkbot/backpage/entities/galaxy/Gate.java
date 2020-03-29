@@ -21,6 +21,7 @@ public class Gate {
         setTotal(      XmlHelper.attrToInt(e, "total"));
         setCurrent(    XmlHelper.attrToInt(e, "current"));
         setId(         XmlHelper.attrToInt(e, "id"));
+        setId(         XmlHelper.attrToInt(e, "gate_id"));
         setPrepared(   XmlHelper.attrToInt(e, "prepared"));
         setTotalWave(  XmlHelper.attrToInt(e, "totalWave"));
         setCurrentWave(XmlHelper.attrToInt(e, "currentWave"));

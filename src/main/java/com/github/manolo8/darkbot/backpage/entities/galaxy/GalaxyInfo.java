@@ -99,7 +99,7 @@ public class GalaxyInfo {
 
         IntStream.range(0, list.getLength()).mapToObj(i -> (Element) list.item(i))
                 .forEach(item -> {
-                    Optional.ofNullable(getGate(XmlHelper.attrToInt(e, "gate_id"))).ifPresent(gate -> gate.update(e));
+                    Optional.ofNullable(getGate(XmlHelper.attrToInt(item, "gate_id"))).ifPresent(gate -> gate.update(item));
                     this.items.add(new Item().update(item));
                 });
     }
