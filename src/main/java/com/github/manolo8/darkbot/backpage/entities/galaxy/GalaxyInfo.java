@@ -38,7 +38,7 @@ public class GalaxyInfo {
 
         if (XmlHelper.hasAnyElement(e, "setup")) {
             Integer id = XmlHelper.attrToInt(XmlHelper.getElement(e, "setup"), "gate_id");
-            Optional.of(getGate(id)).ifPresent(Gate::setOnProgress);
+            Optional.ofNullable(getGate(id)).ifPresent(Gate::setOnProgress);
         }
     }
 
@@ -99,7 +99,7 @@ public class GalaxyInfo {
 
         IntStream.range(0, list.getLength()).mapToObj(i -> (Element) list.item(i))
                 .forEach(item -> {
-                    Optional.of(getGate(XmlHelper.attrToInt(e, "gate_id"))).ifPresent(gate -> gate.update(e));
+                    Optional.ofNullable(getGate(XmlHelper.attrToInt(e, "gate_id"))).ifPresent(gate -> gate.update(e));
                     this.items.add(new Item().update(item));
                 });
     }
