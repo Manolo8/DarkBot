@@ -6,7 +6,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Time {
-    public static int SECOND = 1000, MINUTE = SECOND * 60, HOUR = MINUTE * 60, DAY = HOUR * 24, WEEK = DAY * 7;
+    public static final int SECOND = 1000, MINUTE = SECOND * 60, HOUR = MINUTE * 60, DAY = HOUR * 24, WEEK = DAY * 7;
+
+    private static final DateTimeFormatter LOG_DATE      = DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter FILENAME_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss_SSS");
 
     public static String toString(Integer time) {
         if (time == null) return "-";
@@ -49,14 +52,13 @@ public class Time {
         } catch (InterruptedException ignore) {}
     }
 
-    public static class PrintStreamWithDate extends PrintStream {
-        private static final DateTimeFormatter LOG_DATE      = DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm:ss.SSS");
-        private static final DateTimeFormatter FILENAME_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss_SSS");
+    public static PrintStream getLogger() throws FileNotFoundException {
+        return new PrintStreamWithDate("logs/" + LocalDateTime.now().format(FILENAME_DATE) + ".log");
+    }
 
-        public PrintStreamWithDate() throws FileNotFoundException {
-            super("logs/" + LocalDateTime.now().format(FILENAME_DATE) + ".log");
-            System.setOut(this);
-            System.setErr(this);
+    public static class PrintStreamWithDate extends PrintStream {
+        public PrintStreamWithDate(String logfileName) throws FileNotFoundException {
+            super(logfileName);
         }
 
         @Override
