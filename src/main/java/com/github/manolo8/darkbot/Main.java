@@ -12,14 +12,7 @@ import com.github.manolo8.darkbot.core.IDarkBotAPI;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.manager.EffectManager;
-import com.github.manolo8.darkbot.core.manager.GuiManager;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.manager.MapManager;
-import com.github.manolo8.darkbot.core.manager.FacadeManager;
-import com.github.manolo8.darkbot.core.manager.PingManager;
-import com.github.manolo8.darkbot.core.manager.StarManager;
-import com.github.manolo8.darkbot.core.manager.StatsManager;
+import com.github.manolo8.darkbot.core.manager.*;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.extensions.features.FeatureDefinition;
@@ -41,12 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,103 +43,63 @@ import java.util.stream.Stream;
 
 public class Main extends Thread implements PluginListener {
 
-    public static final String VERSION_STRING = "1.13.17 alpha 10";
-    public static final Version VERSION = new Version(VERSION_STRING);
-
-    public static final Gson GSON = new GsonBuilder()
+    public static final Version VERSION      = new Version("1.13.17 alpha 10");
+    public static final Object UPDATE_LOCKER = new Object();
+    public static final Gson GSON            = new GsonBuilder()
             .setPrettyPrinting()
             .setLenient()
             .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
             .registerTypeAdapterFactory(new SpecialTypeAdapter())
             .create();
 
-    public static final Object UPDATE_LOCKER = new Object();
-
     public static IDarkBotAPI API;
 
-    public final MapManager mapManager;
-    public final StarManager starManager;
-    public final HeroManager hero;
-    public final FacadeManager facadeManager;
-    public final EffectManager effectManager;
-    public final GuiManager guiManager;
-    public final StatsManager statsManager;
-    public final PingManager pingManager;
-    public final BackpageManager backpage;
+    public Config config = setConfig();
 
-    public final Lazy.Sync<Boolean> status;
+    public final Lazy.Sync<Boolean> status   = new Lazy.Sync<>();
+    public final StarManager starManager     = new StarManager();
+    public final MapManager mapManager       = new MapManager(this);
+    public final HeroManager hero            = new HeroManager(this);
+    public final FacadeManager facadeManager = new FacadeManager(this);
+    public final EffectManager effectManager = new EffectManager(this);
+    public final GuiManager guiManager       = new GuiManager(this);
+    public final StatsManager statsManager   = new StatsManager(this);
+    public final PingManager pingManager     = new PingManager();
+    public final BackpageManager backpage    = new BackpageManager(this);
 
-    public Config config;
-    private boolean failedConfig;
 
-    public final PluginHandler pluginHandler;
-    public final FeatureRegistry featureRegistry;
-    private List<Behaviour> behaviours = new ArrayList<>();
-    private String moduleId;
-    public Module module;
+    public final PluginHandler pluginHandler     = new PluginHandler();
+    public final FeatureRegistry featureRegistry = new FeatureRegistry(this, pluginHandler);
 
-    public long lastRefresh;
-
-    private final BotInstaller botInstaller;
     private final MainGui form;
+    private final BotInstaller botInstaller =
+            new BotInstaller(facadeManager, effectManager, guiManager, mapManager, hero, statsManager, pingManager);
 
+    public Module module;
+    public long lastRefresh;
     public double avgTick;
-
-    private volatile boolean running;
     public boolean tickingModule;
+
+    private File configFile;
+    private String moduleId;
+    private List<Behaviour> behaviours = new ArrayList<>();
+
+    private boolean failedConfig;
+    private volatile boolean running;
 
     public Main() {
         super("Main");
-        this.config = new Config();
-        loadConfig();
-        new ConfigEntity(config);
 
-        VerifierChecker.getAuthApi().setupAuth();
+        this.botInstaller.invalid.add(this::setRefresh);
+        this.status.add(this::onRunningToggle);
 
-        if (config.BOT_SETTINGS.API == 0) API = new DarkBotAPI();
-        else if (config.BOT_SETTINGS.API == 1) API = new DarkFlash(new LoginUtils().performSidLogin().getLoginData());
-        //else if (config.API == 2) API = new
-        else throw new IllegalArgumentException("API not found: " + config.BOT_SETTINGS.API);
+        this.pluginHandler.updatePluginsSync();
+        this.pluginHandler.addListener(this);
 
-        botInstaller = new BotInstaller();
-        status = new Lazy.Sync<>();
+        this.form = new MainGui(this);
 
-        starManager = new StarManager();
-        mapManager = new MapManager(this);
-        hero = new HeroManager(this);
-        facadeManager = new FacadeManager(this);
-        effectManager = new EffectManager(this);
-        guiManager = new GuiManager(this);
-        statsManager = new StatsManager(this);
-        pingManager = new PingManager();
-
-        botInstaller.add(facadeManager);
-        botInstaller.add(effectManager);
-        botInstaller.add(guiManager);
-        botInstaller.add(mapManager);
-        botInstaller.add(hero);
-        botInstaller.add(statsManager);
-        botInstaller.add(pingManager);
-
-        botInstaller.init();
-
-        botInstaller.invalid.add(value -> {
-            if (!value) lastRefresh = System.currentTimeMillis();
-        });
-
-        status.add(this::onRunningToggle);
-
-        backpage = new BackpageManager(this);
-
-        pluginHandler = new PluginHandler();
-        featureRegistry = new FeatureRegistry(this, pluginHandler);
-
-        pluginHandler.updatePluginsSync();
-        pluginHandler.addListener(this);
-
-        form = new MainGui(this);
-
-        if (failedConfig) Popups.showMessageAsync("Error", I18n.get("bot.issue.config_load_failed"), JOptionPane.ERROR_MESSAGE);
+        if (failedConfig) Popups.showMessageAsync("Error",
+                I18n.get("bot.issue.config_load_failed"), JOptionPane.ERROR_MESSAGE);
 
         API.createWindow();
         start();
@@ -160,6 +108,7 @@ public class Main extends Thread implements PluginListener {
     @Override
     public void run() {
         long time;
+        double tickTime;
 
         while (true) {
             time = System.currentTimeMillis();
@@ -171,35 +120,27 @@ public class Main extends Thread implements PluginListener {
                 Time.sleep(1000);
             }
 
-            double tickTime = System.currentTimeMillis() - time;
+            tickTime = System.currentTimeMillis() - time;
             avgTick = ((avgTick * 9) + tickTime) / 10;
 
-            sleepMax(time, botInstaller.invalid.value ? 1000 :
+            Time.sleepMax(time, botInstaller.invalid.value ? 1000 :
                     Math.max(config.BOT_SETTINGS.MIN_TICK, Math.min((int) (avgTick * 1.25), 100)));
         }
     }
 
     private void tick() {
-        status.tick();
+        this.status.tick();
         checkModule();
 
-        if (isInvalid())
-            invalidTick();
-        else
-            validTick();
+        if (isInvalid()) tickingModule = false;
+        else validTick();
 
-        form.tick();
-
+        this.form.tick();
         checkConfig();
     }
 
     private boolean isInvalid() {
         return botInstaller.isInvalid();
-    }
-
-    private void invalidTick() {
-        tickingModule = false;
-        botInstaller.verify();
     }
 
     private void validTick() {
@@ -228,9 +169,7 @@ public class Main extends Thread implements PluginListener {
         guiManager.group.tick();
         checkRefresh();
         tickLogic(true);
-        checkPetBug();
     }
-
 
     private void tickLogic(boolean running) {
         synchronized (pluginHandler) {
@@ -254,23 +193,12 @@ public class Main extends Thread implements PluginListener {
         }
     }
 
-    private void checkConfig() {
-        if (config.changed) {
-            config.changed = false;
-            saveConfig();
-        }
-    }
-
-    private void checkPetBug() {
-        if (mapManager.isTarget(hero.pet)) hero.pet.clickable.setRadius(0);
-    }
-
     private void checkRefresh() {
         if (config.MISCELLANEOUS.REFRESH_TIME == 0 ||
                 System.currentTimeMillis() - lastRefresh < config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000) return;
 
         if (!module.canRefresh()) return;
-        lastRefresh = System.currentTimeMillis();
+        setRefresh(false);
         if (config.MISCELLANEOUS.PAUSE_FOR > 0) {
             System.out.println("Pausing (logging off): time arrived & module allows refresh");
             setModule(new DisconnectModule(config.MISCELLANEOUS.PAUSE_FOR * 60 * 1000L, I18n.get("module.disconnect.reason.break")));
@@ -308,26 +236,41 @@ public class Main extends Thread implements PluginListener {
         moduleId = "(none)";
     }
 
-    public void setRunning(boolean running) {
-        if (this.running == running) return;
-        status.send(running);
-        this.running = running;
+    private void setRefresh(Boolean value) {
+        if (!value) lastRefresh = System.currentTimeMillis();
     }
 
-    private void onRunningToggle(boolean running) {
-        lastRefresh = System.currentTimeMillis();
-        if (running && module instanceof TemporalModule) {
-            moduleId = "(none)";
+    private Config setConfig() {
+        this.config     = new Config();
+        this.configFile = new File("config.json");
+
+        if (configFile.exists()) loadConfig();
+        else saveConfig();
+
+        new ConfigEntity(config);
+
+        setAPI();
+        return this.config;
+    }
+
+    private void checkConfig() {
+        if (config.changed) {
+            config.changed = false;
+            saveConfig();
         }
+    }
+
+    private void setAPI() {
+        VerifierChecker.getAuthApi().setupAuth();
+
+        if (config.BOT_SETTINGS.API == 0) API = new DarkBotAPI();
+        else if (config.BOT_SETTINGS.API == 1) API = new DarkFlash(new LoginUtils().performSidLogin().getLoginData());
+            //else if (config.API == 2) API = new
+        else throw new IllegalArgumentException("API not found: " + config.BOT_SETTINGS.API);
     }
 
     private void loadConfig() {
-        File config = new File("config.json");
-        if (!config.exists()) {
-            saveConfig();
-            return;
-        }
-        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(config), StandardCharsets.UTF_8)) {
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8)) {
             this.config = GSON.fromJson(reader, Config.class);
             if (this.config == null) this.config = new Config();
         } catch (Exception e) {
@@ -338,8 +281,7 @@ public class Main extends Thread implements PluginListener {
 
     public void saveConfig() {
         if (failedConfig) return; // Don't save defaults if config failed to load!
-        File config = new File("config.json");
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(config), StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8)) {
             GSON.toJson(this.config, writer);
         } catch (IOException e) {
             e.printStackTrace();
@@ -348,6 +290,22 @@ public class Main extends Thread implements PluginListener {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public void setRunning(boolean running) {
+        if (this.running == running) return;
+        status.send(running);
+        this.running = running;
+    }
+
+    private void onRunningToggle(boolean running) {
+        setRefresh(false);
+        if (running && module instanceof TemporalModule) {
+            moduleId = "(none)";
+        }
+
+        if (running) hero.pet.clickable.setRadius(0);
+        else hero.pet.clickable.reset();
     }
 
     public void setBehaviours(List<Behaviour> behaviours) {
@@ -363,17 +321,6 @@ public class Main extends Thread implements PluginListener {
                     return new DummyModule();
                 });
             setModule(module, true);
-        }
-    }
-
-    private void sleepMax(long time, int total) {
-        time = System.currentTimeMillis() - time;
-
-        if (time < total) {
-            try {
-                Thread.sleep(total - time);
-            } catch (InterruptedException ignored) {
-            }
         }
     }
 }

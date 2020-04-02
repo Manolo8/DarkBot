@@ -1,14 +1,12 @@
 package com.github.manolo8.darkbot.utils;
 
-import java.io.OutputStream;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Time {
-
-    private static final DateTimeFormatter FILENAME_FRIENDLY_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss_SSS");
-    private static final DateTimeFormatter LOG_DATE = DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm:ss.SSS");
+    public static int SECOND = 1000, MINUTE = SECOND * 60, HOUR = MINUTE * 60, DAY = HOUR * 24, WEEK = DAY * 7;
 
     public static String toString(Integer time) {
         if (time == null) return "-";
@@ -39,8 +37,9 @@ public class Time {
         return builder.toString();
     }
 
-    public static String filenameFriendly() {
-        return LocalDateTime.now().format(FILENAME_FRIENDLY_DATE);
+    public static void sleepMax(long time, int total) {
+        time = System.currentTimeMillis() - time;
+        sleep(total - time);
     }
 
     public static void sleep(long millis) {
@@ -51,8 +50,13 @@ public class Time {
     }
 
     public static class PrintStreamWithDate extends PrintStream {
-        public PrintStreamWithDate(OutputStream out) {
-            super(out);
+        private static final DateTimeFormatter LOG_DATE      = DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm:ss.SSS");
+        private static final DateTimeFormatter FILENAME_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss_SSS");
+
+        public PrintStreamWithDate() throws FileNotFoundException {
+            super("logs/" + LocalDateTime.now().format(FILENAME_DATE) + ".log");
+            System.setOut(this);
+            System.setErr(this);
         }
 
         @Override
@@ -60,5 +64,4 @@ public class Time {
             super.println("[" + LocalDateTime.now().format(LOG_DATE) + "] " + string);
         }
     }
-
 }

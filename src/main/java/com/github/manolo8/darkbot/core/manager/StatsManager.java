@@ -41,7 +41,7 @@ public class StatsManager implements Manager {
 
     @Override
     public void install(BotInstaller botInstaller) {
-        botInstaller.userDataAddress.add(value -> {
+        botInstaller.heroInfoAddress.add(value -> {
             address = value;
             sid = API.readMemoryString(API.readMemoryLong(address + 168));
         });
