@@ -25,7 +25,10 @@ public class BotInstaller {
     private long timer;
 
     public BotInstaller(Manager... managers) {
-        this.invalid.add(this::setTimer);
+        this.invalid.add(value -> {
+            if (value) timer = System.currentTimeMillis();
+        });
+
         for (Manager manager : managers) manager.install(this);
     }
 
@@ -99,12 +102,8 @@ public class BotInstaller {
     private void checkInvalid() {
         if (timer == 0 || System.currentTimeMillis() - timer < 180000) return;
 
-        System.out.println("Triggering refresh: bot installer was invalid for too long");
         API.handleRefresh();
-        setTimer(true);
-    }
-
-    private void setTimer(Boolean value) {
-        if (value) timer = System.currentTimeMillis();
+        timer = System.currentTimeMillis();
+        System.out.println("Triggering refresh: bot installer was invalid for too long");
     }
 }

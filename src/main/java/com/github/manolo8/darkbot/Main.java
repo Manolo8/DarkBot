@@ -102,7 +102,10 @@ public class Main extends Thread implements PluginListener {
     public Main() {
         super("Main");
 
-        this.botInstaller.invalid.add(this::setRefresh);
+        this.botInstaller.invalid.add(value -> {
+            if (!value) lastRefresh = System.currentTimeMillis();
+        });
+
         this.status.add(this::onRunningToggle);
 
         this.pluginHandler.updatePluginsSync();
@@ -210,7 +213,7 @@ public class Main extends Thread implements PluginListener {
                 System.currentTimeMillis() - lastRefresh < config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000) return;
 
         if (!module.canRefresh()) return;
-        setRefresh(false);
+        lastRefresh = System.currentTimeMillis();
         if (config.MISCELLANEOUS.PAUSE_FOR > 0) {
             System.out.println("Pausing (logging off): time arrived & module allows refresh");
             setModule(new DisconnectModule(config.MISCELLANEOUS.PAUSE_FOR * 60 * 1000L, I18n.get("module.disconnect.reason.break")));
@@ -246,10 +249,6 @@ public class Main extends Thread implements PluginListener {
     @Override
     public void afterLoadComplete() {
         moduleId = "(none)";
-    }
-
-    private void setRefresh(Boolean value) {
-        if (!value) lastRefresh = System.currentTimeMillis();
     }
 
     private Config setConfig() {
@@ -311,7 +310,7 @@ public class Main extends Thread implements PluginListener {
     }
 
     private void onRunningToggle(boolean running) {
-        setRefresh(false);
+        lastRefresh = System.currentTimeMillis();
         if (running && module instanceof TemporalModule) {
             moduleId = "(none)";
         }
