@@ -39,6 +39,7 @@ import com.github.manolo8.darkbot.utils.LoginUtils;
 import com.github.manolo8.darkbot.utils.Time;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.internal.$Gson$Types;
 
 import javax.swing.*;
 import java.io.File;
@@ -266,14 +267,17 @@ public class Main extends Thread implements PluginListener {
     }
 
     private void checkRefresh() {
-        if (config.MISCELLANEOUS.REFRESH_TIME == 0 ||
-                System.currentTimeMillis() - lastRefresh < config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000) return;
+        if (config.MISCELLANEOUS.REFRESH_TIME.VALUE == 0 ||
+                System.currentTimeMillis() - lastRefresh < config.MISCELLANEOUS.REFRESH_TIME.VALUE * 60 * 1000) return;
 
         if (!module.canRefresh()) return;
         lastRefresh = System.currentTimeMillis();
         if (config.MISCELLANEOUS.PAUSE_FOR > 0) {
             System.out.println("Pausing (logging off): time arrived & module allows refresh");
             setModule(new DisconnectModule(config.MISCELLANEOUS.PAUSE_FOR * 60 * 1000L, I18n.get("module.disconnect.reason.break")));
+            if (config.MISCELLANEOUS.REFRESH_TIME.RANDOM) {
+                this.setRandomRefreshTimeIfRandomOptionActive();
+            }
         } else {
             System.out.println("Triggering refresh: time arrived & module allows refresh");
             API.handleRefresh();
@@ -330,6 +334,7 @@ public class Main extends Thread implements PluginListener {
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(config), StandardCharsets.UTF_8)) {
             this.config = GSON.fromJson(reader, Config.class);
             if (this.config == null) this.config = new Config();
+            this.initializeVirtualConfigs();
         } catch (Exception e) {
             failedConfig = true;
             e.printStackTrace();
@@ -374,6 +379,17 @@ public class Main extends Thread implements PluginListener {
                 Thread.sleep(total - time);
             } catch (InterruptedException ignored) {
             }
+        }
+    }
+
+    private void setRandomRefreshTimeIfRandomOptionActive() {
+        this.config.MISCELLANEOUS.REFRESH_TIME.VALUE = (int)(Math.random() * this.config.MISCELLANEOUS.REFRESH_TIME.RANDOM_MAX) + this.config.MISCELLANEOUS.REFRESH_TIME.RANDOM_MIN;
+        System.out.printf("Refresh time setted random as %s minutes", this.config.MISCELLANEOUS.REFRESH_TIME.VALUE);
+    }
+
+    private void initializeVirtualConfigs() {
+        if (this.config.MISCELLANEOUS.REFRESH_TIME.RANDOM) {
+            this.setRandomRefreshTimeIfRandomOptionActive();
         }
     }
 }
