@@ -104,6 +104,11 @@ public class CollectorModule implements Module {
     }
 
     public boolean isNotWaiting() {
+        /*if (!current.isCollected() && main.statsManager.currentBox == current.address) {
+            current.setCollected();
+            waiting = System.currentTimeMillis() + current.boxInfo.waitTime +
+                    hero.timeTo(hero.locationInfo.distance(current)) + 30;
+        }*/
         return System.currentTimeMillis() > waiting || current == null || current.removed;
     }
 
@@ -128,8 +133,9 @@ public class CollectorModule implements Module {
 
             current.setCollected();
 
-            waiting = System.currentTimeMillis() + current.boxInfo.waitTime + hero.timeTo(distance) + 30;
-
+            waiting = System.currentTimeMillis() + current.boxInfo.waitTime
+                    + Math.min(1_000, current.getRetries() * 100) // Add 100ms per retry, max 1 second
+                    + hero.timeTo(distance) + 30;
         } else {
             drive.move(current);
         }
@@ -147,8 +153,7 @@ public class CollectorModule implements Module {
     public void checkInvisibility() {
         if (config.COLLECT.AUTO_CLOACK
                 && !hero.invisible
-                && System.currentTimeMillis() - invisibleTime > 60000
-        ) {
+                && System.currentTimeMillis() - invisibleTime > 60000) {
             invisibleTime = System.currentTimeMillis();
             API.keyboardClick(config.COLLECT.AUTO_CLOACK_KEY);
         }
