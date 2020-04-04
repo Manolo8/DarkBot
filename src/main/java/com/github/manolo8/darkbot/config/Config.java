@@ -155,7 +155,13 @@ public class Config {
 
     public @Option Miscellaneous MISCELLANEOUS = new Miscellaneous();
     public static class Miscellaneous {
-        public @Option @Num(max = 60 * 12, step = 10) int REFRESH_TIME = 60;
+        public static class RefreshTime {
+            public @Option @Num(max = 60 * 12, step = 10) int VALUE = 60;
+            public @Option boolean RANDOM = false;
+            public @Option @Num(min = 10) int RANDOM_MIN = 10;
+            public @Option @Num(min = 10, max = 120) int RANDOM_MAX = 60;
+        }
+        public @Option RefreshTime REFRESH_TIME = new RefreshTime();
         public @Option @Num(max = 60 * 12, step = 10) int PAUSE_FOR = 5;
         public @Option @Editor(JPercentField.class) double DRONE_REPAIR_PERCENTAGE = 0.9;
     }
