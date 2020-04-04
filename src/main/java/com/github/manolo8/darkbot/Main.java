@@ -68,18 +68,16 @@ public class Main extends Thread implements PluginListener {
 
     public Config config = setConfig();
 
-    public final Lazy.Sync<Boolean> status   = new Lazy.Sync<>();
-    public final StarManager starManager     = new StarManager();
-    public final MapManager mapManager       = new MapManager(this);
-    public final HeroManager hero            = new HeroManager(this);
-    public final FacadeManager facadeManager = new FacadeManager(this);
-    public final EffectManager effectManager = new EffectManager(this);
-    public final GuiManager guiManager       = new GuiManager(this);
-    public final StatsManager statsManager   = new StatsManager(this);
-    public final PingManager pingManager     = new PingManager();
-    public final BackpageManager backpage    = new BackpageManager(this);
-
-
+    public final Lazy.Sync<Boolean> status       = new Lazy.Sync<>();
+    public final StarManager starManager         = new StarManager();
+    public final MapManager mapManager           = new MapManager(this);
+    public final HeroManager hero                = new HeroManager(this);
+    public final FacadeManager facadeManager     = new FacadeManager(this);
+    public final EffectManager effectManager     = new EffectManager(this);
+    public final GuiManager guiManager           = new GuiManager(this);
+    public final StatsManager statsManager       = new StatsManager(this);
+    public final PingManager pingManager         = new PingManager();
+    public final BackpageManager backpage        = new BackpageManager(this);
     public final PluginHandler pluginHandler     = new PluginHandler();
     public final FeatureRegistry featureRegistry = new FeatureRegistry(this, pluginHandler);
 
