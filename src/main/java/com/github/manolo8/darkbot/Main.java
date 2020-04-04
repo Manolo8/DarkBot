@@ -39,7 +39,6 @@ import com.github.manolo8.darkbot.utils.LoginUtils;
 import com.github.manolo8.darkbot.utils.Time;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.internal.$Gson$Types;
 
 import javax.swing.*;
 import java.io.File;
