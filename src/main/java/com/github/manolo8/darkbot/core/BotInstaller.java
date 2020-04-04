@@ -79,19 +79,19 @@ public class BotInstaller {
         long[] query;
         long temp;
 
-        if ((query = API.queryMemory(bytesToMainApplication, 1)).length  != 1) return true;
+        if ((query = API.queryMemory(bytesToMainApplication, 1)).length != 1) return true;
         this.mainApplicationAddress.send(query[0] - 228);
 
-        if ((query = API.queryMemory(bytesToSettings, 1)).length         != 1) return true;
+        if ((query = API.queryMemory(bytesToSettings, 1)).length != 1) return true;
         this.settingsAddress.send(query[0] - 237);
 
         if ((temp = API.readMemoryLong(mainApplicationAddress.value + 1344)) == 0) return true;
         this.mainAddress.send(temp);
 
-        if ((temp = API.readMemoryLong(mainAddress.value + 504))             == 0) return true;
+        if ((temp = API.readMemoryLong(mainAddress.value + 504)) == 0) return true;
         this.screenManagerAddress.send(temp);
 
-        if ((temp = API.readMemoryLong(mainAddress.value + 512))             == 0) return true;
+        if ((temp = API.readMemoryLong(mainAddress.value + 512)) == 0) return true;
         this.guiManagerAddress.send(temp);
 
         //reset address
