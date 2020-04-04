@@ -306,7 +306,7 @@ public class MapDrawer extends JPanel {
         String info = I18n.get("gui.map.info",
                 Main.VERSION_STRING,
                 (main.isRunning() ? Time.toString(System.currentTimeMillis() - main.lastRefresh) : "00"),
-                Time.toString(config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000));
+                Time.toString(config.MISCELLANEOUS.REFRESH_TIME.VALUE * 60 * 1000));
         drawString(g2, info, 5, 12, Align.LEFT);
         if (main.module != null) {
             drawString(g2, main.tickingModule ? main.module.status() : main.module.stoppedStatus(), 5, 12 + 15, Align.LEFT);
