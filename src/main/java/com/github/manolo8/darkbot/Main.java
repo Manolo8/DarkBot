@@ -38,6 +38,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -106,6 +108,20 @@ public class Main extends Thread implements PluginListener {
 
         API.createWindow();
         start();
+        try {
+            new com.github.manolo8.darkbot.autologin.RobotClick();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (com.github.manolo8.darkbot.autologin.RobotClick.GetWindowRectException e) {
+            e.printStackTrace();
+        } catch (com.github.manolo8.darkbot.autologin.RobotClick.WindowNotFoundException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        setRunning(true);
     }
 
     @Override
