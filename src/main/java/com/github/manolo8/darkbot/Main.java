@@ -38,8 +38,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -108,19 +106,6 @@ public class Main extends Thread implements PluginListener {
 
         API.createWindow();
         start();
-        try {
-            new com.github.manolo8.darkbot.autologin.RobotClick();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (com.github.manolo8.darkbot.autologin.RobotClick.GetWindowRectException e) {
-            e.printStackTrace();
-        } catch (com.github.manolo8.darkbot.autologin.RobotClick.WindowNotFoundException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (AWTException e) {
-            e.printStackTrace();
-        }
         setRunning(true);
     }
 
@@ -280,11 +265,11 @@ public class Main extends Thread implements PluginListener {
     private void checkModule() {
         if (module == null || !Objects.equals(moduleId, config.GENERAL.CURRENT_MODULE)) {
             Module module = featureRegistry.getFeature(moduleId = config.GENERAL.CURRENT_MODULE, Module.class)
-                .orElseGet(() -> {
-                    String name = moduleId.substring(moduleId.lastIndexOf(".") + 1);
-                    Popups.showMessageAsync("Error", I18n.get("bot.issue.module_load_failed", name), JOptionPane.ERROR_MESSAGE);
-                    return new DummyModule();
-                });
+                    .orElseGet(() -> {
+                        String name = moduleId.substring(moduleId.lastIndexOf(".") + 1);
+                        Popups.showMessageAsync("Error", I18n.get("bot.issue.module_load_failed", name), JOptionPane.ERROR_MESSAGE);
+                        return new DummyModule();
+                    });
             setModule(module, true);
         }
     }

@@ -4,6 +4,7 @@ import com.github.manolo8.darkbot.utils.Time;
 import com.sun.jna.platform.win32.WinDef;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class DarkBotAPI extends AbstractDarkBotApi {
@@ -21,6 +22,7 @@ public class DarkBotAPI extends AbstractDarkBotApi {
         new Thread(() -> {
             while ((window = USER_32.FindWindow("DarkBrowser", "DarkBrowser")) == null || !USER_32.IsWindow(window)) Time.sleep(100);
         }).start();
+        new com.github.manolo8.darkbot.autologin.RobotClick();
     }
 
     private native void createWindow0();

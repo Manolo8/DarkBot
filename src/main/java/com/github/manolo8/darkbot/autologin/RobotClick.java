@@ -4,8 +4,9 @@ import com.sun.jna.Native;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
-
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
@@ -45,24 +46,66 @@ public class RobotClick {
         }
     }
 
-    public RobotClick() throws AWTException, IOException, InterruptedException, GetWindowRectException, WindowNotFoundException {
+    public RobotClick() {
         String user = null, password = null;
         File file = new File("login.txt");
-        file.createNewFile();
+        boolean redo=true;
+        do{
+            try {
+                file.createNewFile();
+                redo=false;
+            } catch (IOException e) {
+                redo=true;
+            }
+        }while(redo);
+
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        try {
-            Scanner sc = new Scanner(file);
-            user = sc.nextLine();
-            password = sc.nextLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        redo=true;
+        do{
+            try {
+                Scanner sc = new Scanner(file);
+                user = sc.nextLine();
+                password = sc.nextLine();
+                redo=false;
+            } catch (IOException e) {
+                redo=true;
+            }
+        }while(redo);
+
         String windowName = "DarkBrowser";
-        Thread.sleep(1000);
-        int[] rect = getRect(windowName);
-        System.out.printf("The corner locations for the window \"%s\" are %s", new Object[] { windowName,
-                Arrays.toString(rect) });
-        Robot robot = new Robot();
+        redo=true;
+        do{
+            try {
+                Thread.sleep(1000);
+                redo=false;
+            } catch (InterruptedException e) {
+                redo=true;
+            }
+        }while(redo);
+
+        int[] rect = new int[0];
+        redo=true;
+        do{
+            try {
+                rect = getRect(windowName);
+                redo=false;
+            } catch (Exception e) {
+                redo=true;
+            }
+        }while(redo);
+
+        System.out.printf("The corner locations for the window \"%s\" are %s", new Object[] { windowName, Arrays.toString(rect) });
+        Robot robot = null;
+        redo=true;
+        do{
+            try {
+                robot = new Robot();
+                redo=false;
+            } catch (AWTException e) {
+                redo=true;
+            }
+        }while(redo);
+
         robot.mouseMove(rect[0] + 928, rect[1] + 68);
         robot.mousePress(16);
         robot.mouseRelease(16);
