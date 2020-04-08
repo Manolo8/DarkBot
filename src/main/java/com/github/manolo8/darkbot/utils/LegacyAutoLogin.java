@@ -6,16 +6,15 @@ import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
 
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class LegacyAutoLogin {
-    public static interface User32 extends StdCallLibrary {
-        public static final LegacyAutoLogin.User32 INSTANCE = (LegacyAutoLogin.User32) Native.load("user32", LegacyAutoLogin.User32.class, W32APIOptions.DEFAULT_OPTIONS);
+    public interface User32 extends StdCallLibrary {
+        LegacyAutoLogin.User32 INSTANCE = Native.load("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
 
         WinDef.HWND FindWindow(String param1String1, String param1String2);
 
@@ -35,7 +34,7 @@ public class LegacyAutoLogin {
 
     public static class WindowNotFoundException extends Exception {
         public WindowNotFoundException(String className, String windowName) {
-            super(String.format("Window null for className: %s; windowName: %s", new Object[] { className, windowName }));
+            super(String.format("Window null for className: %s; windowName: %s", className, windowName));
         }
     }
 
@@ -47,26 +46,36 @@ public class LegacyAutoLogin {
 
 
     public static void tryLogin() throws IOException, InterruptedException, GetWindowRectException, WindowNotFoundException, AWTException {
-        String user = null, password = null;
+        //String user = null, password = null;
         File file = new File("login.txt");
         file.createNewFile();
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         Scanner sc = new Scanner(file);
-        user = sc.nextLine();
-        password = sc.nextLine();
+        //user = sc.nextLine();
+        //password = sc.nextLine();
+        //System.out.println(sc.nextLine());
         String windowName = "DarkBrowser";
         Thread.sleep(1000);
         int[] rect = new int[0];
         rect = getRect(windowName);
-        System.out.printf("The corner locations for the window \"%s\" are %s", new Object[] { windowName, Arrays.toString(rect) });
+        //System.out.printf("The corner locations for the window \"%s\" are %s", windowName, Arrays.toString(rect));
         Robot robot = null;
         robot = new Robot();
         robot.mouseMove(rect[0] + 928, rect[1] + 68);
         robot.mousePress(16);
         robot.mouseRelease(16);
         robot.delay(500);
-        StringSelection selection = new StringSelection(user);
+        StringSelection selection = new StringSelection(sc.nextLine());
+        //System.out.println(selection);
         clipboard.setContents(selection, selection);
+        /*try {
+            Transferable t = clipboard.getContents(null);
+            if (t.isDataFlavorSupported(DataFlavor.stringFlavor))
+                System.out.println(t.getTransferData(DataFlavor
+                        .stringFlavor));
+        } catch (UnsupportedFlavorException | IOException ex) {
+            System.out.println();
+        }*/
         robot.mousePress(4);
         robot.mouseRelease(4);
         robot.delay(100);
@@ -77,8 +86,16 @@ public class LegacyAutoLogin {
         robot.mouseMove(rect[0] + 928, rect[1] + 90);
         robot.mousePress(16);
         robot.mouseRelease(16);
-        selection = new StringSelection(password);
+        selection = new StringSelection(sc.nextLine());
         clipboard.setContents(selection, selection);
+        /*try {
+            Transferable t = clipboard.getContents(null);
+            if (t.isDataFlavorSupported(DataFlavor.stringFlavor))
+                System.out.println(t.getTransferData(DataFlavor
+                        .stringFlavor));
+        } catch (UnsupportedFlavorException | IOException ex) {
+            System.out.println();
+        }*/
         robot.mousePress(4);
         robot.mouseRelease(4);
         robot.delay(100);
@@ -91,3 +108,4 @@ public class LegacyAutoLogin {
         robot.mouseRelease(16);
     }
 }
+
