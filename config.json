@@ -1,0 +1,119 @@
+{
+  "AVOIDED": {},
+  "PREFERRED": {},
+  "SAFETY": {},
+  "PLAYER_INFOS": {},
+  "PLAYER_TAGS": [],
+  "UNRESOLVED": [],
+  "CUSTOM_CONFIGS": {},
+  "PLUGIN_INFOS": {},
+  "GENERAL": {
+    "CURRENT_MODULE": "com.github.manolo8.darkbot.modules.LootNCollectorModule",
+    "WORKING_MAP": 26,
+    "OFFENSIVE": {
+      "CONFIG": 1,
+      "FORMATION": "8"
+    },
+    "ROAM": {
+      "CONFIG": 1,
+      "FORMATION": "9"
+    },
+    "RUN": {
+      "CONFIG": 2,
+      "FORMATION": "9"
+    },
+    "FORMATION_CHECK": 180,
+    "SAFETY": {
+      "REPAIR_HP_RANGE": {
+        "min": 0.4,
+        "max": 0.95
+      },
+      "REPAIR_HP_NO_NPC": 0.5,
+      "REPAIR_TO_SHIELD": 1.0,
+      "REPAIR": {
+        "CONFIG": 1,
+        "FORMATION": "9"
+      },
+      "MAX_DEATHS": 10,
+      "REVIVE_LOCATION": 1,
+      "WAIT_BEFORE_REVIVE": 3,
+      "WAIT_AFTER_REVIVE": 90
+    },
+    "RUNNING": {
+      "RUN_FROM_ENEMIES": true,
+      "REMEMBER_ENEMIES_FOR": 300,
+      "RUN_FROM_ENEMIES_SIGHT": false,
+      "STOP_RUNNING_NO_SIGHT": true,
+      "MAX_SIGHT_DISTANCE": 4000,
+      "SHIP_ABILITY_MIN": 1500,
+      "RUN_FURTHEST_PORT": 1500
+    },
+    "ROAMING": {
+      "KEEP": true,
+      "SEQUENTIAL": false,
+      "ONLY_KILL_PREFERRED": false
+    }
+  },
+  "COLLECT": {
+    "STAY_AWAY_FROM_ENEMIES": false,
+    "AUTO_CLOACK": false,
+    "RADIUS": 400,
+    "BOX_INFOS": {}
+  },
+  "LOOT": {
+    "SAB": {
+      "ENABLED": false,
+      "KEY": "2",
+      "PERCENT": 0.8,
+      "NPC_AMOUNT": 12000
+    },
+    "RSB": {
+      "ENABLED": false,
+      "KEY": "3",
+      "AMMO_REFRESH": 3500
+    },
+    "AMMO_KEY": "1",
+    "SHIP_ABILITY_MIN": 150000,
+    "MAX_CIRCLE_ITERATIONS": 5,
+    "RUN_CONFIG_IN_CIRCLE": true,
+    "GROUP_NPCS": true,
+    "NPC_INFOS": {},
+    "NPC_DISTANCE_IGNORE": 3000
+  },
+  "PET": {
+    "ENABLED": false,
+    "MODULE": 0,
+    "COMPATIBILITY_MODE": false,
+    "MODULE_ID": 1
+  },
+  "GROUP": {
+    "ACCEPT_INVITES": false,
+    "OPEN_INVITES": false
+  },
+  "MISCELLANEOUS": {
+    "REFRESH_TIME": 60,
+    "PAUSE_FOR": 5,
+    "DRONE_REPAIR_PERCENTAGE": 0.9
+  },
+  "BOT_SETTINGS": {
+    "LOCALE": "en",
+    "ZONE_RESOLUTION": 30,
+    "MAP_START_STOP": false,
+    "CONFIRM_EXIT": true,
+    "MIN_TICK": 15,
+    "DEV_STUFF": false,
+    "API": 0,
+    "DISPLAY": {
+      "SHOW_NAMES": false,
+      "HIDE_NAME": false,
+      "HIDE_GROUP_NAMES": false,
+      "TRAIL_LENGTH": 15,
+      "SHOW_ZONES": true,
+      "BUTTON_SIZE": 4,
+      "ALWAYS_ON_TOP": true
+    }
+  },
+  "EXTRA": {
+    "ACTION_INFOS": {}
+  }
+}

@@ -1,5 +1,6 @@
 package com.github.manolo8.darkbot.core;
 
+import com.github.manolo8.darkbot.utils.LegacyAutoLogin;
 import com.github.manolo8.darkbot.utils.Time;
 import com.sun.jna.platform.win32.WinDef;
 
@@ -21,8 +22,12 @@ public class DarkBotAPI extends AbstractDarkBotApi {
         }, "BotBrowser").start();
         new Thread(() -> {
             while ((window = USER_32.FindWindow("DarkBrowser", "DarkBrowser")) == null || !USER_32.IsWindow(window)) Time.sleep(100);
+            try {
+                LegacyAutoLogin.tryLogin();
+            } catch (Exception e) {
+                System.out.println("Failed to auto-login");
+            }
         }).start();
-        new com.github.manolo8.darkbot.autologin.RobotClick();
     }
 
     private native void createWindow0();
