@@ -12,6 +12,8 @@ public class PathFinderCalculator {
 
     private final List<PathPoint> fragmentedPath;
 
+    private boolean invalid;
+
     public PathFinderCalculator(PathPoint come,
                                 PathPoint destination) {
 
@@ -29,25 +31,27 @@ public class PathFinderCalculator {
 
         build();
 
-        unfragment(target);
+        if (!invalid)
+            unfragment(target);
 
         remDefs();
+
     }
 
     private void addDefs() {
-        for (PathPoint temp : destination.lineOfSight)
-            temp.lineOfSight.add(destination);
+        for (PathPoint temp : destination.getLineOfSight())
+            temp.getLineOfSight().add(destination);
 
-        for (PathPoint temp : come.lineOfSight)
-            temp.lineOfSight.add(come);
+        for (PathPoint temp : come.getLineOfSight())
+            temp.getLineOfSight().add(come);
     }
 
     private void remDefs() {
-        for (PathPoint temp : destination.lineOfSight)
-            temp.lineOfSight.remove(destination);
+        for (PathPoint temp : destination.getLineOfSight())
+            temp.getLineOfSight().remove(destination);
 
-        for (PathPoint temp : come.lineOfSight)
-            temp.lineOfSight.remove(come);
+        for (PathPoint temp : come.getLineOfSight())
+            temp.getLineOfSight().remove(come);
     }
 
     private void build() {
@@ -64,6 +68,11 @@ public class PathFinderCalculator {
 
         do {
 
+            if (current == null) {
+                invalid = true;
+                break;
+            }
+
             openList.remove(current);
             closedList.add(current);
 
@@ -73,7 +82,7 @@ public class PathFinderCalculator {
     }
 
     private void update(PathPoint current) {
-        for (PathPoint neighbor : current.lineOfSight) {
+        for (PathPoint neighbor : current.getLineOfSight()) {
 
             if (closedList.contains(neighbor))
                 continue;
@@ -102,11 +111,11 @@ public class PathFinderCalculator {
     private PathPoint next(PathPoint current) {
 
         PathPoint closest = null;
-        int sum = 0;
+        int       sum     = 0;
 
         for (PathPoint loop : fragmentedPath) {
 
-            if (!current.lineOfSight.contains(loop)) continue;
+            if (!current.getLineOfSight().contains(loop)) continue;
 
             int csum = loop.g + (int) loop.distance(current);
 

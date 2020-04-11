@@ -1,12 +1,12 @@
 package com.github.manolo8.darkbot.core.manager;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.BotInstaller;
-import com.github.manolo8.darkbot.core.itf.Manager;
+import com.github.manolo8.darkbot.core.installer.BotInstaller;
+import com.github.manolo8.darkbot.core.itf.Installable;
 
-import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.manager.Core.API;
 
-public class StatsManager implements Manager {
+public class StatsManager
+        implements Installable {
 
     private long address;
 
@@ -14,11 +14,13 @@ public class StatsManager implements Manager {
     public double uridium;
     public double experience;
     public double honor;
-    public int deposit;
-    public int depositTotal;
+    public int    deposit;
+    public int    depositTotal;
+    public int    deaths;
+    public int    petDeaths;
 
-    private long started;
-    private long runningTime;
+    private long    started;
+    private long    runningTime;
     private boolean lastStatus;
 
     public double earnedCredits;
@@ -26,54 +28,49 @@ public class StatsManager implements Manager {
     public double earnedExperience;
     public double earnedHonor;
 
-    public String sid;
-
     private StringBuilder builder;
 
-    public StatsManager(Main main) {
+    public StatsManager() {
         builder = new StringBuilder();
-
-        main.status.add(this::toggle);
     }
 
     @Override
     public void install(BotInstaller botInstaller) {
-        botInstaller.userDataAddress.add(value -> {
-            address = value;
-            sid = API.readMemoryString(API.readMemoryLong(address + 168));
-        });
+
+        botInstaller.userDataAddress.subscribe(value -> address = value);
+        botInstaller.status.subscribe(this::toggle);
     }
 
 
-    public void tick() {
-        if (address != 0) {
-            updateCredits(API.readMemoryDouble(address + 288));
-            updateUridium(API.readMemoryDouble(address + 296));
-            updateExperience(API.readMemoryDouble(address + 312));
-            updateHonor(API.readMemoryDouble(address + 320));
+    void tick() {
 
-            deposit = API.readMemoryInt(API.readMemoryLong(address + 240) + 40);
-            depositTotal = API.readMemoryInt(API.readMemoryLong(address + 248) + 40);
-        }
+        if (address == 0)
+            return;
+
+        updateCredits(API.readMemoryDouble(address + 288));
+        updateUridium(API.readMemoryDouble(address + 296));
+        updateExperience(API.readMemoryDouble(address + 312));
+        updateHonor(API.readMemoryDouble(address + 320));
+
+        deposit = API.readMemoryInt(API.readMemoryLong(address + 240) + 40);
+        depositTotal = API.readMemoryInt(API.readMemoryLong(address + 248) + 40);
     }
 
 
-    public void toggle(boolean running) {
+    private void toggle(boolean running) {
         lastStatus = running;
 
-        if (running) {
+        if (running)
             started = System.currentTimeMillis();
-        } else {
+         else if (started != 0)
             runningTime += System.currentTimeMillis() - started;
-        }
     }
 
     private void updateCredits(double credits) {
         double diff = credits - this.credits;
 
-        if (this.credits != 0 && diff > 0) {
+        if (this.credits != 0 && diff > 0)
             earnedCredits += diff;
-        }
 
         this.credits = credits;
     }
@@ -81,20 +78,25 @@ public class StatsManager implements Manager {
     private void updateUridium(double uridium) {
         double diff = uridium - this.uridium;
 
-        if (this.uridium != 0 && diff > 0) {
+        if (this.uridium != 0 && diff > 0)
             earnedUridium += diff;
-        }
 
         this.uridium = uridium;
     }
 
     private void updateExperience(double experience) {
-        if (this.experience != 0) earnedExperience += experience - this.experience;
+
+        if (this.experience != 0)
+            earnedExperience += experience - this.experience;
+
         this.experience = experience;
     }
 
     private void updateHonor(double honor) {
-        if (this.honor != 0) earnedHonor += honor - this.honor;
+
+        if (this.honor != 0)
+            earnedHonor += honor - this.honor;
+
         this.honor = honor;
     }
 
@@ -106,9 +108,11 @@ public class StatsManager implements Manager {
         builder.setLength(0);
 
         int seconds = (int) (runningTime() / 1000);
-        int hours = seconds / 3600;
-        int minutes = seconds / 60;
+        int hours   = seconds / 3600;
 
+        int minutes = (seconds / 60) % 60;
+
+        seconds = seconds % 60;
 
         if (hours > 0) {
 
@@ -126,8 +130,6 @@ public class StatsManager implements Manager {
             builder.append(minutes).append(':');
         }
 
-        seconds = seconds % 60;
-
         if (seconds < 10)
             builder.append('0');
 
@@ -137,18 +139,18 @@ public class StatsManager implements Manager {
     }
 
     public double earnedCredits() {
-        return earnedCredits / ((double) runningTime() / 3600000);
+        return earnedCredits == 0 ? 0 : earnedCredits / ((double) runningTime() / 3600000);
     }
 
     public double earnedUridium() {
-        return earnedUridium / ((double) runningTime() / 3600000);
+        return earnedUridium == 0 ? 0 : earnedUridium / ((double) runningTime() / 3600000);
     }
 
     public double earnedExperience() {
-        return earnedExperience / ((double) runningTime() / 3600000);
+        return earnedExperience == 0 ? 0 : earnedExperience / ((double) runningTime() / 3600000);
     }
 
     public double earnedHonor() {
-        return earnedHonor / ((double) runningTime() / 3600000);
+        return earnedHonor == 0 ? 0 : earnedHonor / ((double) runningTime() / 3600000);
     }
 }

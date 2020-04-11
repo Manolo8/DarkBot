@@ -4,9 +4,9 @@ public abstract class Updatable {
 
     public long address;
 
-    public abstract void update();
-
     public void update(long address) {
         this.address = address;
     }
+
+    public abstract void update();
 }

@@ -6,60 +6,94 @@ public class ConfigEntity {
 
     public static ConfigEntity INSTANCE;
 
-    private final Config config;
+    private final CommonConfig commonConfig;
 
-    public ConfigEntity(Config config) {
-        this.config = config;
-        INSTANCE = this;
+    ConfigEntity(CommonConfig commonConfig) {
+        this.commonConfig = commonConfig;
+    }
+
+    public static void init(CommonConfig commonConfig) {
+        INSTANCE = new ConfigEntity(commonConfig);
     }
 
     public NpcInfo getOrCreateNpcInfo(String name) {
 
         int mapId = MapManager.id;
+        name = nameTranslate(name);
 
-        NpcInfo info = config.npcInfos.get(name);
+
+        NpcInfo info = commonConfig.npcInfos.get(name);
 
         if (info == null) {
             info = new NpcInfo();
 
-            info.radius = 400;
+            info.name = name;
+            info.circle = true;
+            info.radius = 500;
             info.mapList.add(mapId);
 
             if (!name.equals("ERROR") && !name.isEmpty()) {
-                config.npcInfos.put(name, info);
 
-                config.addedNpc.send(name);
+                commonConfig.npcInfos.put(name, info);
+                commonConfig.addedNpc.next(info);
+                commonConfig.changed = true;
 
-                config.changed = true;
             }
 
-        } else {
-
-            if (info.mapList.add(mapId)) {
-                config.changed = true;
-            }
-
-        }
+        } else if (info.mapList.add(mapId))
+            commonConfig.changed = true;
 
         return info;
     }
 
     public BoxInfo getOrCreateBoxInfo(String name) {
 
-        BoxInfo info = config.boxInfos.get(name);
+        BoxInfo info = commonConfig.boxInfos.get(name);
 
         if (info == null) {
+
             info = new BoxInfo();
 
+            info.name = name;
+
             if (!name.equals("ERROR") && !name.isEmpty()) {
-                config.boxInfos.put(name, info);
-
-                config.addedBox.send(name);
-
-                config.changed = true;
+                commonConfig.boxInfos.put(name, info);
+                commonConfig.addedBox.next(info);
+                commonConfig.changed = true;
             }
         }
 
         return info;
+    }
+
+    public static String nameTranslate(String original) {
+
+        if (!original.isEmpty() && original.charAt(0) != original.charAt(original.length() - 1)) {
+
+            int index;
+
+            if ((index = original.lastIndexOf('α')) != -1) {
+                return original.substring(0, index) + "ALPHA";
+            } else if ((index = original.lastIndexOf('β')) != -1) {
+                return original.substring(0, index) + "BETA";
+            } else if ((index = original.lastIndexOf('γ')) != -1) {
+                return original.substring(0, index) + "GAMMA";
+            } else if ((index = original.lastIndexOf('δ')) != -1) {
+                return original.substring(0, index) + "DELTA";
+            } else if ((index = original.lastIndexOf('ε')) != -1) {
+                return original.substring(0, index) + "EPSILON";
+            } else if ((index = original.lastIndexOf('ζ')) != -1) {
+                return original.substring(0, index) + "ZETA";
+            } else if ((index = original.lastIndexOf('κ')) != -1) {
+                return original.substring(0, index) + "KAPPA";
+            } else if ((index = original.lastIndexOf('λ')) != -1) {
+                return original.substring(0, index) + "LAMBDA";
+            } else if ((index = original.lastIndexOf('৩')) != -1) {
+                return original.substring(0, index) + "VORTEX";
+            }
+
+        }
+
+        return original;
     }
 }

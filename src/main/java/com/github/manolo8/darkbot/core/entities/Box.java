@@ -2,30 +2,33 @@ package com.github.manolo8.darkbot.core.entities;
 
 import com.github.manolo8.darkbot.config.BoxInfo;
 import com.github.manolo8.darkbot.config.ConfigEntity;
+import com.github.manolo8.darkbot.view.draw.GraphicDrawer;
+import com.github.manolo8.darkbot.view.draw.Palette;
 
-import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.manager.Core.API;
 
-public class Box extends Entity {
-
-    protected boolean collected;
+public class Box
+        extends Entity {
 
     public BoxInfo boxInfo;
+    public boolean ignore;
 
     public Box(int id) {
         super(id);
     }
 
-    public boolean isCollected() {
-        return collected;
-    }
-
-    public void setCollected(boolean collected) {
-        this.collected = collected;
-    }
-
     @Override
     public void update(long address) {
+
         super.update(address);
+
+        if (address == 0)
+            return;
+
+        if (traits.size == 0) {
+            boxInfo = ConfigEntity.INSTANCE.getOrCreateBoxInfo("UNKNOWN");
+            return;
+        }
 
         long data = traits.elements[0];
 
@@ -44,5 +47,17 @@ public class Box extends Entity {
         }
 
         boxInfo = ConfigEntity.INSTANCE.getOrCreateBoxInfo(type);
+    }
+
+    @Override
+    public void draw(GraphicDrawer drawer) {
+        drawer.set(location.x, location.y);
+
+        drawer.setColor(Palette.BOXES);
+
+        if (boxInfo.collect)
+            drawer.fillRectCenter(3, 3);
+        else
+            drawer.drawRectCenter(3, 3);
     }
 }

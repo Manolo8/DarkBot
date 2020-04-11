@@ -1,162 +1,72 @@
 package com.github.manolo8.darkbot.core.manager;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.BotInstaller;
-import com.github.manolo8.darkbot.core.itf.Manager;
+import com.github.manolo8.darkbot.core.installer.BotInstaller;
+import com.github.manolo8.darkbot.core.itf.Installable;
 import com.github.manolo8.darkbot.core.objects.Gui;
-import com.github.manolo8.darkbot.core.objects.swf.Dictionary;
-import com.github.manolo8.darkbot.core.utils.ByteUtils;
+import com.github.manolo8.darkbot.core.objects.swf.SwfDictionary;
+import com.github.manolo8.darkbot.core.objects.swf.SwfDictionary.Entry;
 
-import static com.github.manolo8.darkbot.Main.API;
+import java.util.HashMap;
 
-public class GuiManager implements Manager {
+import static com.github.manolo8.darkbot.core.manager.Core.API;
 
-    private final Main main;
-    private final Dictionary guis;
+public class GuiManager
+        implements Installable {
 
-    private long reconnectTime;
-    private long repairTime;
-    private long validTime;
+    private final SwfDictionary        dictionary;
+    private final Gui                  tempGui;
+    private final HashMap<String, Gui> guis;
 
-    private long repairAddress;
-
-    private long screenAddress;
     private long guiAddress;
-    private long mainAddress;
 
-    private final Gui lostConnection;
-    private final Gui connecting;
-
-    public boolean check;
-
-    public int deaths;
-
-    public GuiManager(Main main) {
-        this.main = main;
-
-        this.validTime = System.currentTimeMillis();
-        this.guis = new Dictionary(0);
-
-        this.lostConnection = new Gui(0);
-        this.connecting = new Gui(0);
-
-        this.main.status.add(value -> validTime = System.currentTimeMillis());
+    public GuiManager() {
+        this.guis = new HashMap<>();
+        this.dictionary = new SwfDictionary(0);
+        this.tempGui = new Gui(0);
     }
 
     @Override
     public void install(BotInstaller botInstaller) {
-
-        this.guis.addLazy("lost_connection", lostConnection::update);
-        this.guis.addLazy("connecting", value -> System.out.println("HAS CONNECTING!"));
-        this.guis.addLazy("connection", connecting::update);
-
-        botInstaller.screenManagerAddress.add(value -> screenAddress = value);
-        botInstaller.mainAddress.add(value -> mainAddress = value);
-
-        botInstaller.invalid.add(value -> {
-            if (!value) validTime = System.currentTimeMillis();
-        });
-
-        botInstaller.guiManagerAddress.add(value -> {
+        botInstaller.guiManagerAddress.subscribe(value -> {
             guiAddress = value;
-            guis.update(API.readMemoryLong(guiAddress + 112));
-
-            repairAddress = 0;
-            lostConnection.reset();
-            connecting.reset();
-
-            check = true;
+            dictionary.update(API.readMemoryLong(guiAddress + 112));
         });
     }
 
-    public void tick() {
+    public Gui fromName(String name) {
 
-        guis.update();
+        Gui gui = this.guis.get(name);
 
-        lostConnection.update();
-        connecting.update();
+        if (gui != null)
+            return gui;
+
+        gui = new Gui(0);
+
+        this.guis.put(name, gui);
+        this.dictionary.addLazy(name, gui::update);
+
+        return gui;
     }
 
-    private void tryReconnect(Gui gui) {
-        if (System.currentTimeMillis() - reconnectTime > 5000) {
-            reconnectTime = System.currentTimeMillis();
-            API.mouseClick(gui.x + 46, gui.y + 180);
-        }
+    void update() {
+        dictionary.update();
     }
 
-    private void tryRevive() {
-        if (System.currentTimeMillis() - repairTime > 10000) {
-            deaths++;
-            API.writeMemoryLong(repairAddress + 32, main.config.REPAIR_LOCAL + 1);
-            API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
-            repairTime = System.currentTimeMillis();
-        }
-    }
+    void tick() {
 
-    private boolean isInvalidShip() {
-        return API.readMemoryInt(API.readMemoryLong(screenAddress + 240) + 56) == 0;
-    }
+        for (int i = 0; i < dictionary.size; i++) {
+            Entry entry = dictionary.element(i);
 
-    private boolean isDead() {
-        if (repairAddress != 0) {
-            return API.readMemoryBoolean(repairAddress + 40);
-        } else {
-            if (isInvalidShip()) {
+            //If has lazy, the gui is managed by other manager
+            if (entry.value == 0 || dictionary.hasLazy(entry.key))
+                continue;
 
-                long[] values = API.queryMemory(ByteUtils.getBytes(guiAddress, mainAddress), 1);
+            tempGui.update(entry.value);
+            tempGui.update();
 
-                if (values.length == 1)
-                    repairAddress = values[0] - 56;
-
-                return false;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    private void checkInvalid() {
-        if (System.currentTimeMillis() - validTime > 90 * 1000 + (main.hero.map.id == -1 ? 180 * 1000 : 0)) {
-            API.refresh();
-            validTime = System.currentTimeMillis();
-        }
-    }
-
-    public boolean canTickModule() {
-
-        if (lostConnection.visible) {
-            //Wait 15 seconds to reconnect
-            if (lostConnection.lastUpdatedIn(25000)) {
-                tryReconnect(lostConnection);
-                checkInvalid();
-            }
-            return false;
-        } else if (connecting.visible) {
-
-            if (connecting.lastUpdatedIn(30000)) {
-                API.refresh();
-                connecting.reset();
-            }
-
-            return false;
-        } else if (isDead()) {
-
-            tryRevive();
-
-            if (deaths >= main.config.MAX_DEATHS)
-                main.setRunning(false);
-            else
-                checkInvalid();
-
-
-            return false;
-        } else if (main.hero.locationInfo.isMoving()) {
-            validTime = System.currentTimeMillis();
+            if (tempGui.visible)
+                tempGui.show(false);
         }
 
-        checkInvalid();
-
-        return true;
     }
-
 }

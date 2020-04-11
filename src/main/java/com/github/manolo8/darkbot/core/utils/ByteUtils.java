@@ -39,4 +39,19 @@ public class ByteUtils {
 
         return b;
     }
+
+    public static byte[] getBytes(int... values) {
+        byte[] b = new byte[values.length * 4];
+
+        int i = 0;
+
+        for (long value : values) {
+            b[i++] = (byte) value;
+            b[i++] = (byte) (value >> 8);
+            b[i++] = (byte) (value >> 16);
+            b[i++] = (byte) (value >> 24);
+        }
+
+        return b;
+    }
 }

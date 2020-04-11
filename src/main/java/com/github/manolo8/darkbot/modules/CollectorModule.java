@@ -1,224 +1,128 @@
 package com.github.manolo8.darkbot.modules;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.core.entities.Box;
-import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.itf.Module;
+import com.github.manolo8.darkbot.config.CommonConfig;
+import com.github.manolo8.darkbot.core.manager.Core;
+import com.github.manolo8.darkbot.core.manager.DriveManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.objects.LocationInfo;
-import com.github.manolo8.darkbot.core.utils.Drive;
-import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.core.manager.SchedulerManager;
+import com.github.manolo8.darkbot.core.utils.Clock;
+import com.github.manolo8.darkbot.core.utils.module.Module;
+import com.github.manolo8.darkbot.core.utils.module.ModuleConfig;
+import com.github.manolo8.darkbot.core.utils.module.ModuleOptions;
+import com.github.manolo8.darkbot.modules.helper.CollectorHelper;
+import com.github.manolo8.darkbot.modules.helper.DangerHelper;
+import com.github.manolo8.darkbot.modules.helper.PetHelper;
+import com.github.manolo8.darkbot.view.builder.element.component.ICharField;
+import com.github.manolo8.darkbot.view.builder.element.component.ICheckBox;
+import com.github.manolo8.darkbot.view.builder.element.component.ILabel;
+import com.github.manolo8.darkbot.view.builder.element.component.IPetModules;
 
-import java.util.List;
+@ModuleOptions("CollectorModule")
+public class CollectorModule
+        implements Module {
 
-import static com.github.manolo8.darkbot.Main.API;
-import static java.lang.Math.cos;
-import static java.lang.StrictMath.sin;
+    private final DangerHelper     danger;
+    private final CollectorHelper  collector;
+    private final PetHelper        pet;
+    private final InternalConfig   config;
+    private final CommonConfig     commonConfig;
+    private final HeroManager      hero;
+    private final DriveManager     drive;
+    private final SchedulerManager scheduler;
 
-public class CollectorModule implements Module {
+    private final Clock clock;
 
-    private Main main;
+    public CollectorModule(Core core, InternalConfig config) {
 
-    private List<Box> boxes;
-    private List<Ship> ships;
-    private Config config;
+        this.danger = new DangerHelper(config);
+        this.collector = new CollectorHelper();
+        this.pet = new PetHelper(config);
 
-    private HeroManager hero;
-    private Drive drive;
+        this.config = config;
 
-    private long invisibleTime;
+        this.danger.install(core);
+        this.collector.install(core);
+        this.pet.install(core);
 
-    Box current;
+        this.hero = core.getHeroManager();
+        this.drive = core.getDriveManager();
+        this.scheduler = core.getSchedulerManager();
 
-    private long waiting;
+        this.commonConfig = core.getCommonConfig();
 
-    private int DISTANCE_FROM_DANGEROUS;
-
-    public CollectorModule() {
-        DISTANCE_FROM_DANGEROUS = 1500;
+        this.clock = new Clock();
     }
 
+
     @Override
-    public void install(Main main) {
-        this.main = main;
-
-        this.hero = main.hero;
-        this.drive = main.hero.drive;
-
-        this.config = main.config;
-        this.boxes = main.mapManager.entities.boxes;
-        this.ships = main.mapManager.entities.ships;
+    public void resume() {
     }
 
     @Override
     public boolean canRefresh() {
-        return isNotWaiting();
+        return !collector.isCollecting();
     }
 
     @Override
     public void tick() {
 
-        if (isNotWaiting() && checkCurrentMap()) {
+        if (danger.checkDangerousAndCurrentMap()) {
 
+            pet.check();
+            scheduler.asyncSetConfig(commonConfig.RUN_CONFIG);
             checkInvisibility();
-            checkDangerous();
 
-            findBox();
-
-            if (!tryCollectNearestBox() && (!drive.isMoving() || drive.isOutOfMap())) {
+            if (collector.findBox())
+                collector.collectBox();
+            else if (!drive.isMoving())
                 drive.moveRandom();
-            }
-        }
-    }
-
-
-    private boolean checkCurrentMap() {
-        boolean mapWrong = config.WORKING_MAP != hero.map.id;
-
-        if (mapWrong) {
-
-            hero.runMode();
-
-            main.setModule(new MapModule())
-                    .setTargetAndBack(main.starManager.fromId(main.config.WORKING_MAP));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    boolean isNotWaiting() {
-        return System.currentTimeMillis() > waiting;
-    }
-
-    boolean tryCollectNearestBox() {
-
-        if (current != null) {
-            collectBox();
-            return true;
-        }
-
-        return false;
-    }
-
-    private void collectBox() {
-        double distance = hero.locationInfo.distance(current);
-
-        if (distance < 600) {
-
-            current.clickable.setRadius(1200);
-            drive.clickCenter(1);
-            current.clickable.setRadius(0);
-
-            current.setCollected(true);
-
-            waiting = System.currentTimeMillis() + current.boxInfo.waitTime + hero.timeTo(distance) + 30;
-
-        } else {
-            drive.move(current);
-        }
-    }
-
-    private void checkDangerous() {
-        if (config.STAY_AWAY_FROM_ENEMIES) {
-
-            Location dangerous = findClosestEnemyAndAddToDangerousList();
-
-            if (dangerous != null) stayAwayFromLocation(dangerous);
         }
     }
 
     private void checkInvisibility() {
-        if (config.AUTO_CLOACK
+        if (config.AUTO_CLOAK
                 && !hero.invisible
-                && System.currentTimeMillis() - invisibleTime > 60000
+                && clock.isBiggerThenReset(60_000)
         ) {
-            invisibleTime = System.currentTimeMillis();
-            API.keyboardClick(config.AUTO_CLOACK_KEY);
+            scheduler.asyncKeyboardClick(config.AUTO_CLOAK_KEY);
         }
     }
 
-    private void stayAwayFromLocation(Location awayLocation) {
+    private static class InternalConfig
+            implements ModuleConfig,
+            DangerHelper.DangerHelpConfig,
+            PetHelper.PetHelperConfig {
 
-        Location heroLocation = hero.locationInfo.now;
+        @ILabel("Run from enemies")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES;
+        @ILabel("Run from enemies in sight")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES_IN_SIGHT;
+        @ILabel("Auto cloak")
+        @ICheckBox
+        public boolean AUTO_CLOAK;
+        @ILabel("Auto cloak key")
+        @ICharField
+        public char    AUTO_CLOAK_KEY;
+        @ILabel("Pet gear")
+        @IPetModules
+        public int     petGearId;
 
-        double angle = awayLocation.angle(heroLocation);
-        double moveDistance = hero.shipInfo.speed;
-        double distance = DISTANCE_FROM_DANGEROUS + 100;
-
-        Location target = new Location(
-                awayLocation.x - cos(angle) * distance,
-                awayLocation.y - sin(angle) * distance
-        );
-
-        moveDistance = moveDistance - target.distance(heroLocation);
-
-        if (moveDistance > 0) {
-
-            angle += moveDistance / 3000;
-
-            target.x = awayLocation.x - cos(angle) * distance;
-            target.y = awayLocation.y - sin(angle) * distance;
+        @Override
+        public boolean runFromEnemies() {
+            return RUN_FROM_ENEMIES;
         }
 
-        drive.move(target);
-    }
-
-    void findBox() {
-        LocationInfo locationInfo = hero.locationInfo;
-        double distance = 100_000;
-        Box closest = null;
-
-        for (Box box : boxes) {
-            if (canCollect(box)) {
-                double distanceCurrent = locationInfo.distance(box.locationInfo);
-                if (distanceCurrent < distance) {
-                    distance = distanceCurrent;
-                    closest = box;
-                }
-            }
+        @Override
+        public boolean runFromEnemiesInSight() {
+            return RUN_FROM_ENEMIES_IN_SIGHT;
         }
 
-        if (current == null || current.isCollected() || closest != null && isBetter(closest)) {
-            current = closest;
-        } else {
-            current = null;
+        @Override
+        public int gearId() {
+            return petGearId;
         }
-    }
-
-    private boolean canCollect(Box box) {
-        return box.boxInfo.collect
-                && !box.isCollected()
-                && (drive.canMove(box.locationInfo.now));
-    }
-
-    private Location findClosestEnemyAndAddToDangerousList() {
-        for (Ship ship : ships) {
-            if (ship.playerInfo.isEnemy()
-                    && !ship.invisible
-                    && ship.locationInfo.distance(hero) < DISTANCE_FROM_DANGEROUS) {
-
-                if (ship.isInTimer()) {
-                    return ship.locationInfo.now;
-                } else if (ship.isAttacking(hero)) {
-                    ship.setTimerTo(400_000);
-                    return ship.locationInfo.now;
-                }
-
-            }
-        }
-
-        return null;
-    }
-
-    private boolean isBetter(Box box) {
-
-        double currentDistance = current.locationInfo.distance(hero);
-        double newDistance = box.locationInfo.distance(hero);
-
-        return currentDistance > 100 && currentDistance - 150 > newDistance;
     }
 
 }

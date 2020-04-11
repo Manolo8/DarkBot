@@ -1,33 +1,42 @@
 package com.github.manolo8.darkbot.modules;
 
-import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.CommonConfig;
 import com.github.manolo8.darkbot.core.entities.Portal;
-import com.github.manolo8.darkbot.core.itf.MapChange;
-import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.manager.StarManager;
+import com.github.manolo8.darkbot.core.itf.TempModule;
+import com.github.manolo8.darkbot.core.manager.*;
+import com.github.manolo8.darkbot.core.objects.Location;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.core.utils.Clock;
+import com.github.manolo8.darkbot.core.utils.module.ModuleOptions;
 
-public class MapModule implements Module, MapChange {
+@ModuleOptions(value = "MapModule",
+               showInModules = false,
+               alwaysNewInstance = true)
+public class MapModule
+        extends TempModule {
 
+    private final HeroManager      hero;
+    private final DriveManager     drive;
+    private final StarManager      star;
+    private final SchedulerManager scheduler;
 
-    private Main main;
-    private HeroManager hero;
-    private Drive drive;
-    private StarManager star;
+    private final CommonConfig commonConfig;
 
-    private Module back;
-    private Portal current;
-    private Map target;
+    private final Clock   clock;
+    private       Portal  current;
+    private       Map     target;
+    private       boolean configTarget;
 
-    @Override
-    public void install(Main main) {
-        this.hero = main.hero;
-        this.drive = main.hero.drive;
-        this.star = main.starManager;
-        this.main = main;
-        this.back = main.module;
+    public MapModule(Core core) {
+        super(core);
+
+        this.hero = core.getHeroManager();
+        this.drive = core.getDriveManager();
+        this.star = core.getStarManager();
+        this.scheduler = core.getSchedulerManager();
+        this.commonConfig = core.getCommonConfig();
+
+        this.clock = new Clock();
     }
 
     @Override
@@ -37,46 +46,53 @@ public class MapModule implements Module, MapChange {
 
     public void setTarget(Map target) {
         this.target = target;
-
-        current = star.next(hero.map, hero.locationInfo, target);
+        this.configTarget = false;
+        current = star.next(target);
     }
 
-    public void setTargetAndBack(Map target) {
-        setTarget(target);
+    public void setTargetToWorkingMap() {
+        setTarget(star.fromId(commonConfig.WORKING_MAP));
+        configTarget = true;
     }
 
     @Override
     public void tick() {
 
-        if (current != null) {
+        if (target.id == hero.map.id) {
+            back();
+        } else {
 
-            if (current.target != target) {
-                current = star.next(hero.map, hero.locationInfo, target);
-            }
+            checkCurrent();
 
-            double distance = current.locationInfo.distance(hero);
+            scheduler.asyncSetConfig(commonConfig.RUN_CONFIG);
 
-            hero.runMode();
-
-            if (distance < 100 && !drive.isMoving()) {
-                hero.jumpPortal(current);
-            } else if (current.locationInfo.isLoaded()) {
-                drive.move(current);
-            }
+            if (current != null)
+                moveToPortal();
         }
 
     }
 
-    @Override
-    public void onMapChange() {
-        if (hero.map == target) {
-            if (back != null) {
-                main.setModule(back);
-                back = null;
+    private void checkCurrent() {
+        if (configTarget && target.id != commonConfig.WORKING_MAP)
+            target = star.fromId(commonConfig.WORKING_MAP);
+
+        current = star.next(target);
+    }
+
+    private void moveToPortal() {
+
+        Location loc      = current.location;
+        double   distance = hero.distance(loc);
+
+        if (distance < 300 && !drive.isMoving()) {
+
+            if (clock.isBiggerThenReset(5000)) {
+                scheduler.asyncKeyboardClick('j');
+                drive.move(loc.x + Math.random() * 50, loc.y + Math.random() * 50);
             }
-            current = null;
-        } else {
-            current = star.next(hero.map, hero.locationInfo, target);
+
+        } else if (current.location.valid) {
+            drive.move(current);
         }
     }
 }

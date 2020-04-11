@@ -1,77 +1,169 @@
 package com.github.manolo8.darkbot.modules;
 
-import com.github.manolo8.darkbot.Main;
+import com.github.manolo8.darkbot.config.CommonConfig;
 import com.github.manolo8.darkbot.core.entities.Box;
-import com.github.manolo8.darkbot.core.itf.Module;
+import com.github.manolo8.darkbot.core.entities.Npc;
+import com.github.manolo8.darkbot.core.manager.Core;
+import com.github.manolo8.darkbot.core.manager.DriveManager;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.core.manager.SchedulerManager;
+import com.github.manolo8.darkbot.core.utils.module.Module;
+import com.github.manolo8.darkbot.core.utils.module.ModuleConfig;
+import com.github.manolo8.darkbot.core.utils.module.ModuleOptions;
+import com.github.manolo8.darkbot.modules.helper.*;
+import com.github.manolo8.darkbot.view.builder.element.component.ICharField;
+import com.github.manolo8.darkbot.view.builder.element.component.ICheckBox;
+import com.github.manolo8.darkbot.view.builder.element.component.ILabel;
+import com.github.manolo8.darkbot.view.builder.element.component.IPetModules;
 
-public class LootNCollectorModule implements Module {
+@ModuleOptions("LootNCollectorModule")
+public class LootNCollectorModule
+        implements Module {
 
-    private final LootModule lootModule;
-    private final CollectorModule collectorModule;
+    private final DangerHelper        danger;
+    private final LootHelper          loot;
+    private final CollectorHelper     collector;
+    private final CircularDriveHelper circularDrive;
+    private final PetHelper           pet;
 
-    private HeroManager hero;
-    private Drive drive;
+    private final HeroManager      hero;
+    private final DriveManager     drive;
+    private final SchedulerManager scheduler;
 
-    public LootNCollectorModule() {
-        this.lootModule = new LootModule();
-        this.collectorModule = new CollectorModule();
+    private final CommonConfig config;
+
+
+    public LootNCollectorModule(Core core, InternalConfig config) {
+        this.loot = new LootHelper(config);
+        this.collector = new CollectorHelper();
+        this.danger = new DangerHelper(config);
+        this.circularDrive = new CircularDriveHelper(this.loot.getTargetObservable());
+        this.pet = new PetHelper(config);
+
+        this.danger.install(core);
+        this.loot.install(core);
+        this.collector.install(core);
+        this.circularDrive.install(core);
+        this.pet.install(core);
+
+        this.drive = core.getDriveManager();
+        this.hero = core.getHeroManager();
+        this.scheduler = core.getSchedulerManager();
+
+        this.config = core.getCommonConfig();
     }
 
-    @Override
-    public void install(Main main) {
-        lootModule.install(main);
-        collectorModule.install(main);
 
-        this.hero = main.hero;
-        this.drive = main.hero.drive;
+    @Override
+    public void resume() {
+
     }
 
     @Override
     public boolean canRefresh() {
-
-        if(collectorModule.isNotWaiting()) {
-            return lootModule.canRefresh();
-        }
-
-        return false;
+        return !loot.isAttacking();
     }
 
     @Override
     public void tick() {
 
-        if (collectorModule.isNotWaiting()) {
+        if (danger.checkDangerousAndCurrentMap()) {
 
-            if (lootModule.checkDangerousAndCurrentMap()) {
+            scheduler.asyncSetConfig(config.OFFENSIVE_CONFIG);
+            pet.check();
 
-                if (lootModule.findTarget()) {
+            if (!collector.isCollecting() && loot.findTarget())
+                chooseBoxOrTarget();
+            else
+                boxTick();
+        }
+    }
 
-                    collectorModule.findBox();
+    private void chooseBoxOrTarget() {
 
-                    Box box = collectorModule.current;
+        Npc target = loot.getTarget();
 
-                    if (box == null || box.locationInfo.distance(hero) > 600 || lootModule.target.health.hpPercent() < 0.25) {
-                        lootModule.moveToAnSafePosition();
-                    } else {
-                        collectorModule.tryCollectNearestBox();
-                    }
+        if (target.health.hpPercent() > 0.25) {
+            if (collector.findBox()) {
 
-                    lootModule.doKillTargetTick();
+                Box box = collector.getCurrentBox();
 
-                } else {
+                double heroDistance   = box.distance(hero);
+                double targetDistance = box.distance(target);
 
-                    collectorModule.findBox();
-
-                    if (!collectorModule.tryCollectNearestBox() && (!drive.isMoving() || drive.isOutOfMap())) {
-                        drive.moveRandom();
-                    }
-
+                if (heroDistance < targetDistance * 0.85 && heroDistance < 600) {
+                    loot.doKillTick();
+                    collector.collectBox();
+                    return;
                 }
-
             }
-
         }
 
+        circularDrive.moveToAnSafePosition();
+        loot.doKillTick();
     }
+
+    private void boxTick() {
+        if (collector.findBox())
+            collector.collectBox();
+        else if (!drive.isMoving())
+            drive.moveRandom();
+    }
+
+    private static class InternalConfig
+            implements ModuleConfig,
+            DangerHelper.DangerHelpConfig,
+            LootHelper.LootHelperConfig,
+            PetHelper.PetHelperConfig {
+
+        @ILabel("Run from enemies")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES;
+        @ILabel("Run from enemies in sight")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES_IN_SIGHT;
+        @ILabel("Ammo key")
+        @ICharField
+        public char    AMMO_KEY     = '3';
+        @ILabel("Use auto-sab")
+        @ICheckBox
+        public boolean AUTO_SAB     = false;
+        @ILabel("Ammo sab key")
+        @ICharField
+        public char    AUTO_SAB_KEY = '4';
+        @ILabel("Pet gear")
+        @IPetModules
+        public int     petGearId;
+
+        @Override
+        public char ammoKey() {
+            return AMMO_KEY;
+        }
+
+        @Override
+        public boolean autoSab() {
+            return AUTO_SAB;
+        }
+
+        @Override
+        public char autoSabKey() {
+            return AUTO_SAB_KEY;
+        }
+
+        @Override
+        public boolean runFromEnemies() {
+            return RUN_FROM_ENEMIES;
+        }
+
+        @Override
+        public boolean runFromEnemiesInSight() {
+            return RUN_FROM_ENEMIES_IN_SIGHT;
+        }
+
+        @Override
+        public int gearId() {
+            return petGearId;
+        }
+    }
+
 }

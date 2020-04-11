@@ -1,74 +1,74 @@
 package com.github.manolo8.darkbot.modules;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.config.Config;
-import com.github.manolo8.darkbot.config.NpcInfo;
-import com.github.manolo8.darkbot.core.entities.Npc;
-import com.github.manolo8.darkbot.core.entities.Portal;
-import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.itf.Module;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.objects.LocationInfo;
-import com.github.manolo8.darkbot.core.utils.Drive;
-import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.config.CommonConfig;
+import com.github.manolo8.darkbot.core.utils.module.Module;
+import com.github.manolo8.darkbot.core.manager.Core;
+import com.github.manolo8.darkbot.core.manager.DriveManager;
+import com.github.manolo8.darkbot.core.manager.SchedulerManager;
+import com.github.manolo8.darkbot.core.utils.module.ModuleConfig;
+import com.github.manolo8.darkbot.core.utils.module.ModuleOptions;
+import com.github.manolo8.darkbot.modules.helper.CircularDriveHelper;
+import com.github.manolo8.darkbot.modules.helper.DangerHelper;
+import com.github.manolo8.darkbot.modules.helper.LootHelper;
+import com.github.manolo8.darkbot.modules.helper.PetHelper;
+import com.github.manolo8.darkbot.view.builder.element.component.ICharField;
+import com.github.manolo8.darkbot.view.builder.element.component.ICheckBox;
+import com.github.manolo8.darkbot.view.builder.element.component.ILabel;
+import com.github.manolo8.darkbot.view.builder.element.component.IPetModules;
 
-import java.util.List;
+@ModuleOptions("LootModule")
+public class LootModule
+        implements Module {
 
-import static com.github.manolo8.darkbot.Main.API;
-import static java.lang.Double.max;
-import static java.lang.Double.min;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+    private final LootHelper          loot;
+    private final DangerHelper        danger;
+    private final CircularDriveHelper circularDrive;
+    private final PetHelper           pet;
 
-public class LootModule implements Module {
+    private final DriveManager     drive;
+    private final SchedulerManager scheduler;
 
-    private Main main;
+    private final CommonConfig config;
 
-    private List<Ship> ships;
-    private List<Npc> npcs;
+    public LootModule(Core core, InternalConfig config) {
+        this.loot = new LootHelper(config);
+        this.danger = new DangerHelper(config);
+        this.circularDrive = new CircularDriveHelper(this.loot.getTargetObservable());
+        this.pet = new PetHelper(config);
 
-    private HeroManager hero;
-    private Drive drive;
+        this.loot.install(core);
+        this.danger.install(core);
+        this.circularDrive.install(core);
+        this.pet.install(core);
 
-    private Config config;
+        this.scheduler = core.getSchedulerManager();
+        this.drive = core.getDriveManager();
 
-    public Npc target;
-
-    private int radiusFix;
-
-    private long laserTime;
-    private long clickDelay;
-    private int times;
-    private boolean sab;
-
-    private boolean locked;
-    private boolean repairing;
+        this.config = core.getCommonConfig();
+    }
 
     @Override
-    public void install(Main main) {
-        this.main = main;
-
-        this.hero = main.hero;
-        this.drive = main.hero.drive;
-
-        this.ships = main.mapManager.entities.ships;
-        this.npcs = main.mapManager.entities.npcs;
-        this.config = main.config;
+    public void resume() {
     }
 
     @Override
     public boolean canRefresh() {
-        return target == null;
+        return !loot.isAttacking();
     }
 
     @Override
     public void tick() {
 
-        if (checkDangerousAndCurrentMap()) {
+        if (danger.checkDangerousAndCurrentMap()) {
 
-            if (findTarget()) {
-                moveToAnSafePosition();
-                doKillTargetTick();
+            pet.check();
+            scheduler.asyncSetConfig(config.OFFENSIVE_CONFIG);
+
+            if (loot.findTarget()) {
+
+                circularDrive.moveToAnSafePosition();
+                loot.doKillTick();
+
             } else if (!drive.isMoving()) {
                 drive.moveRandom();
             }
@@ -77,251 +77,58 @@ public class LootModule implements Module {
 
     }
 
-    void doKillTargetTick() {
-        if (main.mapManager.isTarget(target)) {
+    private static class InternalConfig implements ModuleConfig,
+            LootHelper.LootHelperConfig,
+            DangerHelper.DangerHelpConfig,
+            PetHelper.PetHelperConfig {
 
-            if (main.mapManager.isCurrentTargetOwned()) {
+        @ILabel("Run from enemies")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES;
+        @ILabel("Run from enemies in sight")
+        @ICheckBox
+        public boolean RUN_FROM_ENEMIES_IN_SIGHT;
+        @ILabel("Ammo key")
+        @ICharField
+        public char    AMMO_KEY     = '3';
+        @ILabel("Use auto-sab")
+        @ICheckBox
+        public boolean AUTO_SAB     = false;
+        @ILabel("Ammo sab key")
+        @ICharField
+        public char    AUTO_SAB_KEY = '4';
+        @ILabel("Pet gear")
+        @IPetModules
+        public int     petGearId;
 
-                if (checkIfIsAttackingAndCanContinue()) {
-                    checkSab();
-                }
-
-            } else {
-                target.setTimerTo(90000);
-                target = null;
-            }
-
-        } else {
-            setTargetAndTryStartLaserAttack();
-        }
-    }
-
-    boolean checkDangerousAndCurrentMap() {
-
-        if (config.WORKING_MAP != hero.map.id) {
-
-            main.setModule(new MapModule())
-                    .setTargetAndBack(main.starManager.fromId(main.config.WORKING_MAP));
-
-        } else if ((repairing = repairing || hero.health.hpPercent() < config.REPAIR_HP) || hasEnemies()) {
-
-            if (repairing)
-                repairing = hero.health.hpPercent() >= config.WAIT_HP;
-
-            Portal portal = main.starManager.next(hero.map, hero.locationInfo, hero.map);
-
-            if (portal.locationInfo.distance(hero) < 100) {
-                if (isUnderAttack())
-                    hero.jumpPortal(portal);
-            } else
-                drive.move(portal);
-
-        } else
-            return true;
-
-        hero.runMode();
-
-        return false;
-    }
-
-    boolean findTarget() {
-        if (target == null || target.removed) {
-            target = closestNpc(hero.locationInfo.now);
-            locked = false;
+        @Override
+        public char ammoKey() {
+            return AMMO_KEY;
         }
 
-        return target != null;
-    }
-
-    private void checkSab() {
-        if (config.AUTO_SAB && hero.health.shieldPercent() < 0.6 && target.health.shield > 12000) {
-
-            if (!sab) {
-                API.keyboardClick(config.AUTO_SAB_KEY);
-                sab = true;
-            }
-
-        } else if (sab) {
-            API.keyboardClick(config.AMMO_KEY);
-            sab = false;
-        }
-    }
-
-    private boolean checkIfIsAttackingAndCanContinue() {
-
-        long laser = System.currentTimeMillis() - laserTime;
-
-        boolean attacking = hero.isAttacking(target);
-        boolean bugged = (!target.health.isDecreasedIn(1000) && laser > 1000);
-
-        if ((!attacking || bugged) && hero.locationInfo.distance(target) < 800 && laser > 1500 + times * 10000) {
-            setRadiusAndClick(2);
-            times++;
-            laserTime = System.currentTimeMillis();
+        @Override
+        public boolean autoSab() {
+            return AUTO_SAB;
         }
 
-        return true;
-    }
-
-    private void setTargetAndTryStartLaserAttack() {
-        if (hero.locationInfo.distance(target) <= target.npcInfo.radius && System.currentTimeMillis() - clickDelay > 1000) {
-
-            hero.setTarget(target);
-
-            setRadiusAndClick(1);
-            API.keyboardClick(config.AMMO_KEY);
-            clickDelay = System.currentTimeMillis();
-            locked = true;
-            times = 0;
-
-        } else if (!locked) {
-            target = null;
+        @Override
+        public char autoSabKey() {
+            return AUTO_SAB_KEY;
         }
 
-    }
-
-    private void setRadiusAndClick(int times) {
-        target.clickable.setRadius(800);
-
-        drive.clickCenter(times);
-
-        target.clickable.setRadius(0);
-    }
-
-    void moveToAnSafePosition() {
-
-        double hp = target.health.hpPercent();
-
-        if (hp == 1) {
-            drive.move(target);
-        } else {
-
-            LocationInfo heroInfo = hero.locationInfo;
-            LocationInfo targetInfo = target.locationInfo;
-
-            Location locationHero = heroInfo.now;
-            Location locationCurrent = targetInfo.destinationInTime(200);
-
-            double radius = target.npcInfo.radius;
-
-            double distance = heroInfo.now.distance(targetInfo.now);
-            double angle = locationCurrent.angle(locationHero);
-
-            if (distance > radius) {
-                radiusFix -= (distance - radius) / 2;
-                radiusFix = (int) max(radiusFix, -target.npcInfo.radius / 2);
-            } else {
-                radiusFix += (radius - distance) / 6;
-                radiusFix = (int) min(radiusFix, target.npcInfo.radius / 2);
-            }
-
-            if (distance > 2 * radius && target.health.hpPercent() < 0.25) {
-                hero.runMode();
-            } else {
-                hero.attackMode();
-            }
-
-            radius += radiusFix;
-
-            double speed = min(200, target.locationInfo.speed) * 0.625;
-            double moveDistance = hero.shipInfo.speed * 0.625 + speed;
-
-            double x = locationCurrent.x - cos(angle) * radius;
-            double y = locationCurrent.y - sin(angle) * radius;
-
-            boolean circle = (moveDistance = (moveDistance - (locationHero.distance(x, y)))) > 0;
-
-            if (circle) {
-                double add = moveDistance / radius;
-
-                angle += add;
-
-                x = locationCurrent.x - cos(angle) * radius;
-                y = locationCurrent.y - sin(angle) * radius;
-            }
-
-            drive.move(x, y);
-
-
-        }
-    }
-
-    private boolean isUnderAttack() {
-        for (Ship ship : ships) {
-            if (ship.playerInfo.isEnemy()) {
-
-                if (ship.isAttacking(hero)) {
-                    return true;
-                }
-
-            }
-        }
-        return false;
-    }
-
-    private boolean hasEnemies() {
-
-        if (config.RUN_FROM_ENEMIES || config.RUN_FROM_ENEMIES_IN_SIGHT) {
-            for (Ship ship : ships) {
-                if (ship.playerInfo.isEnemy()) {
-
-                    if (config.RUN_FROM_ENEMIES_IN_SIGHT)
-                        return true;
-
-                    if (ship.isAttacking(hero)) {
-                        ship.setTimerTo(400_000);
-                        return true;
-                    } else if (ship.isInTimer()) {
-                        return true;
-                    }
-
-                }
-            }
+        @Override
+        public boolean runFromEnemies() {
+            return RUN_FROM_ENEMIES;
         }
 
-        return false;
-    }
-
-    private boolean isAttackedByOthers(Npc npc) {
-
-        for (Ship ship : ships) {
-            if (ship.isAttacking(npc)) {
-                npc.setTimerTo(90000);
-                return true;
-            }
+        @Override
+        public boolean runFromEnemiesInSight() {
+            return RUN_FROM_ENEMIES_IN_SIGHT;
         }
 
-        return false;
-    }
-
-    private Npc closestNpc(Location location) {
-
-        double distance = 0;
-        int priority = 0;
-
-        Npc maxPriority = null;
-        Npc minDistance = null;
-
-        for (Npc npc : npcs) {
-
-            if (npc.npcInfo.kill && !npc.isInTimer() && !isAttackedByOthers(npc)) {
-
-                double distanceCurrent = npc.locationInfo.now.distance(location);
-                int priorityCurrent = npc.npcInfo.priority;
-
-                if (minDistance == null || distanceCurrent < distance) {
-                    distance = distanceCurrent;
-                    minDistance = npc;
-                }
-
-                if (maxPriority == null || priorityCurrent >= priority) {
-                    priority = priorityCurrent;
-                    maxPriority = npc;
-                }
-
-            }
+        @Override
+        public int gearId() {
+            return petGearId;
         }
-
-        return minDistance == null ? null : priority > minDistance.npcInfo.priority ? maxPriority : minDistance;
     }
 }

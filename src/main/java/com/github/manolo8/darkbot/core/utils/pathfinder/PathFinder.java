@@ -1,35 +1,35 @@
 package com.github.manolo8.darkbot.core.utils.pathfinder;
 
 import com.github.manolo8.darkbot.core.itf.Obstacle;
-import com.github.manolo8.darkbot.core.utils.Location;
+import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.objects.Location;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PathFinder {
 
-    final LinkedList<PathPoint> paths;
-    final Set<PathPoint> points;
+    final        LinkedList<PathPoint> paths;
+    public final Set<PathPoint>        points;
+    final        List<Obstacle>        obstacles;
+    final        HeroManager           hero;
+    final        List<Area>            avoidAreas;
 
-    final List<Obstacle> obstacles;
+    private int  lastSize;
+    private long lastMapChanged;
 
-    private int lastSize;
+    public PathFinder(HeroManager hero, List<Obstacle> obstacles) {
+        this.hero = hero;
 
-    public PathFinder(List<Obstacle> obstacles) {
         this.paths = new LinkedList<>();
         this.obstacles = obstacles;
         this.points = new HashSet<>();
+        this.avoidAreas = new ArrayList<>();
     }
 
     public Location current() {
-        if (paths.size() > 0) {
-            PathPoint point = paths.getFirst();
+        PathPoint point = paths.getFirst();
 
-            return new Location(point.x, point.y);
-        }
-        return null;
+        return new Location(point.x, point.y);
     }
 
     public void currentCompleted() {
@@ -47,7 +47,61 @@ public class PathFinder {
         );
     }
 
+    public List<PathPoint> path() {
+        return paths;
+    }
+
+    public void clear() {
+        paths.clear();
+    }
+
+    public boolean checkModification() {
+
+        for (Obstacle obstacle : obstacles) {
+            Area area = obstacle.getArea();
+
+            if (area.changed || area.cachedUsing != obstacle.use()) {
+                rebuild();
+                return true;
+            }
+        }
+
+        if (obstacles.size() != lastSize) {
+            rebuild();
+            return true;
+        }
+
+        if (hero != null && lastMapChanged != hero.map.mapInfo.lastChanged) {
+            rebuild();
+            return true;
+        }
+
+        if (!paths.isEmpty() && hero != null) {
+
+            Location location = hero.location;
+
+            PathPoint current     = new PathPoint((int) location.x, (int) location.y);
+            PathPoint destination = paths.getFirst();
+
+            return !hasLineOfSight(current, destination);
+        }
+
+        return false;
+    }
+
+    public boolean canMove(Location location) {
+
+        PathPoint point        = new PathPoint((int) location.x, (int) location.y);
+        Location  heroLocation = hero.location;
+        PathPoint current      = new PathPoint((int) heroLocation.x, (int) heroLocation.y);
+
+        return hasLineOfSight(current, point);
+    }
+
     private void createRote(PathPoint current, PathPoint destination) {
+        fixToClosest(current);
+        fixToClosest(destination);
+
         if (hasLineOfSight(current, destination)) {
 
             paths.clear();
@@ -59,11 +113,8 @@ public class PathFinder {
 
             checkModification();
 
-            fixToClosest(current);
-            fixToClosest(destination);
-
-            current.fillLineOfSight(this);
-            destination.fillLineOfSight(this);
+            current.setFinder(this);
+            destination.setFinder(this);
 
             new PathFinderCalculator(
                     current,
@@ -77,26 +128,29 @@ public class PathFinder {
 
         Area area = areaTo(point);
 
-        if (area != null) {
-            area.toSide(point);
-        }
+        if (area == null)
+            return;
 
-        area = areaTo(point);
+        PathPoint other = area.toSide(point);
 
-        //Well, our method fails...
-        if (area != null) {
+        if (areaTo(other) != null) {
+
             PathPoint closest = closest(point);
 
             point.x = closest.x;
             point.y = closest.y;
-        }
 
+
+        } else {
+            point.x = other.x;
+            point.y = other.y;
+        }
     }
 
     private PathPoint closest(PathPoint point) {
 
-        double distance = 0;
-        PathPoint current = null;
+        double    distance = 0;
+        PathPoint current  = null;
 
         for (PathPoint loop : points) {
             double cd = loop.distance(point);
@@ -111,124 +165,121 @@ public class PathFinder {
         return current;
     }
 
-    private void checkModification() {
-        for (Obstacle obstacle : obstacles) {
-
-            Area area = obstacle.getArea();
-
-            if (area.changed || area.cachedUsing != obstacle.use()) {
-                rebuild();
-                return;
-            }
-        }
-
-        if (obstacles.size() != lastSize) {
-            rebuild();
-        }
-    }
-
     private void rebuild() {
         points.clear();
         lastSize = obstacles.size();
+        if (hero != null)
+            lastMapChanged = hero.map.mapInfo.lastChanged;
+        avoidAreas.clear();
 
         rebuildPoints();
-        rebuildLineOfSight();
+        setFinder();
     }
 
     private void rebuildPoints() {
+
+        Set<Area> areas = new HashSet<>();
+
         for (Obstacle obstacle : obstacles) {
 
-            if (obstacle.use()) {
+            Area a = obstacle.getArea();
 
-                Area a = obstacle.getArea();
+            boolean use = obstacle.use();
 
-                a.changed = false;
+            a.changed = false;
+            a.cachedUsing = use;
 
-                //LEFT AND TOP
-                checkAndAddPoint(new PathPoint((int) a.minX - 1, (int) a.minY - 1));
-                //LEFT AND BOTTOM
-                checkAndAddPoint(new PathPoint((int) a.minX - 1, (int) (a.maxY) + 1));
-                //RIGHT AND TOP
-                checkAndAddPoint(new PathPoint((int) (a.maxX) + 1, (int) a.minY - 1));
-                //RIGHT AND BOTTOM
-                checkAndAddPoint(new PathPoint((int) (a.maxX) + 1, (int) (a.maxY) + 1));
-            }
-
+            if (use)
+                areas.add(a);
         }
+
+        if (hero != null)
+            areas.addAll(hero.map.mapInfo.getAvoidAreas());
+
+        main:
+        while (true) {
+            for (Area area : areas) {
+                for (Area area1 : areas) {
+                    if (area1 != area) {
+                        if (area.canGrowTo(area1)) {
+                            areas.remove(area);
+                            areas.remove(area1);
+                            areas.add(area.grow(area1));
+                            continue main;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+
+        avoidAreas.addAll(areas);
+
+        for (Area area : areas)
+            addArea(area);
+    }
+
+    private void addArea(Area a) {
+        //LEFT AND TOP
+        checkAndAddPoint(new PathPoint((int) a.minX - 1, (int) a.minY - 1));
+        //LEFT AND BOTTOM
+        checkAndAddPoint(new PathPoint((int) a.minX - 1, (int) a.maxY + 1));
+        //RIGHT AND TOP
+        checkAndAddPoint(new PathPoint((int) a.maxX + 1, (int) a.minY - 1));
+        //RIGHT AND BOTTOM
+        checkAndAddPoint(new PathPoint((int) a.maxX + 1, (int) a.maxY + 1));
     }
 
     private void checkAndAddPoint(PathPoint point) {
-        if (collisionCount(point) == 0) {
+        if (collisionCount(point) == 0)
             points.add(point);
-        }
     }
 
     private int collisionCount(PathPoint point) {
 
         int count = 0;
 
-        for (Obstacle obstacle : obstacles) {
-            if (obstacle.use()) {
-                Area area = obstacle.getArea();
-                if (area.inside(point.x, point.y))
-                    count++;
-            }
+        for (Area area : avoidAreas) {
+            if (area.inside(point.x, point.y))
+                count++;
         }
 
         return count;
     }
 
     private Area areaTo(PathPoint point) {
-        for (Obstacle obstacle : obstacles) {
-            if (obstacle.use()) {
-                Area area = obstacle.getArea();
-                if (area.inside(point.x, point.y)) {
-                    return area;
-                }
+
+        for (Area area : avoidAreas) {
+            if (area.inside(point.x, point.y)) {
+                return area;
             }
         }
 
         return null;
     }
 
-    public boolean canMove(Location location) {
-        for (Obstacle obstacle : obstacles) {
-            if (obstacle.use()) {
-                Area area = obstacle.getArea();
-                if (area.inside((int) location.x, (int) location.y)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private void rebuildLineOfSight() {
+    private void setFinder() {
         for (PathPoint point : points) {
-            point.fillLineOfSight(this);
+            point.setFinder(this);
         }
     }
 
     boolean hasLineOfSight(PathPoint point1, PathPoint point2) {
 
-        for (Obstacle obstacle : obstacles) {
+        Area container = new Area(
+                Math.max(point1.x, point2.x),
+                Math.min(point1.x, point2.x),
+                Math.max(point1.y, point2.y),
+                Math.min(point1.y, point2.y)
+        );
 
-            if (obstacle.use()) {
-
-                Area area = obstacle.getArea();
-
-                if (!area.hasLineOfSight(point1, point2)) {
-                    return false;
-                }
+        for (Area area : avoidAreas) {
+            if (container.intersect(area)
+                    && !area.hasLineOfSight(point1, point2)) {
+                return false;
             }
-
         }
 
         return true;
-    }
-
-    public List<PathPoint> path() {
-        return paths;
     }
 }

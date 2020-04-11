@@ -1,160 +1,251 @@
 package com.github.manolo8.darkbot.core.manager;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Entity;
-import com.github.manolo8.darkbot.core.itf.Manager;
-import com.github.manolo8.darkbot.core.itf.MapChange;
-import com.github.manolo8.darkbot.core.utils.EntityList;
+import com.github.manolo8.darkbot.core.installer.BotInstaller;
+import com.github.manolo8.darkbot.core.itf.Installable;
+import com.github.manolo8.darkbot.core.objects.Location;
 
-import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.manager.Core.API;
 
-public class MapManager implements Manager {
+public class MapManager implements Installable {
 
-    private final Main main;
+    public static MapManager INSTANCE;
 
-    public final EntityList entities;
+    private final ThreadWorker worker;
+    private final HeroManager  hero;
+    private final StarManager  starManager;
 
-    private long mapAddressStatic;
-    private long viewAddressStatic;
-    public long mapAddress;
-    private long viewAddress;
-    private long boundsAddress;
-    private long eventAddress;
+    public static long address;
+    private       long mapAddressStatic;
+    private       long viewAddressStatic;
+    private       long eventAddressStatic;
+    private       long mapHandler;
+    private       long viewAddress;
 
     public static int id;
 
-    public static int internalWidth;
-    public static int internalHeight;
+    public int internalWidth  = 22000;
+    public int internalHeight = 11000;
 
-    public static int clientWidth;
-    public static int clientHeight;
+    public int clientWidth;
+    public int clientHeight;
 
     public double boundX;
     public double boundY;
     public double boundMaxX;
     public double boundMaxY;
 
-    public MapManager(Main main) {
-        this.main = main;
+    public MapManager(Core core) {
 
-        this.entities = new EntityList(main);
+        INSTANCE = this;
+
+        this.hero = core.getHeroManager();
+        this.starManager = core.getStarManager();
+
+        this.worker = new ThreadWorker();
+        this.worker.start();
     }
-
 
     @Override
     public void install(BotInstaller botInstaller) {
 
-        botInstaller.screenManagerAddress.add(value -> {
+        botInstaller.screenManagerAddress.subscribe(value -> {
             mapAddressStatic = value + 256;
             viewAddressStatic = value + 216;
-            eventAddress = value + 200;
+            eventAddressStatic = value + 200;
         });
-
     }
 
-    public void tick() {
+    void update() {
+
         long temp = API.readMemoryLong(mapAddressStatic);
 
-        if (mapAddress != temp) {
-            update(temp);
-        }
+        if (temp == 0)
+            return;
 
-        entities.update();
+        if (address != temp)
+            update(temp);
 
         updateBounds();
-        checkMirror();
     }
 
     private void update(long address) {
 
-        mapAddress = address;
+        MapManager.address = address;
 
         internalWidth = API.readMemoryInt(address + 68);
-        internalHeight = API.readMemoryInt(address + 72);
+        internalHeight = API.readMemoryInt(address + 72) + 400;
         int tempId = API.readMemoryInt(address + 76);
-        entities.update(address);
 
         if (tempId != id) {
             id = tempId;
-            main.hero.map = main.starManager.fromId(id);
-
-            if (main.module instanceof MapChange) {
-                ((MapChange) main.module).onMapChange();
-            }
+            hero.map = starManager.fromId(id);
         }
     }
 
-    void checkMirror() {
-        long temp = API.readMemoryLong(eventAddress) + 4 * 14;
+    public void tick() {
+        checkMirror();
+    }
 
-        if (API.readMemoryBoolean(temp)) {
+    void checkMirror() {
+        long temp = API.readMemoryLong(eventAddressStatic) + 56;
+
+        if (API.readMemoryBoolean(temp))
             API.writeMemoryInt(temp, 0);
-        }
     }
 
     void updateBounds() {
 
         long temp = API.readMemoryLong(viewAddressStatic);
 
-        if (viewAddress != temp) {
-            viewAddress = temp;
-            boundsAddress = API.readMemoryLong(viewAddress + 208);
+        if (mapHandler != temp) {
+            mapHandler = temp;
+            viewAddress = API.readMemoryLong(mapHandler + 208);
         }
 
-        clientWidth = API.readMemoryInt(boundsAddress + 168);
-        clientHeight = API.readMemoryInt(boundsAddress + 172);
+        if (viewAddress == 0)
+            return;
 
-        long updated = API.readMemoryLong(boundsAddress + 280);
-        updated = API.readMemoryLong(updated + 112);
+        clientWidth = API.readMemoryInt(viewAddress + 168);
+        clientHeight = API.readMemoryInt(viewAddress + 172);
 
-        boundX = API.readMemoryDouble(updated + 80);
-        boundY = API.readMemoryDouble(updated + 88);
-        boundMaxX = API.readMemoryDouble(updated + 112);
-        boundMaxY = API.readMemoryDouble(updated + 120);
+        long boundsAddress = API.readMemoryLong(viewAddress + 280);
+        boundsAddress = API.readMemoryLong(boundsAddress + 112);
+
+        boundX = API.readMemoryDouble(boundsAddress + 80);
+        boundY = API.readMemoryDouble(boundsAddress + 88);
+        boundMaxX = API.readMemoryDouble(boundsAddress + 112);
+        boundMaxY = API.readMemoryDouble(boundsAddress + 120);
     }
 
     public boolean isTarget(Entity entity) {
-        return API.readMemoryLong(API.readMemoryLong(mapAddress + 120) + 40) == entity.address;
+        return API.readMemoryLong(API.readMemoryLong(address + 120) + 40) == entity.address;
     }
 
-    public boolean isOutOfMap(double x, double y) {
-        return x < 0 || y < 0 || x > internalWidth || y > internalHeight;
+    public double distanceOutOfMap(Location loc) {
+
+        double x = loc.x;
+        double y = loc.y;
+
+        int width  = internalWidth;
+        int height = internalHeight;
+
+        if (x < 0 && y < 0) {
+            return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        } else if (x > width && y > height) {
+            return Math.sqrt(Math.pow(x - width, 2) + Math.pow(y - height, 2));
+        } else if (x < 0 && y > height) {
+            return Math.sqrt(Math.pow(x, 2) + Math.pow(y - height, 2));
+        } else if (x > width && y < 0) {
+            return Math.sqrt(Math.pow(x - width, 2) + Math.pow(y, 2));
+        } else if (x > width) {
+            return x - width;
+        } else if (y > height) {
+            return y - height;
+        } else if (x < 0) {
+            return -x;
+        } else if (y < 0) {
+            return -y;
+        } else {
+            return 0;
+        }
+    }
+
+    public boolean isOutOfMap(Location loc) {
+        return loc.x < 800 || loc.y < 800 || loc.x > internalWidth - 800 || loc.y > internalHeight - 800;
+    }
+
+    public boolean isInTop(Location loc) {
+
+        double s = internalHeight * 0.75 * loc.x;
+        double t = internalWidth * 0.75 * loc.y;
+
+        return (s < 0) == (t < 0) && s >= 0 && s + t <= internalWidth * internalHeight;
     }
 
     public boolean isCurrentTargetOwned() {
         long temp = API.readMemoryLong(viewAddressStatic);
+
+        if (temp == 0)
+            return false;
+
         temp = API.readMemoryLong(temp + 216);
         temp = API.readMemoryLong(temp + 200);
         temp = API.readMemoryLong(temp + 48);
+
         return API.readMemoryInt(temp + 40) == 1;
     }
 
-    public void translateMouseMove(double x, double y) {
-        API.mouseMove(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
+    public void move(Location location) {
+
+        long eventAddress = API.readMemoryLong(eventAddressStatic);
+
+        if (eventAddress == 0)
+            return;
+
+        location = location.copy();
+
+        worker.address = API.readMemoryLong(eventAddress + 64);
+        worker.x = location.x;
+        worker.y = location.y;
+
+        API.writeMemoryInt(eventAddress + 44, 0);
+
+        worker.unpause();
+        clickCenter();
+        worker.pause();
+
+        API.writeMemoryInt(eventAddress + 44, 0);
     }
 
-    public void translateMousePress(double x, double y) {
-        API.mousePress(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
+    public void clickCenter() {
+        API.mousePress(clientWidth / 2, clientHeight / 2);
     }
 
-    public void translateMouseClick(double x, double y) {
-        API.mouseClick(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
+    private static class ThreadWorker extends Thread {
+
+        private final    Object  mutex;
+        private volatile boolean paused;
+        private          long    address;
+        private          double  x;
+        private          double  y;
+
+        public ThreadWorker() {
+            this.mutex = new Object();
+            this.paused = true;
+        }
+
+        public void unpause() {
+            paused = false;
+
+            synchronized (mutex) {
+                mutex.notifyAll();
+            }
+        }
+
+        public void pause() {
+            paused = true;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                synchronized (mutex) {
+
+                    if (paused) {
+                        try {
+                            mutex.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    API.writeMemoryDouble(address + 32, x);
+                    API.writeMemoryDouble(address + 40, y);
+                }
+            }
+        }
     }
 
-    public void translateMouseMoveRelease(double x, double y) {
-        API.mouseRelease(
-                (int) ((x - boundX) / (boundMaxX - boundX) * clientWidth),
-                (int) ((y - boundY) / (boundMaxY - boundY) * clientHeight)
-        );
-    }
+
 }

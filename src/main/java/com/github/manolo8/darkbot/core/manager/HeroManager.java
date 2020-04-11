@@ -1,82 +1,79 @@
 package com.github.manolo8.darkbot.core.manager;
 
-import com.github.manolo8.darkbot.Main;
-import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.entities.Pet;
-import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.itf.Manager;
+import com.github.manolo8.darkbot.core.installer.BotInstaller;
+import com.github.manolo8.darkbot.core.itf.Installable;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.view.draw.GraphicDrawer;
 
-import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.manager.Core.API;
+import static com.github.manolo8.darkbot.view.draw.Palette.OWNER;
 
-public class HeroManager extends Ship implements Manager {
+public class HeroManager
+        extends Ship
+        implements Installable {
 
     public static HeroManager instance;
-    private final Main main;
 
     private long staticAddress;
     private long settingsAddress;
 
     public final Pet pet;
-    public final Drive drive;
 
     public Map map;
 
     public Ship target;
 
-    public int config;
-    private long configTime;
-    private long portalTime;
+    public int configId;
+    public int formationId;
 
-    public HeroManager(Main main) {
+    public HeroManager() {
         super(0);
         instance = this;
 
-        this.main = main;
-        this.drive = new Drive(this, main.mapManager);
         this.pet = new Pet(0);
-        this.map = new Map(0, "LOADING", false, new Portal[0]);
+        this.map = new Map(-1, "Loading");
     }
 
     @Override
     public void install(BotInstaller botInstaller) {
-        botInstaller.screenManagerAddress.add(value -> staticAddress = value + 240);
-        botInstaller.settingsAddress.add(value -> this.settingsAddress = value);
-    }
-
-    public void tick() {
-
-        long address = API.readMemoryLong(staticAddress);
-
-        if (this.address != address) {
-            update(address);
-        }
-
-        update();
-
-        drive.checkMove();
+        botInstaller.screenManagerAddress.subscribe(value -> staticAddress = value + 240);
+        botInstaller.settingsAddress.subscribe(value -> settingsAddress = value);
     }
 
     @Override
     public void update() {
 
+        long address = API.readMemoryLong(staticAddress);
+
+        if (this.address != address)
+            update(address);
+
+        if (address == 0)
+            return;
+
         super.update();
 
         pet.update();
 
-        config = API.readMemoryInt(settingsAddress + 56);
+        configId = API.readMemoryInt(settingsAddress + 52);
+        formationId = API.readMemoryInt(API.readMemoryLong(API.readMemoryLong(address + 280) + 40) + 40);
 
         long petAddress = API.readMemoryLong(address + 176);
 
-        if (petAddress != pet.address) {
+        if (petAddress != pet.address)
             pet.update(petAddress);
-        }
     }
 
     @Override
     public void update(long address) {
+
+        if (address == 0) {
+            this.address = 0;
+            return;
+        }
+
         super.update(address);
 
         pet.update(API.readMemoryLong(address + 176));
@@ -88,34 +85,10 @@ public class HeroManager extends Ship implements Manager {
         this.target = entity;
     }
 
-    public long timeTo(double distance) {
-        return (long) (distance * 1000 / shipInfo.speed);
-    }
-
-    public int nextMap() {
-        return API.readMemoryInt(API.readMemoryInt(settingsAddress + 204));
-    }
-
-    public void jumpPortal(Portal portal) {
-        if (portal.target.id != nextMap() && System.currentTimeMillis() - portalTime > 10000) {
-            API.keyboardClick('j');
-            portalTime = System.currentTimeMillis();
-        }
-    }
-
-    public void attackMode() {
-        if (config != main.config.OFFENSIVE_CONFIG && System.currentTimeMillis() - configTime > 6000) {
-            API.keyboardClick('c');
-            API.keyboardClick(main.config.OFFENSIVE_FORMATION);
-            configTime = System.currentTimeMillis();
-        }
-    }
-
-    public void runMode() {
-        if (config != main.config.RUN_CONFIG && System.currentTimeMillis() - configTime > 6000) {
-            API.keyboardClick(main.config.RUN_FORMATION);
-            API.keyboardClick('c');
-            configTime = System.currentTimeMillis();
-        }
+    @Override
+    public void draw(GraphicDrawer drawer) {
+        drawer.setColor(OWNER);
+        drawer.set(location.x, location.y);
+        drawer.fillOvalCenter(7, 7);
     }
 }

@@ -3,21 +3,19 @@ package com.github.manolo8.darkbot.core.entities;
 import com.github.manolo8.darkbot.core.objects.Health;
 import com.github.manolo8.darkbot.core.objects.PlayerInfo;
 import com.github.manolo8.darkbot.core.objects.ShipInfo;
+import com.github.manolo8.darkbot.core.objects.Location;
 
-import java.util.HashMap;
+import static com.github.manolo8.darkbot.core.manager.Core.API;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
-import static com.github.manolo8.darkbot.Main.API;
+public abstract class Ship
+        extends Entity {
 
-public class Ship extends Entity {
-
-    private static HashMap<Integer, Long> cacheTimer = new HashMap<>();
-
-    public Health health;
+    public Health     health;
     public PlayerInfo playerInfo;
-    public ShipInfo shipInfo;
-    public boolean invisible;
-
-    public long timer;
+    public ShipInfo   shipInfo;
+    public boolean    invisible;
 
     public Ship(int id) {
         super(id);
@@ -25,18 +23,14 @@ public class Ship extends Entity {
         this.health = new Health();
         this.playerInfo = new PlayerInfo();
         this.shipInfo = new ShipInfo();
-
-        Long temp = cacheTimer.remove(id);
-
-        if (temp != null) timer = temp;
-    }
-
-    public boolean isAttacking(Ship other) {
-        return shipInfo.target == other.address;
     }
 
     @Override
     public void update() {
+
+        if (address == 0)
+            return;
+
         super.update();
 
         health.update();
@@ -48,35 +42,59 @@ public class Ship extends Entity {
 
     @Override
     public void update(long address) {
+
         super.update(address);
+
+        if (address == 0)
+            return;
 
         playerInfo.update(API.readMemoryLong(address + 248));
         health.update(API.readMemoryLong(address + 184));
         shipInfo.update(API.readMemoryLong(address + 232));
     }
 
-    @Override
-    public void removed() {
-        super.removed();
-
-        if (isInTimer()) {
-            cacheTimer.put(id, timer);
-        }
+    public boolean isAttacking(Ship other) {
+        return shipInfo.target == other.address;
     }
 
-    public void setTimerTo(long time) {
-        timer = System.currentTimeMillis() + time;
+    public int diffAngle(Entity other) {
 
-        clearIgnored();
+        int angleOne = shipInfo.angle;
+        int angleTwo = (int) (location.angle(other.location) * 57.2957795130823);
+
+        if (angleTwo < 0)
+            angleTwo += 360;
+
+        return Math.abs(angleOne - angleTwo);
     }
 
-    private void clearIgnored() {
-        if (cacheTimer.size() > 10) {
-            cacheTimer.entrySet().removeIf(entry -> entry.getValue() < System.currentTimeMillis());
-        }
+    public Location destinationInTime(long time) {
+
+        if (!shipInfo.destination.valid)
+            return location;
+
+        double maxDistance  = shipInfo.destination.distance(location);
+        double timeDistance = (time * shipInfo.speed) / 1000;
+
+        double distance = Math.min(maxDistance, timeDistance);
+
+        double angle = location.angle(shipInfo.destination);
+
+        return new Location(
+                location.x - cos(angle) * distance,
+                location.y - sin(angle) * distance
+        );
     }
 
-    public boolean isInTimer() {
-        return timer > System.currentTimeMillis();
+    public boolean isMoving() {
+        return shipInfo.destination.valid;
+    }
+
+    public boolean isGoingTo(Location location) {
+        return this.location.equals(location) || shipInfo.destination.equals(location);
+    }
+
+    public boolean isGoingAway(Location location) {
+        return shipInfo.destination.valid && shipInfo.destination.distance(location) > this.location.distance(location);
     }
 }
