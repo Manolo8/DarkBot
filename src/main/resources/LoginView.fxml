@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<TabPane prefHeight="395.0" prefWidth="682.0" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.221" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="com.github.manolo8.darkbot.view.LoginController">
+    <tabs>
+        <Tab text="Credentials">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                    <children>
+                        <TextField fx:id="fieldUsername" layoutX="131.0" layoutY="150.0" prefHeight="26.0" prefWidth="420.0" promptText="Username"/>
+                        <PasswordField fx:id="fieldPassword" layoutX="131.0" layoutY="180.0" prefHeight="26.0" prefWidth="420.0" promptText="Password"/>
+                        <Button fx:id="btnCredentialsLogin" layoutX="131.0" layoutY="210.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="420.0" text="LOGIN"/>
+                        <Label fx:id="messageCredentials" layoutX="131.0" layoutY="250.0"/>
+                    </children>
+                </AnchorPane>
+            </content>
+        </Tab>
+        <Tab text="Session">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                    <children>
+                        <TextField fx:id="fieldSession" layoutX="131.0" layoutY="150.0" prefHeight="26.0" prefWidth="420.0" promptText="Session"/>
+                        <TextField fx:id="fieldServer" layoutX="131.0" layoutY="180.0" prefHeight="26.0" prefWidth="420.0" promptText="Server"/>
+                        <Button fx:id="btnSessionLogin" layoutX="131.0" layoutY="210.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="420.0" text="LOGIN"/>
+                        <Label fx:id="messageSession" layoutX="131.0" layoutY="250.0"/>
+                    </children>
+                </AnchorPane>
+            </content>
+        </Tab>
+    </tabs>
+</TabPane>

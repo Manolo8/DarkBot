@@ -1,0 +1,11 @@
+.svg {
+    -fx-cursor: hand;
+}
+
+.svg:hover {
+    -fx-fill: #444;
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: #888;
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "parts": 0,
+    "totalParts": 100,
+    "currentWave": 0,
+    "totalWave": 0,
+    "lifePrice": -1,
+    "lifeLeft": 0,
+    "prepared": false
+  },
+  {
+    "id": 1,
+    "parts": 3,
+    "totalParts": 34,
+    "currentWave": 0,
+    "totalWave": 0,
+    "lifePrice": 0,
+    "lifeLeft": 5,
+    "prepared": false
+  }
+]
