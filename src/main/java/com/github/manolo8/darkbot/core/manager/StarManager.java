@@ -10,24 +10,28 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class StarManager {
+    public static final String[] HOME_MAPS = new String[]{"1-1", "2-1", "3-1"};
+    public static final String[] ALL_HOME_MAPS = new String[]{"1-1", "2-1", "3-1", "1-8", "2-8", "3-8"};
+
     private static StarManager INSTANCE;
+    private static Graph<Map, Portal> starSystem;
 
     private static int INVALID_MAP_ID = -999;
 
-    private final Graph<Map, Portal> starSystem;
-
     public StarManager() {
+        if (INSTANCE != null && starSystem != null) return;
         INSTANCE = this;
-        String[] HOME_MAPS = new String[]{"1-1", "2-1", "3-1"};
 
         StarBuilder mapBuild = new StarBuilder();
         mapBuild.addMap(-1, I18n.get("gui.map.loading"), "?")
                 .addMap(-2, "Home Map").addPortal(0, 0, "1-1").addPortal(0, 0, "2-1").addPortal(0, 0, "3-1")
-                .addGG(-3, "Escort GG").accessOnlyBy(54, 10500, 6500, "1-1", "2-1", "3-1", "1-8", "2-8", "3-8");
+                .addGG(-3, "Escort GG").accessOnlyBy(54, 10500, 6500, ALL_HOME_MAPS);
                 // MMO
         mapBuild.addMap(1, "1-1").addPortal(18500, 11500, "1-2").addPortal(10500, 6750, "Experiment Zone 1")
                 .addMap(2, "1-2").addPortal(2000, 2000, "1-1").addPortal(18500, 2000, "1-3").addPortal(18500, 11500, "1-4")
@@ -160,6 +164,13 @@ public class StarManager {
         starSystem = mapBuild.build();
     }
 
+    public static Set<Map> getMapSet(Predicate<Map> filter, String name) {
+        return starSystem.vertexSet().stream()
+                .filter(map -> filter == null || filter.test(map))
+                .filter(map -> map.name.contains(name))
+                .collect(Collectors.toSet());
+    }
+
     public Portal getOrCreate(int id, int type, int x, int y) {
         return starSystem.outgoingEdgesOf(HeroManager.instance.map).stream()
                 .filter(p -> p.matches(x, y, type))
@@ -211,7 +222,7 @@ public class StarManager {
     }
 
     public static Collection<Map> getAllMaps() {
-        return INSTANCE.starSystem.vertexSet();
+        return starSystem.vertexSet();
     }
 
     public static StarManager getInstance() {
