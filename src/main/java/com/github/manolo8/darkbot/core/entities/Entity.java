@@ -7,6 +7,9 @@ import com.github.manolo8.darkbot.core.objects.Clickable;
 import com.github.manolo8.darkbot.core.objects.LocationInfo;
 import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.github.manolo8.darkbot.Main.API;
 
 public class Entity extends Updatable {
@@ -22,6 +25,8 @@ public class Entity extends Updatable {
 
     public ObjArray traits;
 
+    public Map<String, Object> metadata;
+
     public Entity() {
         this.locationInfo = new LocationInfo(0);
         this.clickable = new Clickable();
@@ -31,10 +36,6 @@ public class Entity extends Updatable {
     public Entity(int id) {
         this();
         this.id = id;
-    }
-
-    public void setMain(Main main) {
-        this.main = main;
     }
 
     public int getId() {
@@ -100,6 +101,16 @@ public class Entity extends Updatable {
 
     public void removed() {
         removed = true;
+    }
+
+    public void setMetadata(String key, Object value) {
+        if (metadata == null) metadata = new HashMap<>();
+        this.metadata.put(key, value);
+    }
+
+    public Object getMetadata(String key) {
+        if (metadata == null) return null;
+        return this.metadata.get(key);
     }
 
     @Override

@@ -113,6 +113,14 @@ public class StarBuilder {
     }
 
     /**
+     * Adds a type portal to jump to the gate, from one of the maps, and also includes itself (Like most ggs).
+     */
+    protected StarBuilder accessBy(int type, int x, int y, String... maps) {
+        this.ggPorts.add(new GGPort(type, x, y, true, maps));
+        return this;
+    }
+
+    /**
      * Adds a type portal to jump to the gate, from one of the maps, but won't be able to jump from itself (Special cases).
      */
     protected StarBuilder accessOnlyBy(int type, String... maps) {
@@ -155,8 +163,8 @@ public class StarBuilder {
             Map gg = mapsByName.get(ggPort.targetMap);
             if (ggPort.looped) graph.addEdge(gg, gg, new Portal(ggPort.type, -1, -1, gg, -1));
             for (String mapName : ggPort.maps) {
-                Map from = mapsByName.get(mapName), to = mapsByName.get(ggPort.targetMap);
-                graph.addEdge(from, to, new Portal(ggPort.type, ggPort.x, ggPort.y, gg, -1));
+                Map from = mapsByName.get(mapName);
+                graph.addEdge(from, gg, new Portal(ggPort.type, ggPort.x, ggPort.y, gg, -1));
             }
         }
         return graph;

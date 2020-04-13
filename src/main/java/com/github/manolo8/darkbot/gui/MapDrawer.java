@@ -9,6 +9,7 @@ import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.entities.BattleStation;
 import com.github.manolo8.darkbot.core.entities.Box;
 import com.github.manolo8.darkbot.core.entities.Entity;
+import com.github.manolo8.darkbot.core.entities.FakeNpc;
 import com.github.manolo8.darkbot.core.entities.NoCloack;
 import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.entities.Portal;
@@ -35,10 +36,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.ToIntFunction;
@@ -47,7 +51,13 @@ import java.util.stream.IntStream;
 
 public class MapDrawer extends JPanel {
 
-    private final DecimalFormat formatter = new DecimalFormat("###,###,###");
+    private final DecimalFormat STAT_FORMAT = new DecimalFormat("###,###,###");
+    private final NumberFormat HEALTH_FORMAT;
+    {
+        DecimalFormatSymbols sym = new DecimalFormatSymbols();
+        sym.setGroupingSeparator(' ');
+        HEALTH_FORMAT = new DecimalFormat("###,###,###", sym);
+    }
 
     private Color BACKGROUND = Color.decode("#263238");
     private Color TEXT = Color.decode("#F2F2F2");
@@ -67,6 +77,8 @@ public class MapDrawer extends JPanel {
     private Color NANO_HULL = Color.decode("#D0D024");
     private Color SHIELD = Color.decode("#0288d1");
     private Color METEROID = Color.decode("#AAAAAA");
+    private Color PING = new Color(0, 255, 0, 32);
+    private Color PING_BORDER = new Color(0, 255, 0, 128);
     private Color BARRIER = new Color(255, 255, 255, 32);
     private Color BARRIER_BORDER = new Color(255, 255, 255, 128);
     private Color NO_CLOACK = new Color(24, 160, 255, 32);
@@ -99,6 +111,7 @@ public class MapDrawer extends JPanel {
 
     private List<Portal> portals;
     private List<Npc> npcs;
+    private FakeNpc fakeNpc;
     private List<Box> boxes;
     private List<Ship> ships;
     private List<BattleStation> battleStations;
@@ -160,6 +173,7 @@ public class MapDrawer extends JPanel {
 
         this.portals = main.mapManager.entities.portals;
         this.npcs = main.mapManager.entities.npcs;
+        this.fakeNpc = main.mapManager.entities.fakeNpc;
         this.boxes = main.mapManager.entities.boxes;
         this.ships = main.mapManager.entities.ships;
         this.battleStations = main.mapManager.entities.battleStations;
@@ -234,10 +248,10 @@ public class MapDrawer extends JPanel {
         }
 
         drawBackgroundedText(g2, Align.LEFT,
-                "cre/h " + formatter.format(statsManager.earnedCredits()),
-                "uri/h " + formatter.format(statsManager.earnedUridium()),
-                "exp/h " + formatter.format(statsManager.earnedExperience()),
-                "hon/h " + formatter.format(statsManager.earnedHonor()),
+                "cre/h " + STAT_FORMAT.format(statsManager.earnedCredits()),
+                "uri/h " + STAT_FORMAT.format(statsManager.earnedUridium()),
+                "exp/h " + STAT_FORMAT.format(statsManager.earnedExperience()),
+                "hon/h " + STAT_FORMAT.format(statsManager.earnedHonor()),
                 "cargo " + statsManager.deposit + "/" + statsManager.depositTotal,
                 "death " + guiManager.deaths + '/' + config.GENERAL.SAFETY.MAX_DEATHS);
 
@@ -304,7 +318,7 @@ public class MapDrawer extends JPanel {
 
         g2.setFont(FONT_SMALL);
         String info = I18n.get("gui.map.info",
-                Main.VERSION_STRING,
+                Main.VERSION.toString(),
                 (main.isRunning() ? Time.toString(System.currentTimeMillis() - main.lastRefresh) : "00"),
                 Time.toString(config.MISCELLANEOUS.REFRESH_TIME * 60 * 1000));
         drawString(g2, info, 5, 12, Align.LEFT);
@@ -402,6 +416,13 @@ public class MapDrawer extends JPanel {
 
         g2.setColor(NPCS);
         for (Npc npc : npcs) drawEntity(g2, npc.locationInfo.now, npc.npcInfo.kill);
+        if (fakeNpc.isPingAlive()) {
+            Location loc = fakeNpc.locationInfo.now;
+            g2.setColor(PING);
+            g2.fillOval(translateX(loc.x) - 7, translateY(loc.y) - 7, 15, 15);
+            g2.setColor(PING_BORDER);
+            g2.drawOval(translateX(loc.x) - 7, translateY(loc.y) - 7, 15, 15);
+        }
 
         for (Ship ship : ships) {
             Location loc = ship.locationInfo.now;
@@ -561,7 +582,8 @@ public class MapDrawer extends JPanel {
 
         g2.setColor(TEXT);
         if (!compact)
-            drawString(g2, (health.getHull() + health.getHp()) + "/" + totalMaxHealth, x + width / 2, y + height - 2, Align.MID);
+            drawString(g2, HEALTH_FORMAT.format(health.getHull() + health.getHp()) + "/" +
+                    HEALTH_FORMAT.format(totalMaxHealth), x + width / 2, y + height - 2, Align.MID);
 
         if (health.getMaxShield() != 0) {
             g2.setColor(SHIELD.darker());
@@ -570,7 +592,8 @@ public class MapDrawer extends JPanel {
             g2.fillRect(x, y + height + margin, (int) (health.shieldPercent() * width), height);
             g2.setColor(TEXT);
             if (!compact)
-                drawString(g2, health.getShield() + "/" + health.getMaxShield(), x + width / 2, y + height + height - 2, Align.MID);
+                drawString(g2, HEALTH_FORMAT.format(health.getShield()) + "/" +
+                        HEALTH_FORMAT.format(health.getMaxShield()), x + width / 2, y + height + height - 2, Align.MID);
         }
     }
 
