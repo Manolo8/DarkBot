@@ -20,12 +20,11 @@ public class StarManager {
     public static final String[] ALL_HOME_MAPS = new String[]{"1-1", "2-1", "3-1", "1-8", "2-8", "3-8"};
 
     private static StarManager INSTANCE;
-    private static Graph<Map, Portal> starSystem;
+    private final Graph<Map, Portal> starSystem;
 
     private static int INVALID_MAP_ID = -999;
 
     public StarManager() {
-        if (INSTANCE != null && starSystem != null) return;
         INSTANCE = this;
 
         StarBuilder mapBuild = new StarBuilder();
@@ -165,7 +164,7 @@ public class StarManager {
     }
 
     public static Set<Map> getMapSet(Predicate<Map> filter, String name) {
-        return starSystem.vertexSet().stream()
+        return INSTANCE.starSystem.vertexSet().stream()
                 .filter(map -> filter == null || filter.test(map))
                 .filter(map -> map.name.contains(name))
                 .collect(Collectors.toSet());
@@ -222,7 +221,7 @@ public class StarManager {
     }
 
     public static Collection<Map> getAllMaps() {
-        return starSystem.vertexSet();
+        return INSTANCE.starSystem.vertexSet();
     }
 
     public static StarManager getInstance() {

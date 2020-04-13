@@ -30,7 +30,6 @@ public enum GalaxyGate {
         this.maps = StarManager.getMapSet(map -> map.gg, mapSymbol);
     }
 
-
     public String getParam() {
         return "&gateID=" + getId() + "&" + getName() + "=1";
     }
@@ -51,7 +50,7 @@ public enum GalaxyGate {
         return maps;
     }
 
-    public boolean isInGate() {
+    public boolean isInGate() {                  //or hero via parameter?
         return getMaps().stream().anyMatch(map -> map.id == HeroManager.instance.map.id);
     }
 
