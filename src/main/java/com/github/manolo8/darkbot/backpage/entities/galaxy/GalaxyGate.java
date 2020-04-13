@@ -7,18 +7,18 @@ import com.github.manolo8.darkbot.core.objects.Map;
 import java.util.Set;
 
 public enum GalaxyGate {
-    ALPHA("alpha", 1, "α"),
-    BETA("beta", 2, "β"),
-    GAMMA("gamma", 3, "γ"),
-    DELTA("delta", 4, "δ"),
-    EPSILON("epsilon", 5, "ε"),
-    ZETA("zeta", 6, "ζ"),
-    KAPPA("kappa", 7, "κ"),
-    LAMBDA("lambda", 8, "λ"),
+    ALPHA  ("alpha",    1,  "α"),
+    BETA   ("beta",     2,  "β"),
+    GAMMA  ("gamma",    3,  "γ"),
+    DELTA  ("delta",    4,  "δ"),
+    EPSILON("epsilon",  5,  "ε"),
+    ZETA   ("zeta",     6,  "ζ"),
+    KAPPA  ("kappa",    7,  "κ"),
+    LAMBDA ("lambda",   8,  "λ"),
     // Just to get infos about Kronos
-    KRONOS("kronos", 12, "Kronos"),
-    HADES("hades", 13, "Hades"),
-    KUIPER("streuner", 19, "ς");
+    KRONOS ("kronos",   12, "Kronos"),
+    HADES  ("hades",    13, "Hades"),
+    KUIPER ("streuner", 19, "ς");
 
     private String name;
     private int id;
