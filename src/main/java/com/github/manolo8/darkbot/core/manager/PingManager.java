@@ -49,10 +49,10 @@ public class PingManager implements Manager {
     private boolean updatePing() {
         if (lastPings == null || lastPings.address == 0) return false;
         lastPings.update();
-        if (lastPings.size <= 0) return false;
+        if (lastPings.size < 0) return false;
 
-        if (currSize != lastPings.size) lastCheck = System.currentTimeMillis();
-        else if (System.currentTimeMillis() - lastCheck > 5000) return false;
+        if (lastPings.size != 0 && currSize != lastPings.size) lastCheck = System.currentTimeMillis();
+        else if (System.currentTimeMillis() - lastCheck > 10_000) return false;
 
         this.currSize = lastPings.size;
 
