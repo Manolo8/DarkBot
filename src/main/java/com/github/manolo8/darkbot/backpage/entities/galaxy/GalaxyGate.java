@@ -5,6 +5,7 @@ import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.objects.Map;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public enum GalaxyGate {
     ALPHA  ("alpha",    1,  "α"),
@@ -26,8 +27,10 @@ public enum GalaxyGate {
 
     GalaxyGate(String name, int id, String mapSymbol) {
         this.name = name;
-        this.id = id;
-        this.maps = StarManager.getMapSet(map -> map.gg, mapSymbol);
+        this.id   = id;
+        this.maps = StarManager.getAllMaps().stream()
+                .filter(map -> map.gg && map.name.contains(mapSymbol))
+                .collect(Collectors.toSet());
     }
 
     public String getParam() {
@@ -50,8 +53,8 @@ public enum GalaxyGate {
         return maps;
     }
 
-    public boolean isInGate() {                  //or hero via parameter?
-        return getMaps().stream().anyMatch(map -> map.id == HeroManager.instance.map.id);
+    public boolean isInGate(HeroManager hero) {
+        return getMaps().stream().anyMatch(map -> map.id == hero.map.id);
     }
 
     boolean match(Object o) {

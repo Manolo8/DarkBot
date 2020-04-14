@@ -171,13 +171,6 @@ public class StarManager {
         //System.out.println(writer.toString());
     }
 
-    public static Set<Map> getMapSet(Predicate<Map> filter, String name) {
-        return INSTANCE.mapSet()
-                .filter(map -> filter == null || filter.test(map))
-                .filter(map -> map.name.contains(name))
-                .collect(Collectors.toSet());
-    }
-
     public Portal getOrCreate(int id, int type, int x, int y) {
         return starSystem.outgoingEdgesOf(HeroManager.instance.map).stream()
                 .filter(p -> p.matches(x, y, type))
