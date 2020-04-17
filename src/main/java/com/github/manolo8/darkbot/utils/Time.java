@@ -5,12 +5,15 @@ public class Time {
 
     public static String toString(Integer time) {
         if (time == null) return "-";
-        return toString(time.intValue());
+        return toString(time.longValue());
     }
 
-    public static String toString(long time) {
+    public static String toString(long milis) {
+        return toString((int) (milis / 1000L));
+    }
+
+    public static String toString(int seconds) {
         StringBuilder builder = new StringBuilder();
-        int seconds = (int) (time / 1000L);
         if (seconds >= 3600) {
             int hours = seconds / 3600;
             if (hours < 10) {
