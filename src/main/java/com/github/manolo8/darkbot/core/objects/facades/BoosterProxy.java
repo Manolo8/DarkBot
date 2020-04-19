@@ -42,7 +42,7 @@ public class BoosterProxy extends Updatable {
                 if (min == 0 || (current != 0 && current < min)) min = current;
             }
             this.cd = min;
-            //System.out.println(Time.toString((int) cd));
+            //System.out.println(Time.secondsToString((int) cd));
         }
     }
 }
