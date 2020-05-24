@@ -1,6 +1,7 @@
 package com.github.manolo8.darkbot.utils.http;
 
 import com.github.manolo8.darkbot.utils.IOUtils;
+import com.github.manolo8.darkbot.utils.ThrowFunction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -195,7 +196,7 @@ public class Http {
      *         }
      * }</pre>
      *
-     * @param function    function which will consumer InputStream
+     * @param function    function which will consume InputStream
      * @param <R>         type of return
      * @return <R> of your expression or null on exception.
      */
