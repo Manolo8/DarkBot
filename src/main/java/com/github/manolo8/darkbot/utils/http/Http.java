@@ -8,7 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,6 +25,7 @@ public class Http {
     //Discord doesn't handle java's user agent...
     protected String userAgent = "Mozilla/5.0";
     protected ParamBuilder params;
+    protected List<Runnable> suppliers;
     protected Map<String, String> headers = new LinkedHashMap<>();
 
     protected Http(String url, Method method, boolean followRedirects) {
@@ -76,6 +79,18 @@ public class Http {
      */
     public static Http create(String url, Method method, boolean followRedirects) {
         return new Http(url, method, followRedirects);
+    }
+
+    /**
+     * Adds action which will be executed at the end of the connection
+     *
+     * @param action to execute
+     * @return current instance of Http
+     */
+    public Http addSupplier(Runnable action) {
+        if (suppliers == null) suppliers = new ArrayList<>();
+        this.suppliers.add(action);
+        return this;
     }
 
     /**
@@ -235,6 +250,7 @@ public class Http {
                 os.write(data);
             }
         }
+        if (suppliers != null) suppliers.forEach(Runnable::run);
 
         return conn;
     }
