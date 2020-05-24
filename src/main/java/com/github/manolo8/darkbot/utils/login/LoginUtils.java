@@ -84,10 +84,9 @@ public class LoginUtils {
                 .consumeInputStream(inputStream ->
                         new BufferedReader(new InputStreamReader(inputStream))
                                 .lines()
-                                .peek(System.out::println)
                                 .filter(l -> l.contains("flashembed("))
                                 .findFirst()
-                                .orElseThrow(WrongCredentialsException::new), WrongCredentialsException::new);
+                                .orElseThrow(WrongCredentialsException::new));
 
         Matcher m = DATA_PATTERN.matcher(flashEmbed);
         if (m.find()) loginData.setPreloader(m.group(1), replaceParameters(m.group(2)));

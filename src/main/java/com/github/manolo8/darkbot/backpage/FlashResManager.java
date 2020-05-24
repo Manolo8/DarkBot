@@ -44,12 +44,11 @@ public class FlashResManager implements Task {
 
         try {
             Element root = Http.create(URL.replace("{lang}", currLang))
-                    .setPrintExceptions(true)
                     .consumeInputStream(inputStream -> DocumentBuilderFactory
                             .newInstance()
                             .newDocumentBuilder()
                             .parse(inputStream)
-                            .getDocumentElement(), IllegalStateException::new);
+                            .getDocumentElement());
 
             ALL_TRANSLATIONS = XmlHelper.stream(root.getElementsByTagName("item")).collect(Collectors.toMap(
                     i -> i.getAttributes().getNamedItem("name").getNodeValue(), Node::getTextContent, (a,b) -> a));
@@ -57,6 +56,7 @@ public class FlashResManager implements Task {
             // TODO: store in an efficient way to reverse-translate
             lang = currLang;
         } catch (Exception e) {
+            e.printStackTrace();
             lang = null;
         }
     }

@@ -9,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * Utility for HTTP connections.
@@ -24,7 +23,6 @@ public class Http {
     protected String userAgent = "Mozilla/5.0";
     protected ParamBuilder params;
     protected Map<String, String> headers = new LinkedHashMap<>();
-    protected boolean printExceptions = false;
 
     protected Http(String url, Method method, boolean followRedirects) {
         this.url = url;
@@ -153,17 +151,6 @@ public class Http {
     }
 
     /**
-     * Should print StackTrace on exceptions.
-     *
-     * @param print should print StackTrace
-     * @return current instance of Http
-     */
-    public Http setPrintExceptions(boolean print) {
-        this.printExceptions = print;
-        return this;
-    }
-
-    /**
      * Connects, gets and converts InputStream to String.
      * <b>Creates new connection on each call</b>
      *
@@ -200,43 +187,24 @@ public class Http {
      * <b>Creates new connection on each call</b>
      *
      * <pre>{@code
-     *     String result = Http.create("https://example.com")
-     *             .consumeInputStream(IOUtils::read);
-     * }</pre>
-     *
-     * @param function function which will consumer InputStream
-     * @param <R>      type of return
-     * @return <R> of your expression or null on exception.
-     */
-    public <R> R consumeInputStream(ThrowFunction<InputStream, R> function) {
-        return consumeInputStream(function, null);
-    }
-
-    /**
-     * Gets InputStream of current connection and applies consumer then closes InputStream.
-     * <b>Creates new connection on each call</b>
-     *
-     * <pre>{@code
      *         try {
      *             String result = Http.create("https://example.com")
-     *                     .consumeInputStream(IOUtils::read, Exception::new);
-     *         } catch (Exception e) {
+     *                     .consumeInputStream(IOUtils::read);
+     *         } catch (IOException e) {
      *             System.out.println("Something went wrong");
      *         }
      * }</pre>
      *
      * @param function    function which will consumer InputStream
-     * @param exception   supplier of exception
      * @param <R>         type of return
      * @return <R> of your expression or null on exception.
      */
-    public <X extends Throwable, R> R consumeInputStream(ThrowFunction<InputStream, R> function, Supplier<X> exception) throws X {
+    @SuppressWarnings("unchecked")
+    public <R, X extends Throwable> R consumeInputStream(ThrowFunction<InputStream, R, X> function) throws X {
         try (InputStream is = getInputStream()) {
             return function.apply(is);
-        } catch (Exception e) {
-            if (printExceptions) e.printStackTrace();
-            if (exception != null) throw exception.get();
-            return null;
+        } catch (IOException e) {
+            throw (X) e;
         }
     }
 
