@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 public class Lazy<C> {
     protected final List<Consumer<C>> consumers = new ArrayList<>();
-    protected C value;
+    @Deprecated public C value;
 
     public Lazy() {}
     public Lazy(C value) { this.value = value; }
