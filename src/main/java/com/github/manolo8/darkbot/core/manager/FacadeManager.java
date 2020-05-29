@@ -5,6 +5,7 @@ import com.github.manolo8.darkbot.core.BotInstaller;
 import com.github.manolo8.darkbot.core.itf.Manager;
 import com.github.manolo8.darkbot.core.itf.Updatable;
 import com.github.manolo8.darkbot.core.objects.facades.BoosterProxy;
+import com.github.manolo8.darkbot.core.objects.facades.ChatProxy;
 import com.github.manolo8.darkbot.core.objects.facades.EscortProxy;
 import com.github.manolo8.darkbot.core.objects.facades.EternalGateProxy;
 import com.github.manolo8.darkbot.core.objects.facades.LogMediator;
@@ -27,6 +28,7 @@ public class FacadeManager implements Manager {
     public final EscortProxy escort = registerProxy("payload_escort", new EscortProxy());
     public final EternalGateProxy eternalGate = registerProxy("eternal_gate", new EternalGateProxy());
     public final BoosterProxy booster = registerProxy("BoosterProxy", new BoosterProxy());
+    public final ChatProxy chat = registerProxy("ChatProxy", new ChatProxy());
 
     public FacadeManager(Main main) {
         this.main = main;
