@@ -36,12 +36,8 @@ public class ChatProxy extends Updatable {
         this.chatsArr.sync(chats, Chat::new, null);
 
         for (Chat chat : chats) {
-            if (chat.messagesArr.getSize() < 150) {
-                for (int i = chat.messagesArr.indexOf(chat.lastPointer) + 1; i < chat.messagesArr.getSize(); i++) {
-                    chat.lastPointer = chat.messagesArr.get(i);
-                    writeToFile(chat.chatName, new Message(chat.lastPointer));
-                }
-            }
+            if (chat.messagesArr.getSize() < 150)
+                chat.messagesArr.forEachIndexed(l -> writeToFile(chat.chatName, new Message(l)));
         }
     }
 
@@ -78,7 +74,6 @@ public class ChatProxy extends Updatable {
         //public List<Message> messages = new ArrayList<>();
 
         private ObjArray messagesArr = ObjArray.ofVector(true);
-        private long lastPointer;
 
         @Override
         public void update() {
