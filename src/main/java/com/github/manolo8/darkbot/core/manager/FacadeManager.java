@@ -31,7 +31,7 @@ public class FacadeManager implements Manager {
     public final BoosterProxy booster = registerProxy("BoosterProxy", new BoosterProxy());
     public final ChatProxy chat = registerProxy("ChatProxy", new ChatProxy());
     //missing highlighted item
-    //public final SlotBarsProxy slotBars = registerProxy("ItemsControlMenuProxy", new SlotBarsProxy());
+    public final SlotBarsProxy slotBars = registerProxy("ItemsControlMenuProxy", new SlotBarsProxy());
 
     private int fps;
     private double memory;

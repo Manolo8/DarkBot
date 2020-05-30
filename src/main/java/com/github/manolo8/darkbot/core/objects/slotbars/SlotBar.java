@@ -29,16 +29,16 @@ public class SlotBar extends MenuBar {
     }
 
     public static class Slot extends UpdatableAuto {
-        public int id;
-        public boolean premium;
+        public int slotNumber;
+        public boolean premium; //not sure
         public String slotBarId;
         public Item item = new Item();
 
         @Override
         public void update() {
-            this.id = API.readMemoryInt(address + 32);
-            this.premium = API.readMemoryBoolean(address + 36); //not sure is correct or nope
-            this.slotBarId = API.readMemoryString(address, 48);
+            this.slotNumber = API.readMemoryInt(address + 32);
+            this.premium    = API.readMemoryBoolean(address + 36);
+            this.slotBarId  = API.readMemoryString(address, 48);
             this.item.update(API.readMemoryLong(address + 40));
         }
     }

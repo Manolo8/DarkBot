@@ -36,8 +36,8 @@ public class ChatProxy extends Updatable {
         this.chatsArr.sync(chats, Chat::new, null);
 
         for (Chat chat : chats) {
-            if (chat.messagesArr.getSize() < 150)
-                chat.messagesArr.forEachIndexed(l -> writeToFile(chat.chatName, new Message(l)));
+            if (chat.messagesArr.getSize() > 150) continue;
+            chat.messagesArr.forEachIndexed(l -> writeToFile(chat.chatName, new Message(l)));
         }
     }
 
