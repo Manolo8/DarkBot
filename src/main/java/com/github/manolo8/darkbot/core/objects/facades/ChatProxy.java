@@ -24,7 +24,7 @@ public class ChatProxy extends Updatable {
     private ObjArray chatsArr = ObjArray.ofVector(true);
     private Map<String, OutputStream> streams = new HashMap<>();
 
-    private int clanLength, nameLength;
+    private int clanLength = 7, nameLength = 10;
 
     @Override
     public void update() {
