@@ -27,16 +27,36 @@ public abstract class SwfPtrCollection extends Updatable {
      */
     public abstract long getPtr(int i);
 
-    public void forEachIndexed(Consumer<Long> consumer) {
+    /**
+     * Iterates over pointers in collection
+     * starting from <b>last iterated + 1</b>
+     * <p>
+     * For example, if collection wasn't changed,
+     * order and pointers are the same,
+     * consumer wont be executed even once.
+     *
+     * @param consumer to execute
+     */
+    public void forEachMemorized(Consumer<Long> consumer) {
         for (int i = indexOf(lastPointer) + 1; i < getSize(); i++)
             consumer.accept(lastPointer = getPtr(i));
     }
 
+    /**
+     * Iterates over all pointers in collection.
+     * @param consumer to execute
+     */
     public void forEach(Consumer<Long> consumer) {
         for (int i = 0; i < getSize(); i++)
             consumer.accept(getPtr(i));
     }
 
+    /**
+     * Search backwards pointer's index in collection
+     *
+     * @param value pointer to search
+     * @return index of pointer or -1 if doesnt exist
+     */
     public int indexOf(long value) {
         for (int i = getSize() - 1; i >= 0; i--)
             if (value == getPtr(i)) return i;

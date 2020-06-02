@@ -10,7 +10,7 @@ public class Item extends UpdatableAuto {
 
     @Override
     public void update() {
-        this.selected    = API.readMemoryBoolean(address + 44);
+        this.selected    = API.readMemoryBoolean(address + 44); //value changes only for category bar
         this.id          = API.readMemoryString(address, 64);
         this.counterType = API.readMemoryString(address, 72);
         this.actionStyle = API.readMemoryString(address, 80);

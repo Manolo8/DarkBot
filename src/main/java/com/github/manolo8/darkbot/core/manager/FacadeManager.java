@@ -10,6 +10,7 @@ import com.github.manolo8.darkbot.core.objects.facades.EscortProxy;
 import com.github.manolo8.darkbot.core.objects.facades.EternalGateProxy;
 import com.github.manolo8.darkbot.core.objects.facades.LogMediator;
 import com.github.manolo8.darkbot.core.objects.facades.SlotBarsProxy;
+import com.github.manolo8.darkbot.core.objects.facades.StatsProxy;
 import com.github.manolo8.darkbot.core.objects.swf.PairArray;
 
 import java.util.ArrayList;
@@ -19,28 +20,21 @@ import static com.github.manolo8.darkbot.Main.API;
 
 public class FacadeManager implements Manager {
     private final Main main;
-    private final PairArray commands  = PairArray.ofArray();
-    private final PairArray proxies   = PairArray.ofArray();
-    private final PairArray mediators = PairArray.ofArray();
+    private final PairArray commands          = PairArray.ofArray();
+    private final PairArray proxies           = PairArray.ofArray();
+    private final PairArray mediators         = PairArray.ofArray();
+    private final List<Updatable> updatables  = new ArrayList<>();
 
-    private final List<Updatable> updatables = new ArrayList<>();
-
-    public final LogMediator log = registerMediator("LogWindowMediator", new LogMediator());
-    public final EscortProxy escort = registerProxy("payload_escort", new EscortProxy());
+    public final LogMediator log              = registerMediator("LogWindowMediator", new LogMediator());
+    public final ChatProxy chat               = registerProxy("ChatProxy", new ChatProxy());
+    public final StatsProxy stats             = registerProxy("StatsProxy", new StatsProxy());
+    public final EscortProxy escort           = registerProxy("payload_escort", new EscortProxy());
+    public final BoosterProxy booster         = registerProxy("BoosterProxy", new BoosterProxy());
+    public final SlotBarsProxy slotBars       = registerProxy("ItemsControlMenuProxy", new SlotBarsProxy());
     public final EternalGateProxy eternalGate = registerProxy("eternal_gate", new EternalGateProxy());
-    public final BoosterProxy booster = registerProxy("BoosterProxy", new BoosterProxy());
-    public final ChatProxy chat = registerProxy("ChatProxy", new ChatProxy());
-    //missing highlighted item
-    public final SlotBarsProxy slotBars = registerProxy("ItemsControlMenuProxy", new SlotBarsProxy());
-
-    private int fps;
-    private double memory;
 
     public FacadeManager(Main main) {
         this.main = main;
-
-        this.proxies.addLazy("StatsProxy", p -> this.fps = API.readMemoryInt(p, 80, 32), false);
-        this.proxies.addLazy("StatsProxy", p -> this.memory = API.readMemoryDouble(p, 80, 56), false);
     }
 
     public <T extends Updatable> T registerCommand(String key, T command) {
@@ -84,13 +78,5 @@ public class FacadeManager implements Manager {
         mediators.update();
 
         updatables.forEach(Updatable::update);
-    }
-
-    public int getFps() {
-        return this.fps;
-    }
-
-    public int getMemory() {
-        return (int) this.memory;
     }
 }
