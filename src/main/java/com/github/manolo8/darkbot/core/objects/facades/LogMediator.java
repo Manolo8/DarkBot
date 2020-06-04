@@ -20,10 +20,10 @@ public class LogMediator extends Updatable {
         messageBuffer.update(API.readMemoryLong(address + 0x60));
         if (messageBuffer.size <= 0 || 50 < messageBuffer.size) return;
 
-        messageBuffer.forEachIncremental(this::print);
+        messageBuffer.forEachIncremental(this::handleLogMessage);
     }
 
-    private void print(long pointer) {
+    private void handleLogMessage(long pointer) {
         String val = API.readMemoryString(API.readMemoryLong(pointer + 0x28));
         if (val != null && !val.trim().isEmpty()) logs.send(val);
     }
