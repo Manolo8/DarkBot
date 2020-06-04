@@ -20,10 +20,10 @@ import static com.github.manolo8.darkbot.Main.API;
 
 public class FacadeManager implements Manager {
     private final Main main;
-    private final PairArray commands          = PairArray.ofArray();
-    private final PairArray proxies           = PairArray.ofArray();
-    private final PairArray mediators         = PairArray.ofArray();
-    private final List<Updatable> updatables  = new ArrayList<>();
+    private final PairArray commands         = PairArray.ofArray();
+    private final PairArray proxies          = PairArray.ofArray();
+    private final PairArray mediators        = PairArray.ofArray();
+    private final List<Updatable> updatables = new ArrayList<>();
 
     public final LogMediator log              = registerMediator("LogWindowMediator", new LogMediator());
     public final ChatProxy chat               = registerProxy("ChatProxy", new ChatProxy());

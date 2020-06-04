@@ -37,7 +37,7 @@ public class ChatProxy extends Updatable {
 
         for (Chat chat : chats) {
             if (chat.messagesArr.getSize() > 150) continue;
-            chat.messagesArr.forEachMemorized(ptr -> writeToFile(chat.chatName, new Message(ptr)));
+            chat.messagesArr.forEachIncremental(ptr -> writeToFile(chat.chatName, new Message(ptr)));
         }
     }
 

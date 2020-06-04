@@ -37,7 +37,7 @@ public abstract class SwfPtrCollection extends Updatable {
      *
      * @param consumer to execute
      */
-    public void forEachMemorized(Consumer<Long> consumer) {
+    public void forEachIncremental(Consumer<Long> consumer) {
         for (int i = indexOf(lastPointer) + 1; i < getSize(); i++)
             consumer.accept(lastPointer = getPtr(i));
     }
