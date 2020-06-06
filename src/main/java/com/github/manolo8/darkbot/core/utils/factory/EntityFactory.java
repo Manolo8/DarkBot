@@ -24,25 +24,26 @@ public enum EntityFactory {
     SHIP        (Ship::new),
     NPC         (Npc::new),
     PORTAL      ("[0-9]+$"),
-    RESOURCE    ("(box|ore)_.*",                  Box::new),
-    MINE        ("mine_.*",                       Box::new),
-    NPC_BEACON  ("npc-beacon.*",                  MapNpc::new),
-    LOW_RELAY   ("relay",                         MapNpc::new),
+    BOX         (Box::new,           "box_.*"),
+    ORE         (Box::new,           "ore_.*"),
+    MINE        (Box::new,           "mine_.*"),
+    NPC_BEACON  (MapNpc::new,        "npc-beacon.*"),
+    LOW_RELAY   (MapNpc::new,        "relay"),
     //Barrier and Mist zone have same class
-    BARRIER     ("NOA|DMG",                       Barrier::new),
+    BARRIER     (Barrier::new,       "NOA|DMG"),
     MIST_ZONE   (NoCloack::new),
-    WRECK_MODULE("wreck",                         BattleStation::new),
-    ASTEROID    ("asteroid|cbs-construction",     BattleStation::new),
-    MODULE      ("module_.*|module-construction", BattleStation::new),
-    STATION     ("battleStation",                 BattleStation::new),
-    BASE_POINT  ("(questgiver|repairstation|headquarters|refinery|hangar|turret|station)_.*", BasePoint::new);
+    WRECK_MODULE(BattleStation::new, "wreck"),
+    ASTEROID    (BattleStation::new, "asteroid|cbs-construction"),
+    MODULE      (BattleStation::new, "module_.*|module-construction"),
+    STATION     (BattleStation::new, "battleStation"),
+    BASE_POINT  (BasePoint::new,     "(questgiver|repairstation|headquarters|refinery|hangar|turret|station)_.*");
 
     private Pattern pattern;
     private Function<Integer, ? extends Entity> constructor;
 
     EntityFactory(Function<Integer, ? extends Entity> constructor) { this.constructor = constructor; }
     EntityFactory(@Language("RegExp") String regex) { this.pattern = Pattern.compile(regex); }
-    EntityFactory(@Language("RegExp") String regex, Function<Integer, ? extends Entity> constructor) {
+    EntityFactory(Function<Integer, ? extends Entity> constructor, @Language("RegExp") String regex) {
         this.pattern     = Pattern.compile(regex);
         this.constructor = constructor;
     }

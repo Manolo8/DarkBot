@@ -33,7 +33,8 @@ public class EntityList extends Updatable {
     public final List<Obstacle> obstacles           = new ArrayList<>();
     public final List<Barrier> barriers             = register(EntityFactory.BARRIER);
     public final List<NoCloack> noCloack            = register(EntityFactory.MIST_ZONE);
-    public final List<Box> boxes                    = register(EntityFactory.RESOURCE, EntityFactory.MINE);
+    public final List<Box> boxes                    = register(EntityFactory.BOX, EntityFactory.ORE);
+    public final List<Box> mines                    = register(EntityFactory.MINE);
     public final List<Npc> npcs                     = register(EntityFactory.NPC, EntityFactory.LOW_RELAY);
     public final List<Portal> portals               = register(EntityFactory.PORTAL);
     public final List<Ship> ships                   = register(EntityFactory.SHIP);
