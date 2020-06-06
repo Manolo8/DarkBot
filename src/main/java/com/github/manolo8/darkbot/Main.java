@@ -85,6 +85,7 @@ public class Main extends Thread implements PluginListener {
 
     private String moduleId;
     private List<Behaviour> behaviours = new ArrayList<>();
+    private List<Runnable> invalidTickListeners = new ArrayList<>();
 
     private volatile boolean running;
 
@@ -135,12 +136,18 @@ public class Main extends Thread implements PluginListener {
         }
     }
 
+    public void addInvalidTickListener(Runnable action) {
+        this.invalidTickListeners.add(action);
+    }
+
     private void tick() {
         this.status.tick();
         checkModule();
 
-        if (isInvalid()) tickingModule = false;
-        else validTick();
+        if (isInvalid()) {
+            tickingModule = false;
+            invalidTickListeners.forEach(Runnable::run);
+        } else validTick();
 
         this.form.tick();
         this.configManager.saveChangedConfig();

@@ -15,9 +15,8 @@ public class BattleStation
     public Area area;
     public int hullId;
 
-    public BattleStation(int id, int hullId) {
+    public BattleStation(int id) {
         super(id);
-        this.hullId = hullId;
 
         this.info = new PlayerInfo();
         this.area = new Area(0, 0, 0, 0);
@@ -44,6 +43,7 @@ public class BattleStation
     public void update(long address) {
         super.update(address);
 
+        hullId = API.readMemoryInt(address + 116);
         info.update(API.readMemoryLong(address + 120));
     }
 
