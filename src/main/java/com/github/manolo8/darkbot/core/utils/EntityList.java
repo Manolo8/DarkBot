@@ -38,8 +38,8 @@ public class EntityList extends Updatable {
     public final List<Npc> npcs                     = register(EntityFactory.NPC, EntityFactory.LOW_RELAY);
     public final List<Portal> portals               = register(EntityFactory.PORTAL);
     public final List<Ship> ships                   = register(EntityFactory.SHIP);
-    public final List<BattleStation> battleStations = register(EntityFactory.WRECK_MODULE, EntityFactory.ASTEROID, EntityFactory.MODULE, EntityFactory.STATION);
-    public final List<BasePoint> basePoints         = register(EntityFactory.BASE_POINT);
+    public final List<BattleStation> battleStations = register(EntityFactory.CBS_WRECK_MODULE, EntityFactory.CBS_ASTEROID, EntityFactory.CBS_MODULE, EntityFactory.CBS_STATION);
+    public final List<BasePoint> basePoints         = register(EntityFactory.BASE_HANGAR, EntityFactory.BASE_STATION, EntityFactory.HEADQUARTER, EntityFactory.QUEST_GIVER);
     public final List<Entity> unknown               = register(EntityFactory.UNKNOWN);
     public final FakeNpc fakeNpc;
 
@@ -100,7 +100,7 @@ public class EntityList extends Updatable {
             long entityPtr = entitiesArr.get(i);
 
             int id = API.readMemoryInt(entityPtr + 56);
-            if (ids.add(id)) entityListener.send(entityPtr, id);
+            if (ids.add(id)) entityListener.sendEntity(entityPtr, id);
         }
     }
 

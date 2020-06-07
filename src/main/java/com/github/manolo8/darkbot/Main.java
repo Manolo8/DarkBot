@@ -55,6 +55,8 @@ public class Main extends Thread implements PluginListener {
             .registerTypeAdapterFactory(new SpecialTypeAdapter())
             .create();
 
+    private List<Runnable> invalidTickListeners = new ArrayList<>();
+
     public ConfigManager configManager = new ConfigManager();
     public Config config = configManager.loadConfig(null);
     public static IDarkBotAPI API;
@@ -85,7 +87,6 @@ public class Main extends Thread implements PluginListener {
 
     private String moduleId;
     private List<Behaviour> behaviours = new ArrayList<>();
-    private List<Runnable> invalidTickListeners = new ArrayList<>();
 
     private volatile boolean running;
 
