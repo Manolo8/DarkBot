@@ -40,6 +40,8 @@ public class EntityListener {
 
     public void sendEntity(long address, int id) {
         EntityFactory type = getEntityType(address, id).get(address);
+        if (type == EntityFactory.NONE) return;
+
         Entity entity;
 
         if (type == EntityFactory.PORTAL) entity = getOrCreatePortal(address, id);

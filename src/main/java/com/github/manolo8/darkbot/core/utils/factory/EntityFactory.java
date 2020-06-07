@@ -28,6 +28,7 @@ public enum EntityFactory {
 
     LOW_RELAY (MapNpc::new, "relay"),
     NPC_BEACON(MapNpc::new, "npc-beacon.*"),
+    SPACE_BALL(MapNpc::new, "mapIcon_spaceball"),
 
     CBS_ASTEROID    (BattleStation::new, "asteroid"),
     CBS_CONSTRUCTION(BattleStation::new, "cbs-construction"),
@@ -37,7 +38,6 @@ public enum EntityFactory {
     CBS_STATION     (BattleStation::new, "battleStation"),
 
     POD_HEAL        (BasePoint::new, "pod_heal"),
-    SPACE_BALL      (BasePoint::new, "mapIcon_spaceball"),
     BUFF_CAPSULE    (BasePoint::new, "buffCapsule_.*"),
     BURNING_TRAIL   (BasePoint::new, "burning_trail_entity_.*"),
     PLUTUS_GENERATOR(BasePoint::new, "plutus-generator"),
@@ -59,12 +59,14 @@ public enum EntityFactory {
 
     PET    (Pet::new),
     PORTAL ("[0-9]+$"),
-    UNKNOWN(Entity::new);
+    UNKNOWN(Entity::new),
+    NONE();
 
     private Pattern pattern;
     private Function<Long, EntityFactory> customType;
     private Function<Integer, ? extends Entity> constructor;
 
+    EntityFactory() { this(null, null, null); }
     EntityFactory(@Language("RegExp") String regex) { this(null, regex); }
     EntityFactory(Function<Integer, ? extends Entity> constructor) { this(constructor, null, null); }
     EntityFactory(Function<Integer, ? extends Entity> constructor, @Language("RegExp") String regex) { this(constructor, null, regex); }
@@ -105,7 +107,7 @@ public enum EntityFactory {
         int isNpc = API.readMemoryInt(address + 112);
 
         return isNpc == 1 ? NPC : isNpc == 0 && address != HeroManager.instance.address &&
-                address != HeroManager.instance.pet.address ? SHIP : UNKNOWN; //fix
+                address != HeroManager.instance.pet.address ? SHIP : NONE; //fix
     }
 
     private static String getZoneKey(long address) {
