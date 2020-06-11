@@ -8,8 +8,10 @@ import com.github.manolo8.darkbot.core.entities.BattleStation;
 import com.github.manolo8.darkbot.core.entities.Box;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.entities.FakeNpc;
+import com.github.manolo8.darkbot.core.entities.Mine;
 import com.github.manolo8.darkbot.core.entities.NoCloack;
 import com.github.manolo8.darkbot.core.entities.Npc;
+import com.github.manolo8.darkbot.core.entities.Pet;
 import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.Ship;
 import com.github.manolo8.darkbot.core.itf.Obstacle;
@@ -34,17 +36,18 @@ public class EntityList extends Updatable {
     public final List<Barrier> barriers             = register(EntityFactory.BARRIER);
     public final List<NoCloack> noCloack            = register(EntityFactory.MIST_ZONE);
     public final List<Box> boxes                    = register(EntityFactory.BOX, EntityFactory.ORE);
-    public final List<Box> mines                    = register(EntityFactory.MINE);
+    public final List<Mine> mines                   = register(EntityFactory.MINE);
     public final List<Npc> npcs                     = register(EntityFactory.NPC, EntityFactory.LOW_RELAY);
     public final List<Portal> portals               = register(EntityFactory.PORTAL);
-    public final List<Ship> ships                   = register(EntityFactory.SHIP);
-    public final List<BattleStation> battleStations = register(EntityFactory.CBS_WRECK_MODULE, EntityFactory.CBS_ASTEROID, EntityFactory.CBS_MODULE, EntityFactory.CBS_STATION);
-    public final List<BasePoint> basePoints         = register(EntityFactory.BASE_HANGAR, EntityFactory.BASE_STATION, EntityFactory.HEADQUARTER, EntityFactory.QUEST_GIVER);
+    public final List<Ship> ships                   = register(EntityFactory.SHIP, EntityFactory.PET);
+    public final List<Pet> pets                     = register(EntityFactory.PET);
+    public final List<BattleStation> battleStations = register(EntityFactory.CBS_WRECK_MODULE, EntityFactory.CBS_ASTEROID, EntityFactory.CBS_MODULE, EntityFactory.CBS_STATION, EntityFactory.CBS_MODULE_CON, EntityFactory.CBS_CONSTRUCTION);
+    public final List<BasePoint> basePoints         = register(EntityFactory.BASE_HANGAR, EntityFactory.BASE_STATION, EntityFactory.HEADQUARTER, EntityFactory.QUEST_GIVER, EntityFactory.BASE_TURRET, EntityFactory.REPAIR_STATION, EntityFactory.REFINERY);
     public final List<Entity> unknown               = register(EntityFactory.UNKNOWN);
     public final FakeNpc fakeNpc;
 
     public final List<List<? extends Entity>> allEntities =
-            Arrays.asList(barriers, noCloack, boxes, npcs, portals, ships, battleStations, basePoints, unknown);
+            Arrays.asList(barriers, noCloack, boxes, mines, npcs, portals, ships, pets, battleStations, basePoints, unknown);
 
     private final Main main;
     private final Set<Integer> ids = new HashSet<>();
@@ -100,7 +103,7 @@ public class EntityList extends Updatable {
             long entityPtr = entitiesArr.get(i);
 
             int id = API.readMemoryInt(entityPtr + 56);
-            if (ids.add(id)) entityListener.sendEntity(entityPtr, id);
+            if (ids.add(id)) entityListener.sendEntity(id, entityPtr);
         }
     }
 
@@ -154,6 +157,7 @@ public class EntityList extends Updatable {
     private void clear() {
         synchronized (Main.UPDATE_LOCKER) {
             ids.clear();
+            entityListener.clearUnknownCache();
 
             obstacles.clear();
             fakeNpc.removed();

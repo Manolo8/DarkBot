@@ -2,7 +2,6 @@ package com.github.manolo8.darkbot.core.utils.factory;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.Entity;
-import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 
 import java.util.EnumMap;
@@ -33,41 +32,35 @@ public class EntityListener {
         if (!cachedTypes.isEmpty()) cachedTypes.clear();
     }
 
+    //workaround for 5-2 station Class was recognized as unknown on x-1, x-8 map
+    public void clearUnknownCache() {
+        if (cachedTypes.isEmpty()) return;
+        cachedTypes.entrySet().removeIf(entry -> entry.getValue() == EntityFactory.UNKNOWN);
+    }
+
     public void setMain(Main main) {
         if (this.main == null) this.main = main;
     }
 
+    public void sendEntity(int id, long address) {
+        EntityFactory type = getEntityType(id, address); //need to know where to send entity
+        if (type == EntityFactory.NONE || address == main.hero.address || address == main.hero.pet.address) return;
 
-    public void sendEntity(long address, int id) {
-        EntityFactory type = getEntityType(address, id).get(address);
-        if (type == EntityFactory.NONE) return;
-
-        Entity entity;
-
-        if (type == EntityFactory.PORTAL) entity = getOrCreatePortal(address, id);
-        else entity = type.createEntity(id);
-
+        Entity entity = type.createEntity(id, address);
         entity.added(main);
-        entity.update(address);
         entity.update();
+
         if (main.isRunning()) entity.clickable.setRadius(0);
 
         getListener(type).send(entity);
     }
 
-    private EntityFactory getEntityType(long address, int id) {
-        return cachedTypes.computeIfAbsent(API.readMemoryLong(address + 0x10), l -> EntityFactory.find(address, id));
+    private EntityFactory getEntityType(int id, long address) {
+        return cachedTypes.computeIfAbsent(API.readMemoryLong(address + 0x10),
+                                           l -> EntityFactory.find(id, address)).get(address);
     }
 
     private Lazy<Entity> getListener(EntityFactory type) {
         return this.listeners.computeIfAbsent(type, k -> new Lazy.NoCache<>());
-    }
-
-    private Portal getOrCreatePortal(long address, int id) {
-        int portalType = API.readMemoryInt(address + 112);
-        int x = (int) API.readMemoryDouble(address, 64, 32);
-        int y = (int) API.readMemoryDouble(address, 64, 40);
-
-        return main.starManager.getOrCreate(id, portalType, x, y);
     }
 }

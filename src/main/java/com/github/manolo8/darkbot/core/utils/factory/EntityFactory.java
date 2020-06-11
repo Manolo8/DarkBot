@@ -6,14 +6,17 @@ import com.github.manolo8.darkbot.core.entities.BattleStation;
 import com.github.manolo8.darkbot.core.entities.Box;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.entities.MapNpc;
+import com.github.manolo8.darkbot.core.entities.Mine;
 import com.github.manolo8.darkbot.core.entities.NoCloack;
 import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.entities.Pet;
+import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.Ship;
-import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.utils.ByteUtils;
 import org.intellij.lang.annotations.Language;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -22,7 +25,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public enum EntityFactory {
     BOX      (Box::new,       "box_.*"),
     ORE      (Box::new,       "ore_.*"),
-    MINE     (Box::new,       "mine_.*"),
+    MINE     (Mine::new,      "mine_.*"),
     FIREWORK (Entity::new,    "firework_box"),
     X2_BEACON(BasePoint::new, "beacon_.*"),
 
@@ -51,6 +54,8 @@ public enum EntityFactory {
     QUEST_GIVER   (BasePoint::new, "questgiver_.*"),
     REPAIR_STATION(BasePoint::new, "repairstation_.*"),
 
+    PORTAL(EntityFactory::getOrCreatePortal, "[0-9]+$"),
+
     BARRIER  (Barrier::new, EntityFactory::defineZoneType, "NOA|DMG"),
     MIST_ZONE(NoCloack::new),
 
@@ -58,20 +63,18 @@ public enum EntityFactory {
     NPC (Npc::new),
 
     PET    (Pet::new),
-    PORTAL ("[0-9]+$"),
     UNKNOWN(Entity::new),
     NONE();
 
     private Pattern pattern;
     private Function<Long, EntityFactory> customType;
-    private Function<Integer, ? extends Entity> constructor;
+    private BiFunction<Integer, Long, ? extends Entity> constructor;
 
     EntityFactory() { this(null, null, null); }
-    EntityFactory(@Language("RegExp") String regex) { this(null, regex); }
-    EntityFactory(Function<Integer, ? extends Entity> constructor) { this(constructor, null, null); }
-    EntityFactory(Function<Integer, ? extends Entity> constructor, @Language("RegExp") String regex) { this(constructor, null, regex); }
-    EntityFactory(Function<Integer, ? extends Entity> constructor, Function<Long, EntityFactory> customType) { this(constructor, customType, null); }
-    EntityFactory(Function<Integer, ? extends Entity> constructor, Function<Long, EntityFactory> customType, @Language("RegExp") String regex) {
+    EntityFactory(BiFunction<Integer, Long, Entity> constructor) { this(constructor, null, null); }
+    EntityFactory(BiFunction<Integer, Long, Entity> constructor, @Language("RegExp") String regex) { this(constructor, null, regex); }
+    EntityFactory(BiFunction<Integer, Long, Entity> constructor, Function<Long, EntityFactory> customType) { this(constructor, customType, null); }
+    EntityFactory(BiFunction<Integer, Long, Entity> constructor, Function<Long, EntityFactory> customType, @Language("RegExp") String regex) {
         this.constructor = constructor;
         this.customType  = customType;
         if (regex != null) this.pattern = Pattern.compile(regex);
@@ -81,11 +84,11 @@ public enum EntityFactory {
         return this.customType != null ? this.customType.apply(address) : this;
     }
 
-    public Entity createEntity(int id) {
-        return this.constructor != null ? this.constructor.apply(id) : new Entity(id);
+    public Entity createEntity(int id, long address) {
+        return this.constructor != null ? this.constructor.apply(id, address) : new Entity(id, address);
     }
 
-    public static EntityFactory find(long address, int id) {
+    public static EntityFactory find(int id, long address) {
         String assetId = getAssetId(address);
         System.out.println(assetId + " | " + getZoneKey(address));
 
@@ -100,14 +103,12 @@ public enum EntityFactory {
 
     private static EntityFactory defineZoneType(long address) {
         String key = getZoneKey(address);
-        return (key.equals("NOA")) ? BARRIER : key.equals("DMG") ? MIST_ZONE : UNKNOWN;
+        return key.equals("NOA") ? BARRIER : key.equals("DMG") ? MIST_ZONE : UNKNOWN;
     }
 
     private static EntityFactory defineShipType(long address) {
         int isNpc = API.readMemoryInt(address + 112);
-
-        return isNpc == 1 ? NPC : isNpc == 0 && address != HeroManager.instance.address &&
-                address != HeroManager.instance.pet.address ? SHIP : NONE; //fix
+        return isNpc == 1 ? NPC : isNpc == 0 ? SHIP : UNKNOWN;
     }
 
     private static String getZoneKey(long address) {
@@ -131,5 +132,16 @@ public enum EntityFactory {
 
         return id > 0 && (isNpc == 1 || isNpc == 0) &&
                 (visible == 1 || visible == 0) && (c == 1 || c == 0) && d == 0;
+    }
+
+    private static Portal getOrCreatePortal(int id, long address) {
+        int portalType = API.readMemoryInt(address + 112);
+        int x = (int) API.readMemoryDouble(address, 64, 32);
+        int y = (int) API.readMemoryDouble(address, 64, 40);
+
+        Portal portal = StarManager.getInstance().getOrCreate(id, portalType, x, y);
+        portal.update(address);
+
+        return portal;
     }
 }

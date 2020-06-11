@@ -11,15 +11,13 @@ public class BattleStation
         extends Entity
         implements Obstacle {
 
-    public PlayerInfo info;
-    public Area area;
+    public PlayerInfo info = new PlayerInfo();
+    public Area area = new Area(0, 0, 0, 0);
     public int hullId;
 
-    public BattleStation(int id) {
+    public BattleStation(int id, long address) {
         super(id);
-
-        this.info = new PlayerInfo();
-        this.area = new Area(0, 0, 0, 0);
+        this.update(address);
     }
 
     @Override
