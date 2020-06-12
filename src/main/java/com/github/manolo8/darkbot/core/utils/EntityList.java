@@ -21,33 +21,32 @@ import com.github.manolo8.darkbot.core.utils.factory.EntityFactory;
 import com.github.manolo8.darkbot.core.utils.factory.EntityListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.github.manolo8.darkbot.Main.API;
+import static com.github.manolo8.darkbot.core.utils.factory.EntityFactory.*;
 
 public class EntityList extends Updatable {
-    private final EntityListener entityListener = new EntityListener();
+    private final EntityListener entityListener           = new EntityListener();
 
-    public final List<Obstacle> obstacles           = new ArrayList<>();
-    public final List<Barrier> barriers             = register(EntityFactory.BARRIER);
-    public final List<NoCloack> noCloack            = register(EntityFactory.MIST_ZONE);
-    public final List<Box> boxes                    = register(EntityFactory.BOX, EntityFactory.ORE);
-    public final List<Mine> mines                   = register(EntityFactory.MINE);
-    public final List<Npc> npcs                     = register(EntityFactory.NPC, EntityFactory.LOW_RELAY);
-    public final List<Portal> portals               = register(EntityFactory.PORTAL);
-    public final List<Ship> ships                   = register(EntityFactory.SHIP, EntityFactory.PET);
-    public final List<Pet> pets                     = register(EntityFactory.PET);
-    public final List<BattleStation> battleStations = register(EntityFactory.CBS_WRECK_MODULE, EntityFactory.CBS_ASTEROID, EntityFactory.CBS_MODULE, EntityFactory.CBS_STATION, EntityFactory.CBS_MODULE_CON, EntityFactory.CBS_CONSTRUCTION);
-    public final List<BasePoint> basePoints         = register(EntityFactory.BASE_HANGAR, EntityFactory.BASE_STATION, EntityFactory.HEADQUARTER, EntityFactory.QUEST_GIVER, EntityFactory.BASE_TURRET, EntityFactory.REPAIR_STATION, EntityFactory.REFINERY);
-    public final List<Entity> unknown               = register(EntityFactory.UNKNOWN);
+    public final List<Obstacle> obstacles                 = new ArrayList<>();
+    public final List<List<? extends Entity>> allEntities = new ArrayList<>();
+
+    public final List<Barrier> barriers             = register(BARRIER);
+    public final List<NoCloack> noCloack            = register(MIST_ZONE);
+    public final List<Box> boxes                    = register(BOX, ORE);
+    public final List<Mine> mines                   = register(MINE);
+    public final List<Npc> npcs                     = register(NPC, LOW_RELAY);
+    public final List<Portal> portals               = register(PORTAL);
+    public final List<Ship> ships                   = register(SHIP, PET);
+    public final List<Pet> pets                     = register(PET);
+    public final List<BattleStation> battleStations = register(CBS_ASTEROID, CBS_MODULE, CBS_STATION, CBS_MODULE_CON, CBS_CONSTRUCTION);
+    public final List<BasePoint> basePoints         = register(BASE_HANGAR, BASE_STATION, HEADQUARTER, QUEST_GIVER, BASE_TURRET, REPAIR_STATION, REFINERY);
+    public final List<Entity> unknown               = register(UNKNOWN);
     public final FakeNpc fakeNpc;
-
-    public final List<List<? extends Entity>> allEntities =
-            Arrays.asList(barriers, noCloack, boxes, mines, npcs, portals, ships, pets, battleStations, basePoints, unknown);
 
     private final Main main;
     private final Set<Integer> ids = new HashSet<>();
@@ -67,34 +66,31 @@ public class EntityList extends Updatable {
         this.main.addInvalidTickListener(entityListener::clearCache);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends Entity> List<T> register(EntityFactory... types) {
-        List <T> list = new ArrayList<>();
-        for (EntityFactory type : types)
-            this.entityListener.add(type, e -> list.add((T) e));
-
-        return list;
-    }
-
     @Override
     public void update() {
         synchronized (Main.UPDATE_LOCKER) {
             removeAllInvalidEntities();
-
             refreshEntities();
-
             updatePing(main.mapManager.pingLocation, main.guiManager.pet.getTrackedNpc());
         }
-
     }
 
     @Override
     public void update(long address) {
         super.update(address);
+        this.clear();
+        this.entitiesArr.update(API.readMemoryLong(address + 40));
+    }
 
-        entitiesArr.update(API.readMemoryLong(address + 40));
+    @SuppressWarnings("unchecked")
+    private <T extends Entity> List<T> register(EntityFactory... types) {
+        List<T> list = new ArrayList<>();
+        this.allEntities.add(list);
 
-        clear();
+        for (EntityFactory type : types)
+            this.entityListener.add(type, e -> list.add((T) e));
+
+        return list;
     }
 
     private void refreshEntities() {
@@ -107,36 +103,20 @@ public class EntityList extends Updatable {
         }
     }
 
-    private void whenRemove(Entity entity) {
-        entity.removed();
-    }
-
     private void removeAllInvalidEntities() {
         main.hero.pet.removed = main.hero.pet.isInvalid(address);
 
-        for (List<? extends Entity> entities : allEntities) {
-            for (int i = 0; i < entities.size(); i++) {
-                Entity entity = entities.get(i);
+        this.allEntities.forEach(entities -> entities.removeIf(entity -> {
+            if (entity.isInvalid(address) || entity.address == main.hero.address || entity.address == main.hero.pet.address) {
+                ids.remove(entity.id);
+                entity.removed();
+                return true;
+            } else entity.update();
 
-                if (entity.isInvalid(address) ||
-                        entity.address == main.hero.address || entity.address == main.hero.pet.address) {
-                    entities.remove(i);
-                    ids.remove(entity.id);
-                    whenRemove(entity);
-                    i--;
-                } else {
-                    entity.update();
-                }
-            }
-        }
+            return false;
+        }));
 
-        for (int i = 0; i < obstacles.size(); i++) {
-            Obstacle obstacle = obstacles.get(i);
-            if (obstacle.isRemoved()) {
-                obstacles.remove(i);
-                i--;
-            }
-        }
+        this.obstacles.removeIf(Obstacle::isRemoved);
     }
 
     public void updatePing(Location location, NpcInfo info) {
@@ -149,9 +129,7 @@ public class EntityList extends Updatable {
     }
 
     private void doInEachEntity(Consumer<Entity> consumer) {
-        for (List<? extends Entity> entities : allEntities) {
-            entities.forEach(consumer);
-        }
+        allEntities.forEach(entities -> entities.forEach(consumer));
     }
 
     private void clear() {
@@ -162,10 +140,10 @@ public class EntityList extends Updatable {
             obstacles.clear();
             fakeNpc.removed();
 
-            for (List<? extends Entity> entities : allEntities) {
-                for (Entity entity : entities) entity.removed();
+            allEntities.forEach(entities -> {
+                entities.forEach(Entity::removed);
                 entities.clear();
-            }
+            });
         }
     }
 

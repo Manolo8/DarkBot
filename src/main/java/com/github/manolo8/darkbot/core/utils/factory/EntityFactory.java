@@ -23,52 +23,51 @@ import java.util.regex.Pattern;
 import static com.github.manolo8.darkbot.Main.API;
 
 public enum EntityFactory {
-    BOX      (Box::new,       "box_.*"),
-    ORE      (Box::new,       "ore_.*"),
-    MINE     (Mine::new,      "mine_.*"),
-    FIREWORK (Entity::new,    "firework_box"),
-    X2_BEACON(BasePoint::new, "beacon_.*"),
+    BOX             (Box::new,           "box_.*"),
+    ORE             (Box::new,           "ore_.*"),
+    MINE            (Mine::new,          "mine_.*"),
+    FIREWORK        (Entity::new,        "firework_box"),
+    X2_BEACON       (BasePoint::new,     "beacon_.*"),
 
-    LOW_RELAY (MapNpc::new, "relay"),
-    NPC_BEACON(MapNpc::new, "npc-beacon.*"),
-    SPACE_BALL(MapNpc::new, "mapIcon_spaceball"),
+    LOW_RELAY       (MapNpc::new,        "relay"),
+    NPC_BEACON      (MapNpc::new,        "npc-beacon.*"),
+    SPACE_BALL      (MapNpc::new,        "mapIcon_spaceball"),
 
     CBS_ASTEROID    (BattleStation::new, "asteroid"),
     CBS_CONSTRUCTION(BattleStation::new, "cbs-construction"),
-    CBS_MODULE      (BattleStation::new, "module_.*"),
+    CBS_MODULE      (BattleStation::new, "wreck|module_.*"), // addr+112 moduleType string
     CBS_MODULE_CON  (BattleStation::new, "module-construction"),
-    CBS_WRECK_MODULE(BattleStation::new, "wreck"),
     CBS_STATION     (BattleStation::new, "battleStation"),
 
-    POD_HEAL        (BasePoint::new, "pod_heal"),
-    BUFF_CAPSULE    (BasePoint::new, "buffCapsule_.*"),
-    BURNING_TRAIL   (BasePoint::new, "burning_trail_entity_.*"),
-    PLUTUS_GENERATOR(BasePoint::new, "plutus-generator"),
+    POD_HEAL        (BasePoint::new,     "pod_heal"),
+    BUFF_CAPSULE    (BasePoint::new,     "buffCapsule_.*"),
+    BURNING_TRAIL   (BasePoint::new,     "burning_trail_entity_.*"),
+    PLUTUS_GENERATOR(BasePoint::new,     "plutus-generator"),
 
-    REFINERY      (BasePoint::new, "refinery_.*"),
-    HOME_ZONE     (BasePoint::new, "ctbHomeZone_.*"),
-    BASE_TURRET   (BasePoint::new, "turret_.*"),
-    BASE_HANGAR   (BasePoint::new, "hangar_.*"),
-    BASE_STATION  (BasePoint::new, "station_.*"),
-    HEADQUARTER   (BasePoint::new, "headquarters_.*"),
-    QUEST_GIVER   (BasePoint::new, "questgiver_.*"),
-    REPAIR_STATION(BasePoint::new, "repairstation_.*"),
+    REFINERY        (BasePoint::new,     "refinery_.*"),
+    HOME_ZONE       (BasePoint::new,     "ctbHomeZone_.*"),
+    BASE_TURRET     (BasePoint::new,     "turret_.*"),
+    BASE_HANGAR     (BasePoint::new,     "hangar_.*"),
+    BASE_STATION    (BasePoint::new,     "station_.*"),
+    HEADQUARTER     (BasePoint::new,     "headquarters_.*"),
+    QUEST_GIVER     (BasePoint::new,     "questgiver_.*"),
+    REPAIR_STATION  (BasePoint::new,     "repairstation_.*"),
 
-    PORTAL(EntityFactory::getOrCreatePortal, "[0-9]+$"),
+    PORTAL   (EntityFactory::getOrCreatePortal, "[0-9]+$"),
 
     BARRIER  (Barrier::new, EntityFactory::defineZoneType, "NOA|DMG"),
     MIST_ZONE(NoCloack::new),
 
-    SHIP(Ship::new, EntityFactory::defineShipType),
-    NPC (Npc::new),
+    SHIP     (Ship::new, EntityFactory::defineShipType),
+    NPC      (Npc::new),
 
-    PET    (Pet::new),
-    UNKNOWN(Entity::new),
+    PET      (Pet::new),
+    UNKNOWN  (Entity::new),
     NONE();
 
-    private Pattern pattern;
-    private Function<Long, EntityFactory> customType;
-    private BiFunction<Integer, Long, ? extends Entity> constructor;
+    private final Pattern pattern;
+    private final Function<Long, EntityFactory> customType;
+    private final BiFunction<Integer, Long, ? extends Entity> constructor;
 
     EntityFactory() { this(null, null, null); }
     EntityFactory(BiFunction<Integer, Long, Entity> constructor) { this(constructor, null, null); }
@@ -77,25 +76,24 @@ public enum EntityFactory {
     EntityFactory(BiFunction<Integer, Long, Entity> constructor, Function<Long, EntityFactory> customType, @Language("RegExp") String regex) {
         this.constructor = constructor;
         this.customType  = customType;
-        if (regex != null) this.pattern = Pattern.compile(regex);
+        this.pattern     = regex == null ? null : Pattern.compile(regex);
     }
 
     public EntityFactory get(long address) {
-        return this.customType != null ? this.customType.apply(address) : this;
+        return this.customType == null ? this : this.customType.apply(address);
     }
 
     public Entity createEntity(int id, long address) {
-        return this.constructor != null ? this.constructor.apply(id, address) : new Entity(id, address);
+        return this.constructor == null ? new Entity(id, address) : this.constructor.apply(id, address);
     }
 
     public static EntityFactory find(int id, long address) {
         String assetId = getAssetId(address);
-        System.out.println(assetId + " | " + getZoneKey(address));
 
         for (EntityFactory type : EntityFactory.values()) {
             if (type.pattern == null) continue;
-            if (type.pattern.matcher(type == BARRIER ?
-                    getZoneKey(address) : assetId).matches()) return type;
+            if (type.pattern.matcher(type == BARRIER ? getZoneKey(address) :
+                                             assetId).matches()) return type;
         }
 
         return isPet(address) ? PET : isShip(address, id) ? SHIP : UNKNOWN;
@@ -136,8 +134,8 @@ public enum EntityFactory {
 
     private static Portal getOrCreatePortal(int id, long address) {
         int portalType = API.readMemoryInt(address + 112);
-        int x = (int) API.readMemoryDouble(address, 64, 32);
-        int y = (int) API.readMemoryDouble(address, 64, 40);
+        int x          = (int) API.readMemoryDouble(address, 64, 32);
+        int y          = (int) API.readMemoryDouble(address, 64, 40);
 
         Portal portal = StarManager.getInstance().getOrCreate(id, portalType, x, y);
         portal.update(address);

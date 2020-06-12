@@ -43,7 +43,7 @@ public class EntityListener {
     }
 
     public void sendEntity(int id, long address) {
-        EntityFactory type = getEntityType(id, address); //need to know where to send entity
+        EntityFactory type = getEntityType(id, address);
         if (type == EntityFactory.NONE || address == main.hero.address || address == main.hero.pet.address) return;
 
         Entity entity = type.createEntity(id, address);
