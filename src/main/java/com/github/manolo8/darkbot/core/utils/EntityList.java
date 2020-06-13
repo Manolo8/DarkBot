@@ -106,12 +106,18 @@ public class EntityList extends Updatable {
     private void removeAllInvalidEntities() {
         main.hero.pet.removed = main.hero.pet.isInvalid(address);
 
-        this.allEntities.forEach(entities -> entities.removeIf(entity -> {
-            if (entity.isInvalid(address) || entity.address == main.hero.address || entity.address == main.hero.pet.address) {
-                ids.remove(entity.id);
-                entity.removed();
-                return true;
-            } else entity.update();
+        for (List<? extends Entity> entities : allEntities) {
+            // Remove invalid entities and update valid ones
+            entities.removeIf(entity -> {
+                if (entity.isInvalid(address) || entity.address == main.hero.address || entity.address == main.hero.pet.address) {
+                    ids.remove(entity.id);
+                    entity.removed();
+                    return true;
+                } 
+                entity.update();
+                return false;
+            });
+        }
 
             return false;
         }));
