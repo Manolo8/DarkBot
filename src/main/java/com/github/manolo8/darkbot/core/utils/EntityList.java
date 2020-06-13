@@ -119,8 +119,6 @@ public class EntityList extends Updatable {
             });
         }
 
-            return false;
-        }));
 
         this.obstacles.removeIf(Obstacle::isRemoved);
     }
