@@ -19,7 +19,7 @@ public class ChrominProxy extends Updatable {
         long data = API.readMemoryLong(address + 48) & ByteUtils.FIX;
 
         this.maxAmt = API.readMemoryDouble(data + 48);
-        updateChromin(API.readMemoryDouble(data + 40));
+        this.currAmt = API.readMemoryDouble(data + 40);
     }
 
 }
