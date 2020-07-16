@@ -8,7 +8,6 @@ import static com.github.manolo8.darkbot.Main.API;
 public class ChrominProxy extends Updatable {
 
     public double currAmt, maxAmt;
-    public double earnedAmt;
 
     public ChrominProxy() { this.currAmt = -1.0D; }
 
