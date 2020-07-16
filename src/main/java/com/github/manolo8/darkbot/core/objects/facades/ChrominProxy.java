@@ -24,12 +24,4 @@ public class ChrominProxy extends Updatable {
         //this.currAmt = API.readMemoryDouble(data + 40);
     }
 
-    public void updateChromin(double amt) {
-        double diff = amt - currAmt;
-
-        if (this.currAmt >= 0.0D && diff > 0.0D)
-            earnedAmt += diff;
-
-        this.currAmt = amt;
-    }
 }
