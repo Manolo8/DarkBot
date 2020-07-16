@@ -9,8 +9,6 @@ public class ChrominProxy extends Updatable {
 
     public double currAmt, maxAmt;
 
-    public ChrominProxy() { this.currAmt = -1.0D; }
-
     @Override
     public void update() {
         if (address == 0) return;
