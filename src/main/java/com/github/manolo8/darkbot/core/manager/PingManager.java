@@ -64,7 +64,7 @@ public class PingManager implements Manager {
     }
 
     private void searchPingManager() {
-        Arrays.stream(API.queryMemoryLong(1000, 10_000))
+        Arrays.stream(API.queryMemoryLong(15000, 10_000))
                 .unordered()
                 .parallel()
                 .filter(val -> API.readMemoryInt(val + 16) == 0)
