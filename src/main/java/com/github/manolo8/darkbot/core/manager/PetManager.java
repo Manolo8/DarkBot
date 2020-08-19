@@ -191,7 +191,10 @@ public class PetManager extends Gui {
             case SUB_DROPDOWN:
                 selection = ModuleStatus.SELECTED;
                 if (submoduleIdx != -1)
-                    click(MODULES_X_MAX + 100, MODULE_Y + 35 + (22 * moduleIdToIndex(moduleId)) + (22 * submoduleIdx));
+                    if (this.main.hero.map.id == 306 || this.main.hero.map.id == 307 || this.main.hero.map.id == 308)
+                        click(MODULES_X_MAX + 100, MODULE_Y + 25 + (22 * moduleIdToIndex(moduleId)) + (22 * submoduleIdx));
+                    else
+                        click(MODULES_X_MAX + 100, MODULE_Y + 35 + (22 * moduleIdToIndex(moduleId)) + (22 * submoduleIdx));
         }
 
         if (selection == ModuleStatus.SELECTED)
