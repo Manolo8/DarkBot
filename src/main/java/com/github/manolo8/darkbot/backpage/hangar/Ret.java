@@ -13,6 +13,10 @@ public class Ret {
     @SerializedName("itemInfo") private List<ItemInfo> itemInfos;
     @SerializedName("shipInfo") private List<ShipInfo> shipInfos;
 
+    public int[] getTypeFilters(FilterType type) {
+        return getFilters().get(type.toString());
+    }
+
     public Map<String, int[]> getFilters() {
         return filters;
     }
@@ -42,5 +46,22 @@ public class Ret {
                 ", itemInfos=" + itemInfos +
                 ", shipInfos=" + shipInfos +
                 '}';
+    }
+
+    public enum FilterType {
+        AMMUNITION,
+        DRONE_RELATED,
+        EXTRAS,
+        GENERATORS,
+        MODULES,
+        PET_RELATED,
+        RESOURCES,
+        SHIP_UPGRADES,
+        WEAPONS;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 }

@@ -1,9 +1,13 @@
 package com.github.manolo8.darkbot.backpage.hangar;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
+
 public class Data {
     private Ret ret;
     private Money money;
-    private Map  map;
+    @Nullable public Map<String, String[]> map;
 
     public Ret getRet() {
         return ret;
@@ -13,16 +17,11 @@ public class Data {
         return money;
     }
 
-    public Map getMap() {
-        return map;
-    }
-
     @Override
     public String toString() {
         return "Data{" +
                 "ret=" + ret +
                 ", money=" + money +
-                ", map=" + map +
                 '}';
     }
 }

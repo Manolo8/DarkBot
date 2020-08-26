@@ -8,6 +8,10 @@ public class Equipment {
     @SerializedName("EQ")
     private Map<String, int[]> equipped;
 
+    public int[] getEquippedOfType(String type) {
+        return getEquipped().get(type);
+    }
+
     public Map<String, int[]> getEquipped() {
         return equipped;
     }

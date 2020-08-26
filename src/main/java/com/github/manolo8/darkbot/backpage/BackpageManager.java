@@ -24,6 +24,7 @@ public class BackpageManager extends Thread {
     private static final String[] ACTIONS = new String[]{
             "internalStart", "internalDock", "internalAuction", "internalGalaxyGates", "internalPilotSheet"};
 
+    public final HangaManager hangaManager;
     public final HangarManager hangarManager;
     public final GalaxyManager galaxyManager;
 
@@ -40,6 +41,7 @@ public class BackpageManager extends Thread {
     public BackpageManager(Main main) {
         super("BackpageManager");
         this.main = main;
+        this.hangaManager = new HangaManager(this);
         this.hangarManager = new HangarManager(main, this);
         this.galaxyManager = new GalaxyManager(main);
         setDaemon(true);
@@ -60,6 +62,8 @@ public class BackpageManager extends Thread {
                 sidStatus = -1;
                 continue;
             }
+
+            this.hangaManager.tick();
 
             if (System.currentTimeMillis() > sidNextUpdate) {
                 int waitTime = sidCheck();

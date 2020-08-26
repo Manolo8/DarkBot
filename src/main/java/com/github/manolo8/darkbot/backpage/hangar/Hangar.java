@@ -13,24 +13,24 @@ import java.util.stream.Collectors;
 
 public class Hangar {
     @SerializedName("hangarID") private int hangarId;
-    @SerializedName("hangar_is_active") private boolean hangarActive;
-    @SerializedName("config") private Map<String, Config> configs;
+    @SerializedName("hangar_is_active") private boolean active;
+    @SerializedName("config") private Map<String, Configuration> configurations;
     private General general;
 
     public int getHangarId() {
         return hangarId;
     }
 
-    public boolean isHangarActive() {
-        return hangarActive;
+    public boolean isActive() {
+        return active;
     }
 
-    public Config getConfig(int config) {
-        return getConfigs().get(String.valueOf(config));
+    public Configuration getConfiguration(int config) {
+        return getConfigurations().get(String.valueOf(config));
     }
 
-    public Map<String, Config> getConfigs() {
-        return configs;
+    public Map<String, Configuration> getConfigurations() {
+        return configurations;
     }
 
     public General getGeneral() {
@@ -41,8 +41,8 @@ public class Hangar {
     public String toString() {
         return "Hangar{" +
                 "hangarId=" + hangarId +
-                ", hangarIsActive=" + hangarActive +
-                ", configs=" + configs +
+                ", active=" + active +
+                ", configurations=" + configurations +
                 ", general=" + general +
                 '}';
     }

@@ -2,7 +2,7 @@ package com.github.manolo8.darkbot.backpage.hangar;
 
 import java.util.Map;
 
-public class Config {
+public class Configuration {
     private Equipment ship;
     private Map<String, Equipment> drones;
     private Equipment pet;
@@ -11,6 +11,13 @@ public class Config {
         return ship;
     }
 
+    public Equipment getDrone(String id) {
+        return getDrones().get(id);
+    }
+
+    /**
+     * Key is the ID of the drone.
+     */
     public Map<String, Equipment> getDrones() {
         return drones;
     }
