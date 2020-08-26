@@ -1,5 +1,6 @@
 package com.github.manolo8.darkbot.backpage;
 
+import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.hangar.Hangar;
 import com.github.manolo8.darkbot.backpage.hangar.HangarResponse;
 import com.github.manolo8.darkbot.core.itf.Tickable;
@@ -14,6 +15,8 @@ import java.io.InputStream;
 
 public class HangaManager implements Tickable {
     private final Gson gson = new Gson();
+
+    private final Main main;
     private final BackpageManager backpage;
 
     private HangarResponse hangarList;
@@ -23,7 +26,8 @@ public class HangaManager implements Tickable {
     private long hangarListUpdatedUntil, currentHangarUpdatedUntil;
 
 
-    public HangaManager(BackpageManager backpage) {
+    public HangaManager(Main main, BackpageManager backpage) {
+        this.main = main;
         this.backpage = backpage;
     }
 
@@ -94,7 +98,7 @@ public class HangaManager implements Tickable {
         hangarObj.addProperty("hi", hangarId);
         paramObj.add("params", hangarObj);
 
-        return deserializeHangar(getInputStream("getHangarList", paramObj));
+        return deserializeHangar(getInputStream("getHangar", paramObj));
     }
 
     public InputStream getInputStream(String action, JsonObject json) throws IOException {
@@ -111,8 +115,8 @@ public class HangaManager implements Tickable {
         if (hangar.getData().map != null) {
             String[] lootIds = hangar.getData().map.get("lootIds");
 
-            for (int i = 0; i < lootIds.length; i++)
-                hangar.getData().getRet().getItemInfos().get(i).setLocalizationId(lootIds[i]);
+            hangar.getData().getRet().getItemInfos()
+                    .forEach(itemInfo -> itemInfo.setLocalizationId(lootIds[itemInfo.getLootId()]));
 
             hangar.getData().map = null;
         }

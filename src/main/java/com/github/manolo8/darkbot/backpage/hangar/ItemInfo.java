@@ -2,6 +2,10 @@ package com.github.manolo8.darkbot.backpage.hangar;
 
 import com.google.gson.annotations.SerializedName;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +23,10 @@ public class ItemInfo extends Item {
         return localizationId;
     }
 
+    public void setLocalizationId(String localizationId) {
+        this.localizationId = localizationId;
+    }
+
     public String getCategory() {
         return category;
     }
@@ -27,8 +35,15 @@ public class ItemInfo extends Item {
         return levels;
     }
 
-    public void setLocalizationId(String localizationId) {
-        this.localizationId = localizationId;
+    // ["30x30", "100x100", "top"]
+    public BufferedImage getBufferedImage(String type) {
+        try {
+            return ImageIO.read(new URL("http://www.darkorbit.com/do_img/global/items/"
+                    + getLocalizationId().replace("_", "/") + "_" + type + ".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
