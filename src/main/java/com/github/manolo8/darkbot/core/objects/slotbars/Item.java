@@ -7,7 +7,7 @@ import static com.github.manolo8.darkbot.Main.API;
 public class Item extends UpdatableAuto {
     // Use it only if isInCooldown() == true
     public final ItemTimer itemTimer = new ItemTimer();
-    
+
     public double quantity;
     public boolean selected, buyable, activatable, available, visible;
     public String id, counterType, actionStyle, iconLootId;
@@ -41,8 +41,8 @@ public class Item extends UpdatableAuto {
         super.update(address);
     }
 
-    public boolean isInCooldown() {
-        return this.itemTimer.address != 0;
+    public boolean isReady() {
+        return this.itemTimer.address == 0;
     }
 
     //Object doesnt exist on "ready" state
