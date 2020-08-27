@@ -5,7 +5,7 @@ import com.github.manolo8.darkbot.core.itf.UpdatableAuto;
 import static com.github.manolo8.darkbot.Main.API;
 
 public class Item extends UpdatableAuto {
-    // Use it only if isInCooldown() == true
+    // Use it only if isReady() == false
     public final ItemTimer itemTimer = new ItemTimer();
 
     public double quantity;
