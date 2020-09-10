@@ -24,7 +24,7 @@ public class Http {
     protected final boolean followRedirects;
 
     //Discord doesn't handle java's user agent...
-    protected String userAgent = "Mozilla/5.0";
+    protected String userAgent = "BigpointClient/1.1.0";
     protected ParamBuilder params;
     protected List<Runnable> suppliers;
     protected Map<String, String> headers = new LinkedHashMap<>();
