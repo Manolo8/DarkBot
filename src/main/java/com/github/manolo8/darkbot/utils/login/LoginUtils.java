@@ -81,8 +81,8 @@ public class LoginUtils {
         Http req = Http.create("https://" + loginData.getUrl() + "/indexInternal.es?action=internalMapRevolution", false)
                 .setRawHeader("Cookie", "dosid=" + loginData.getSid());
 
-        if (ConfigEntity.INSTANCE.getConfig().BOT_SETTINGS.SPOOF_CLIENT)
-            req.setUserAgent("BigpointClient/1.1.0");
+        if (ConfigEntity.INSTANCE.getConfig().BOT_SETTINGS.USE_CUSTOM_USERAGENT)
+            req.setUserAgent(ConfigEntity.INSTANCE.getConfig().BOT_SETTINGS.CUSTOM_USERAGENT);
 
         String flashEmbed = req.consumeInputStream(inputStream ->
                 new BufferedReader(new InputStreamReader(inputStream))
