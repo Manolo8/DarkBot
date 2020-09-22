@@ -151,6 +151,10 @@ public class GuiManager implements Manager {
     private boolean tryRevive() {
         if (System.currentTimeMillis() - lastRepair > 10000) {
             deaths++;
+            long respawnId = main.config.GENERAL.SAFETY.REVIVE_LOCATION;
+            if (!main.repairManager.canRespawn((int)respawnId)) {
+                respawnId = main.repairManager.getRespawnOptionsIds()[0];
+            }
             API.writeMemoryLong(repairAddress + 32, main.config.GENERAL.SAFETY.REVIVE_LOCATION);
             API.mouseClick(MapManager.clientWidth / 2, (MapManager.clientHeight / 2) + 190);
             lastRepair = System.currentTimeMillis();
