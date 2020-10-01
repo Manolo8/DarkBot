@@ -36,19 +36,14 @@ public class PetManager extends Gui {
     private Ship target;
     private boolean enabled = false;
 
-    private final ObjArray guiSprites = ObjArray.ofSprite();
-
-    private final ObjArray modulesArr = ObjArray.ofArrObj();
-    private final ObjArray currentArr = ObjArray.ofArrObj();
-    private final ObjArray currSpriteWrapper = ObjArray.ofSprite();
-    private final ObjArray currSprite = ObjArray.ofSprite();
-
     private final ObjArray gearsArr = ObjArray.ofArrObj();
     private final List<Gear> gearList = new ArrayList<>();
 
     private final ObjArray locatorWrapper = ObjArray.ofArrObj(), locatorNpcList = ObjArray.ofArrObj();
     private final List<Gear> locatorList = new ArrayList<>();
 
+    private final ObjArray petBuffsSpriteArray = ObjArray.ofSprite();
+    private final List<Integer> petBuffsIds = new ArrayList<>();
 
     private ModuleStatus selection = ModuleStatus.NOTHING;
     private Gear currentModule;   // The Module used, like Passive mode, kamikaze, or enemy locator
@@ -214,11 +209,46 @@ public class PetManager extends Gui {
         super.update();
         if (address == 0) return;
 
-        guiSprites.update(address);
-        long gearsSprite = API.readMemoryLong(guiSprites.getLast() + 216);
-        gearsArr.update(API.readMemoryLong(API.readMemoryLong(gearsSprite + 176) + 224));
+        //update gearsList
+        long gearsSprite = getSpriteChild(address, -1); //read gui sprite
+        gearsArr.update(API.readMemoryLong(gearsSprite, 176, 224));
         gearsArr.sync(gearList, Gear::new, null);
 
+        //update locator npcs list
+        updateLocator(gearsSprite);
+
+        //update current module
+        updateCurrentModule();
+
+        //update pet buffs
+        updatePetBuffs();
+    }
+
+    private void updatePetBuffs() {
+        long temp = getSpriteElement(54, 70);
+        temp = getSpriteChild(temp, 0);
+
+        petBuffsIds.clear();
+        petBuffsSpriteArray.update(temp);
+
+        petBuffsSpriteArray.forEach(addr -> petBuffsIds.add(API.readMemoryInt(addr, 216 , 168)));
+    }
+
+    private void updateCurrentModule() {
+        long temp = getSpriteElement(54, 72);
+        temp = API.readMemoryLong(getSpriteChild(temp, 0), 176); //get first sprite child then read 176 offset
+
+        long currGearCheck = API.readMemoryLong(getSpriteChild(temp, 1), 152, 16);
+
+        currentModule = findGear(gearList, currGearCheck);
+        if (currentModule != null) currentSubModule = null;
+        else {
+            currentSubModule = findGear(locatorList, currGearCheck);
+            if (currentSubModule != null) currentModule = byId(currentSubModule.parentId);
+        }
+    }
+
+    private void updateLocator(long gearsSprite) {
         locatorWrapper.update(API.readMemoryLong(gearsSprite + 168));
 
         int oldSize = locatorNpcList.getSize();
@@ -230,28 +260,6 @@ public class PetManager extends Gui {
 
         validUntil = System.currentTimeMillis() + 100;
         locatorNpcList.sync(locatorList, Gear::new, null);
-
-        modulesArr.update(API.readMemoryLong(address + 400));
-
-        for (int i = 0; i < modulesArr.getSize(); i++) {
-            if (API.readMemoryInt(modulesArr.get(i) + 172) != 54) continue;
-            currentArr.update(API.readMemoryLong(modulesArr.get(i) + 184));
-            break;
-        }
-        for (int i = 0; i < currentArr.getSize(); i++) {
-            if (API.readMemoryInt(currentArr.get(i) + 168) != 72) continue;
-            currSpriteWrapper.update(currentArr.get(i));
-            break;
-        }
-        currSprite.update(API.readMemoryLong(API.readMemoryLong(currSpriteWrapper.get(0) + 216) + 176));
-        long currGearCheck = API.readMemoryLong(currSprite.get(1), 216, 152, 0x10);
-
-        currentModule = findGear(gearList, currGearCheck);
-        if (currentModule != null) currentSubModule = null;
-        else {
-            currentSubModule = findGear(locatorList, currGearCheck);
-            if (currentSubModule != null) currentModule = byId(currentSubModule.parentId);
-        }
     }
 
     private void updateGear(Gear module, Gear subModule) {
