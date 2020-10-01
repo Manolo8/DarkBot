@@ -113,11 +113,20 @@ public class Gui extends Updatable {
      * @param childIndex set -1 to get last.
      */
     public long getSpriteChild(long spriteAddress, int childIndex) {
+        return API.readMemoryLong(getSpriteChildWrapper(spriteAddress, childIndex), 216);
+    }
+
+    /**
+     * Get child of sprite wrapped in a object
+     * index of sprite must be known.
+     *
+     * @param childIndex set -1 to get last.
+     */
+    public long getSpriteChildWrapper(long spriteAddress, int childIndex) {
         if (tempChildArray == null) tempChildArray = ObjArray.ofSprite();
 
         tempChildArray.update(spriteAddress);
-        return API.readMemoryLong(childIndex == -1 ?
-                tempChildArray.getLast() : tempChildArray.getPtr(childIndex), 216);
+        return childIndex != -1 ? tempChildArray.getPtr(childIndex) : tempChildArray.getLast();
     }
 
     /**
@@ -125,9 +134,13 @@ public class Gui extends Updatable {
      */
     public long getSpriteElement(int elementsListId, int elementId) {
         long listAddr = getElementsList(elementsListId);
-        if (listAddr == 0) return 0;
+        return getSpriteElement(listAddr, elementId);
+    }
 
-        tempArray.update(API.readMemoryLong(listAddr, 184));
+    public long getSpriteElement(long elementsListAddress, int elementId) {
+        if (elementsListAddress == 0) return 0;
+
+        tempArray.update(API.readMemoryLong(elementsListAddress, 184));
         for (int i = 0; i < tempArray.getSize(); i++)
             if (API.readMemoryInt(tempArray.getPtr(i), 168) == elementId)
                 return tempArray.get(i);

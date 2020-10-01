@@ -53,6 +53,7 @@ public class PetManager extends Gui {
 
     private Integer gearOverride = null;
     private long gearOverrideTime = 0;
+    private boolean petRepaired;
 
     private enum ModuleStatus {
         NOTHING,
@@ -217,15 +218,33 @@ public class PetManager extends Gui {
         //update locator npcs list
         updateLocator(gearsSprite);
 
+        long elementsListAddress = getElementsList(54);
         //update current module
-        updateCurrentModule();
+        updateCurrentModule(elementsListAddress);
 
         //update pet buffs
-        updatePetBuffs();
+        updatePetBuffs(elementsListAddress);
+
+        //update petRepaired
+        long element = getSpriteElement(elementsListAddress, 67);
+        petRepaired = API.readMemoryLong(getSpriteChildWrapper(element, 0), 0x148) == 0;
     }
 
-    private void updatePetBuffs() {
-        long temp = getSpriteElement(54, 70);
+    // TODO: 01.10.2020 needs more testing.
+    public boolean isPetRepaired() {
+        return petRepaired;
+    }
+
+    public boolean haveBuff(PetBuff buff) {
+        return haveBuff(buff.getId());
+    }
+
+    public boolean haveBuff(int buffId) {
+        return petBuffsIds.contains(buffId);
+    }
+
+    private void updatePetBuffs(long elementsListAddress) {
+        long temp = getSpriteElement(elementsListAddress, 70);
         temp = getSpriteChild(temp, 0);
 
         petBuffsIds.clear();
@@ -234,8 +253,8 @@ public class PetManager extends Gui {
         petBuffsSpriteArray.forEach(addr -> petBuffsIds.add(API.readMemoryInt(addr, 216 , 168)));
     }
 
-    private void updateCurrentModule() {
-        long temp = getSpriteElement(54, 72);
+    private void updateCurrentModule(long elementsListAddress) {
+        long temp = getSpriteElement(elementsListAddress, 72);
         temp = API.readMemoryLong(getSpriteChild(temp, 0), 176); //get first sprite child then read 176 offset
 
         long currGearCheck = API.readMemoryLong(getSpriteChild(temp, 1), 152, 16);
@@ -292,4 +311,20 @@ public class PetManager extends Gui {
         }
     }
 
+    public enum PetBuff {
+        SINGULARITY,
+        SPEED_LEECH,
+        TRADE,
+        WEAKEN_SHIELD,
+        KAMIKAZE_CD,
+        COMBO_REPAIR_CD,
+        FRIENDLY_SACRIFICE,
+        RETARGETING_CD,
+        HP_LINK_CD,
+        MEGA_MINE_CD;
+
+        public int getId() {
+            return ordinal() + 1;
+        }
+    }
 }
