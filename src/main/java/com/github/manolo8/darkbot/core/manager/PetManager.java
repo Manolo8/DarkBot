@@ -234,11 +234,11 @@ public class PetManager extends Gui {
         return petRepaired;
     }
 
-    public boolean haveBuff(PetBuff buff) {
-        return haveBuff(buff.getId());
+    public boolean hasBuff(PetBuff buff) {
+        return hasBuff(buff.getId());
     }
 
-    public boolean haveBuff(int buffId) {
+    public boolean hasBuff(int buffId) {
         return petBuffsIds.contains(buffId);
     }
 
