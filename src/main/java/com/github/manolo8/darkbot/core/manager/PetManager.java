@@ -42,7 +42,6 @@ public class PetManager extends Gui {
     private final ObjArray locatorWrapper = ObjArray.ofArrObj(), locatorNpcList = ObjArray.ofArrObj();
     private final List<Gear> locatorList = new ArrayList<>();
 
-    private final ObjArray petBuffsSpriteArray = ObjArray.ofSprite();
     private final List<Integer> petBuffsIds = new ArrayList<>();
 
     private ModuleStatus selection = ModuleStatus.NOTHING;
@@ -248,9 +247,7 @@ public class PetManager extends Gui {
         temp = getSpriteChild(temp, 0);
 
         petBuffsIds.clear();
-        petBuffsSpriteArray.update(temp);
-
-        petBuffsSpriteArray.forEach(addr -> petBuffsIds.add(API.readMemoryInt(addr, 216 , 168)));
+        forEachSpriteChild(temp, l -> petBuffsIds.add(API.readMemoryInt(l + 168)));
     }
 
     private void updateCurrentModule(long elementsListAddress) {

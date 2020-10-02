@@ -4,6 +4,8 @@ import com.github.manolo8.darkbot.core.itf.Updatable;
 import com.github.manolo8.darkbot.core.manager.MapManager;
 import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 
+import java.util.function.Consumer;
+
 import static com.github.manolo8.darkbot.Main.API;
 
 public class Gui extends Updatable {
@@ -105,6 +107,19 @@ public class Gui extends Updatable {
 
     public boolean isAnimationDone() {
         return !isTweening && System.currentTimeMillis() - 1000 > time;
+    }
+
+    /**
+     * Doing action for each child of sprite after reading a wrapper.
+     *
+     * @param spriteAddress address of Sprite or object which extends Sprite
+     * @param consumer to be executed every child.
+     */
+    public void forEachSpriteChild(long spriteAddress, Consumer<Long> consumer) {
+        if (tempChildArray == null) tempChildArray = ObjArray.ofSprite();
+
+        tempChildArray.update(spriteAddress);
+        tempChildArray.forEach(l -> consumer.accept(API.readMemoryLong(l, 216)));
     }
 
     /**
