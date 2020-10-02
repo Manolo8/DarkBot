@@ -86,8 +86,7 @@ public class Gui extends Updatable {
 
     public boolean show(boolean value) {
         if (trySetShowing(value)) {
-            if (value && minimized.address != 0) API.mouseClick((int) minimized.x + 5, (int) minimized.y + 5);
-            else if (!value) click(5, 5);
+            if (minimized.address != 0) API.mouseClick((int) minimized.x + 5, (int) minimized.y + 5);
             return false;
         }
         return isAnimationDone();
