@@ -2,4 +2,7 @@
 /target
 /test
 /out
+/lib
+/config*
+/credentials.json
 dependency-reduced-pom.xml
