@@ -19,7 +19,6 @@ public class Pet extends Ship {
         id = API.readMemoryInt(address + 56);
         level = API.readMemoryInt(address, 0x130, 0x28, 0x28);
         playerId = API.readMemoryInt(address, 0x130, 0x30, 0x28);
-        // randomBoolValue = API.readMemoryBoolean(address, 0x130, 0x38, 0x20);
     }
 
     @Override
@@ -29,6 +28,11 @@ public class Pet extends Ship {
         clickable.setRadius(0);
     }
 
-    public int getLevel() { return level; }
-    public int getPlayerId() { return playerId; }
+    public int getLevel() {
+        return level;
+    }
+
+    public int getPlayerId() {
+        return playerId;
+    }
 }

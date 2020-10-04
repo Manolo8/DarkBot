@@ -11,7 +11,12 @@ import com.github.manolo8.darkbot.core.itf.UpdatableAuto;
 import com.github.manolo8.darkbot.core.objects.Gui;
 import com.github.manolo8.darkbot.core.objects.swf.ObjArray;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.github.manolo8.darkbot.Main.API;
 
@@ -294,8 +299,13 @@ public class PetManager extends Gui {
     public class PetStats {
         private double curr, total;
 
-        public double getCurr() { return curr; }
-        public double getTotal() { return total; }
+        public double getCurr() {
+            return curr;
+        }
+
+        public double getTotal() {
+            return total;
+        }
 
         PetStats(PetManager.PetStatsType petStatsType) {
             this.curr = 0;
